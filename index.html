@@ -110,10 +110,6 @@
                 <button class="icon-btn" id="settingsToggle" title="阅读设置">
                     <i data-lucide="settings-2"></i>
                 </button>
-                <button class="icon-btn" id="themeToggle" title="切换主题">
-                    <i data-lucide="sun" class="theme-icon sun"></i>
-                    <i data-lucide="moon" class="theme-icon moon"></i>
-                </button>
             </div>
         </div>
     </header>
@@ -131,34 +127,6 @@
         </div>
         
         <div class="sidebar-content">
-            <!-- Width Setting -->
-            <div class="setting-group">
-                <label class="setting-label">
-                    <i data-lucide="move-horizontal" class="setting-icon"></i>
-                    <span>内容宽度</span>
-                </label>
-                <div class="setting-control">
-                    <input type="range" id="widthSlider" min="500" max="1200" value="720" step="20">
-                    <span class="setting-value" id="widthValue">720px</span>
-                </div>
-            </div>
-
-            <!-- Font Family Setting -->
-            <div class="setting-group">
-                <label class="setting-label">
-                    <i data-lucide="type" class="setting-icon"></i>
-                    <span>正文字体</span>
-                </label>
-                <div class="setting-control">
-                    <select id="fontSelect" class="setting-select">
-                        <option value="Noto Sans SC, Source Han Sans CN, sans-serif">思源黑体</option>
-                        <option value="Noto Serif SC, Source Han Serif CN, serif">思源宋体</option>
-                        <option value="LXGW WenKai, sans-serif">霞鹜文楷</option>
-                        <option value="system-ui, -apple-system, sans-serif">系统字体</option>
-                    </select>
-                </div>
-            </div>
-
             <!-- Font Size Setting -->
             <div class="setting-group">
                 <label class="setting-label">
@@ -176,6 +144,47 @@
                 </div>
             </div>
 
+            <!-- Font Family Setting -->
+            <div class="setting-group">
+                <label class="setting-label">
+                    <i data-lucide="type" class="setting-icon"></i>
+                    <span>正文字体</span>
+                </label>
+                <select id="fontSelect" class="setting-select">
+                    <option value="Noto Sans SC, Source Han Sans CN, sans-serif">思源黑体</option>
+                    <option value="Noto Serif SC, Source Han Serif CN, serif">思源宋体</option>
+                    <option value="LXGW WenKai, sans-serif">霞鹜文楷</option>
+                    <option value="system-ui, -apple-system, sans-serif">系统字体</option>
+                </select>
+            </div>
+
+            <!-- Theme Toggle Setting -->
+            <div class="setting-group">
+                <label class="setting-label">
+                    <i data-lucide="sun" class="setting-icon theme-icon-sun"></i>
+                    <i data-lucide="moon" class="setting-icon theme-icon-moon"></i>
+                    <span>外观主题</span>
+                </label>
+                <div class="setting-control">
+                    <button class="theme-btn" id="themeToggle">
+                        <span class="theme-label-light">明亮模式</span>
+                        <span class="theme-label-dark">黑暗模式</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Width Setting -->
+            <div class="setting-group">
+                <label class="setting-label">
+                    <i data-lucide="move-horizontal" class="setting-icon"></i>
+                    <span>内容宽度</span>
+                </label>
+                <div class="setting-control">
+                    <input type="range" id="widthSlider" min="500" max="1200" value="1000" step="20">
+                    <span class="setting-value" id="widthValue">720px</span>
+                </div>
+            </div>
+
             <!-- Line Height Setting -->
             <div class="setting-group">
                 <label class="setting-label">
@@ -185,6 +194,18 @@
                 <div class="setting-control">
                     <input type="range" id="lineHeightSlider" min="1.4" max="2.4" value="1.9" step="0.1">
                     <span class="setting-value" id="lineHeightValue">1.9</span>
+                </div>
+            </div>
+
+            <!-- Background Opacity Setting -->
+            <div class="setting-group">
+                <label class="setting-label">
+                    <i data-lucide="droplet" class="setting-icon"></i>
+                    <span>背景透明度</span>
+                </label>
+                <div class="setting-control">
+                    <input type="range" id="bgOpacitySlider" min="0" max="100" value="100" step="5">
+                    <span class="setting-value" id="bgOpacityValue">100%</span>
                 </div>
             </div>
 
@@ -220,42 +241,42 @@
                 <!-- Artistic Patterns -->
                 <div class="bg-panel" id="artisticPanel">
                     <div class="bg-grid">
-                        <button class="bg-option artistic" data-bg="artistic" data-pattern="dots" title="圆点" 
-                            style="background-color:#FAFAF8; background-image: radial-gradient(circle, #ccc 1px, transparent 1px); background-size: 20px 20px;"></button>
-                        <button class="bg-option artistic" data-bg="artistic" data-pattern="lines" title="横线" 
-                            style="background-color:#FAFAF8; background-image: repeating-linear-gradient(0deg, transparent, transparent 27px, #e0e0e0 28px); background-size: 100% 28px;"></button>
-                        <button class="bg-option artistic" data-bg="artistic" data-pattern="grid" title="网格" 
-                            style="background-color:#FAFAF8; background-image: linear-gradient(#e0e0e0 1px, transparent 1px), linear-gradient(90deg, #e0e0e0 1px, transparent 1px); background-size: 20px 20px;"></button>
-                        <button class="bg-option artistic" data-bg="artistic" data-pattern="diamond" title="菱形" 
-                            style="background-color:#FAFAF8; background-image: linear-gradient(45deg, #e8e8e8 25%, transparent 25%), linear-gradient(-45deg, #e8e8e8 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #e8e8e8 75%), linear-gradient(-45deg, transparent 75%, #e8e8e8 75%); background-size: 20px 20px; background-position: 0 0, 0 10px, 10px -10px, -10px 0px;"></button>
+                        <button class="bg-option artistic" data-bg="artistic" data-pattern="hexagon" title="六边形拓扑" 
+                            style="background-color:#FAFAF8; background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxOCIgaGVpZ2h0PSIyMCIgdmlld0JveD0iLTkgLTEwIDE4IDIwIj48cGF0aCBkPSJNMCAtMTBMOC42NiAtNUw4LjY2IDVMMCAxMEwtOC42NiA1TC04LjY2IC01WiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZDBkMGQwIiBzdHJva2Utd2lkdGg9IjAuOCIvPjxjaXJjbGUgY3g9IjAiIGN5PSItMTAiIHI9IjEuNSIgZmlsbD0iI2QwZDBkMCIvPjxjaXJjbGUgY3g9IjguNjYiIGN5PSItNSIgcj0iMS41IiBmaWxsPSIjZDBkMGQwIi8+PGNpcmNsZSBjeD0iOC42NiIgY3k9IjUiIHI9IjEuNSIgZmlsbD0iI2QwZDBkMCIvPjxjaXJjbGUgY3g9IjAiIGN5PSIxMCIgcj0iMS41IiBmaWxsPSIjZDBkMGQwIi8+PGNpcmNsZSBjeD0iLTguNjYiIGN5PSI1IiByPSIxLjUiIGZpbGw9IiNkMGQwZDAiLz48Y2lyY2xlIGN4PSItOC42NiIgY3k9Ii01IiByPSIxLjUiIGZpbGw9IiNkMGQwZDAiLz48L3N2Zz4='); background-size: 18px 20px;"></button>
+                        <button class="bg-option artistic" data-bg="artistic" data-pattern="triangle" title="三角形拓扑" 
+                            style="background-color:#FAFAF8; background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIzNSIgdmlld0JveD0iMCAwIDIwIDM1Ij48cGF0aCBkPSJNMTAgMEwyMCAxNy4zMkwwIDE3LjMyWiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZDBkMGQwIiBzdHJva2Utd2lkdGg9IjAuOCIvPjxwYXRoIGQ9Ik0wIDE3LjMyTDIwIDE3LjMyTDEwIDM0LjY0WiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZDBkMGQwIiBzdHJva2Utd2lkdGg9IjAuOCIvPjxjaXJjbGUgY3g9IjEwIiBjeT0iMCIgcj0iMS41IiBmaWxsPSIjZDBkMGQwIi8+PGNpcmNsZSBjeD0iMjAiIGN5PSIxNy4zMiIgcj0iMS41IiBmaWxsPSIjZDBkMGQwIi8+PGNpcmNsZSBjeD0iMCIgY3k9IjE3LjMyIiByPSIxLjUiIGZpbGw9IiNkMGQwZDAiLz48Y2lyY2xlIGN4PSIxMCIgY3k9IjM0LjY0IiByPSIxLjUiIGZpbGw9IiNkMGQwZDAiLz48L3N2Zz4='); background-size: 20px 35px;"></button>
+                        <button class="bg-option artistic" data-bg="artistic" data-pattern="diamond" title="菱形拓扑" 
+                            style="background-color:#FAFAF8; background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MCIgaGVpZ2h0PSI4MCIgdmlld0JveD0iMCAwIDgwIDgwIj48cGF0aCBkPSJNNDAgMEw4MCA0MEw0MCA4MEwwIDQwWiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZDBkMGQwIiBzdHJva2Utd2lkdGg9IjAuOCIvPjxjaXJjbGUgY3g9IjQwIiBjeT0iMCIgcj0iMiIgZmlsbD0iI2QwZDBkMCIvPjxjaXJjbGUgY3g9IjgwIiBjeT0iNDAiIHI9IjIiIGZpbGw9IiNkMGQwZDAiLz48Y2lyY2xlIGN4PSI0MCIgY3k9IjgwIiByPSIyIiBmaWxsPSIjZDBkMGQwIi8+PGNpcmNsZSBjeD0iMCIgY3k9IjQwIiByPSIyIiBmaWxsPSIjZDBkMGQwIi8+PC9zdmc+'); background-size: 80px 80px;"></button>
+                        <button class="bg-option artistic" data-bg="artistic" data-pattern="nodes" title="节点连线" 
+                            style="background-color:#FAFAF8; background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MCIgaGVpZ2h0PSI4MCIgdmlld0JveD0iMCAwIDgwIDgwIj48bGluZSB4MT0iMCIgeTE9IjAiIHgyPSI4MCIgeTI9IjgwIiBzdHJva2U9IiNkMGQwZDAiIHN0cm9rZS13aWR0aD0iMC44Ii8+PGxpbmUgeDE9IjgwIiB5MT0iMCIgeDI9IjAiIHkyPSI4MCIgc3Ryb2tlPSIjZDBkMGQwIiBzdHJva2Utd2lkdGg9IjAuOCIvPjxsaW5lIHgxPSI0MCIgeTE9IjAiIHgyPSI0MCIgeTI9IjgwIiBzdHJva2U9IiNkMGQwZDAiIHN0cm9rZS13aWR0aD0iMC44Ii8+PGxpbmUgeDE9IjAiIHkxPSI0MCIgeDI9IjgwIiB5Mj0iNDAiIHN0cm9rZT0iI2QwZDBkMCIgc3Ryb2tlLXdpZHRoPSIwLjgiLz48Y2lyY2xlIGN4PSIwIiBjeT0iMCIgcj0iMyIgZmlsbD0iI2QwZDBkMCIvPjxjaXJjbGUgY3g9IjgwIiBjeT0iMCIgcj0iMyIgZmlsbD0iI2QwZDBkMCIvPjxjaXJjbGUgY3g9IjAiIGN5PSI4MCIgcj0iMyIgZmlsbD0iI2QwZDBkMCIvPjxjaXJjbGUgY3g9IjgwIiBjeT0iODAiIHI9IjMiIGZpbGw9IiNkMGQwZDAiLz48Y2lyY2xlIGN4PSI0MCIgY3k9IjQwIiByPSIzIiBmaWxsPSIjZDBkMGQwIi8+PGNpcmNsZSBjeD0iNDAiIGN5PSIwIiByPSIyIiBmaWxsPSIjZDBkMGQwIi8+PGNpcmNsZSBjeD0iNDAiIGN5PSI4MCIgcj0iMiIgZmlsbD0iI2QwZDBkMCIvPjxjaXJjbGUgY3g9IjAiIGN5PSI0MCIgcj0iMiIgZmlsbD0iI2QwZDBkMCIvPjxjaXJjbGUgY3g9IjgwIiBjeT0iNDAiIHI9IjIiIGZpbGw9IiNkMGQwZDAiLz48L3N2Zz4='); background-size: 80px 80px;"></button>
                     </div>
                 </div>
 
                 <!-- Chinese Style Patterns -->
                 <div class="bg-panel" id="chinesePanel">
                     <div class="bg-grid">
-                        <button class="bg-option chinese" data-bg="chinese" data-pattern="cloud" title="云纹" 
-                            style="background-color:#F5F5DC; background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgdmlld0JveD0iMCAwIDYwIDYwIj48Y2lyY2xlIGN4PSIzMCIgY3k9IjMwIiByPSIyMCIgZmlsbD0iI2M0YzRiMCIgb3BhY2l0eT0iMC4zIi8+PHBhdGggZD0iTTMwIDI1YzcuMDggMCAxMy01LjcyIDEzLTEzbC0xMyAwIDEzIDV6Ii8+PC9zdmc+'); background-size: 60px 60px;"></button>
-                        <button class="bg-option chinese" data-bg="chinese" data-pattern="wave" title="水波" 
-                            style="background-color:#E3F2FD; background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgdmlld0JveD0iMCAwIDYwIDYwIj48cGF0aCBkPSJNMzAgMzBjNy4wOCAwIDEzLTUuNzIgMTMtMTMgMEM0My4wOCA3LjIgMzcuMzYgMCAzMCAwIDIyLjY0IDAgMTcuODIgNy4yIDEwIDEzcTEzIDcuMDggMTMgMTMgMy43MiA3LjA4IDIgMTMgMS43MiAzMyAweiIvPjxwYXRoIGQ9Ik0zMCA1MGM3LjA4IDAgMTMtNS43MiAxMy0xMyBMMzAgMjggMTcgNDF6Ii8+PC9zdmc+'); background-size: 40px 40px;"></button>
-                        <button class="bg-option chinese" data-bg="chinese" data-pattern="bamboo" title="竹节" 
-                            style="background-color:#E8F5E9; background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI2MCIgdmlld0JveD0iMCAwIDQwIDYwIj48cmVjdCBmaWxsPSIjOTBjNjk1IiBvcGFjaXR5PSIwLjIiIHdpZHRoPSI0MCIgaGVpZ2h0PSI2MCIvPjxyZWN0IGZpbGw9IiM3OGE4N2QiIG9wYWNpdHk9IjAuNCIgeD0iNSIgeT0iMCIgd2lkdGg9IjMwIiBoZWlnaHQ9IjgiIHJ4PSI0Ii8+PHJlY3QgZmlsbD0iIzc4YTg3ZCIgb3BhY2l0eT0iMC40IiB4PSI1IiB5PSIxNSIgd2lkdGg9IjMwIiBoZWlnaHQ9IjgiIHJ4PSI0Ii8+PHJlY3QgZmlsbD0iIzc4YTg3ZCIgb3BhY2l0eT0iMC40IiB4PSI1IiB5PSIzMCIgd2lkdGg9IjMwIiBoZWlnaHQ9IjgiIHJ4PSI0Ii8+PHJlY3QgZmlsbD0iIzc4YTg3ZCIgb3BhY2l0eT0iMC40IiB4PSI1IiB5PSI0NSIgd2lkdGg9IjMwIiBoZWlnaHQ9IjgiIHJ4PSI0Ii8+PC9zdmc+'); background-size: 40px 60px;"></button>
-                        <button class="bg-option chinese" data-bg="chinese" data-pattern="fish" title="鱼鳞" 
-                            style="background-color:#E3F2FD; background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0OCIgaGVpZ2h0PSI0OCIgdmlld0JveD0iMCAwIDQ4IDQ4Ij48cGF0aCBkPSJNMCA0OEMxMiA1NiAzNiA1NiA0OCAzMmMtMTIgLTEyIC0zNiAtMTIgLTQ4IDB6bTQ4LTI0QzM2IDEyIDEyIDEyIDAgMjQsMTIgNDAgMzYgNDAgNDggMzJ6IiBmaWxsPSIjYTBjNGU4IiBvcGFjaXR5PSIwLjQiLz48L3N2Zz4='); background-size: 48px 48px;"></button>
+                        <button class="bg-option chinese" data-bg="chinese" data-pattern="landscape" title="山水画" 
+                            style="background-color:#F5F5DC; background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MDAiIGhlaWdodD0iNjAwIiB2aWV3Qm94PSIwIDAgODAwIDYwMCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJza3lHcmFkaWVudCIgeDE9IjAlIiB5MT0iMCUiIHgyPSIwJSIgeTI9IjEwMCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNmNWY1ZGMiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiNlOGY1ZTkiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iODAwIiBoZWlnaHQ9IjYwMCIgZmlsbD0idXJsKCNza3lHcmFkaWVudCkiLz48cGF0aCBkPSJNMCA0MDBRMTUwIDM1MCAzMDAgNDAwVDYwMCAzODBRNzUwIDQwMCA4MDAgMzkwVjYwMEgwVjQwMFoiIGZpbGw9IiNjNGM0YjAiIG9wYWNpdHk9IjAuMyIvPjxwYXRoIGQ9TTAgNDUwUTE1MCA0MDAgMzAwIDQ1MFQ2MDAgNDMwUTc1MCA0NTAgODAwIDQ0MFY2MDBIMFY0NTBaIiBmaWxsPSIjYTRhNDkwIiBvcGFjaXR5PSIwLjIiLz48cGF0aCBkPSJNMTUwIDM1MEwyMDAgMzAwTDI1MCAzNTBMMzAwIDI4MEwzNTAgMzUwTDQwMCAyOTBMNDUwIDM1MEw1MDAgMjgwTDU1MCAzNTBMNjAwIDMwMEw2NTAgMzUwTDcwMCAyOTBMNzUwIDM1MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjOGY4ZjdmIiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLW9wYWNpdHk9IjAuNCIvPjxwYXRoIGQ9TTEwMCA0MDBMMTUwIDM1MEwyMDAgNDAwTDI1MCAzNDBMMzAwIDQwMEwzNTAgMzMwTDQwMCA0MDBMNDUwIDM0MEw1MDAgNDAwTDU1MCAzMzBMNjAwIDQwMEw2NTAgMzQwTDcwMCA0MDAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzhmOGY3ZiIgc3Ryb2tlLXdpZHRoPSIxIiBzdHJva2Utb3BhY2l0eT0iMC4zIi8+PC9zdmc+'); background-size: 800px 600px;"></button>
+                        <button class="bg-option chinese" data-bg="chinese" data-pattern="flowers" title="花鸟画" 
+                            style="background-color:#F5F5DC; background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MDAiIGhlaWdodD0iNjAwIiB2aWV3Qm94PSIwIDAgODAwIDYwMCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJiYWNrZ3JvdW5kIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjAlIiB5Mj0iMTAwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iI2Y1ZjVkYyIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iI2VmZWJlOSIvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjxyZWN0IHdpZHRoPSI4MDAiIGhlaWdodD0iNjAwIiBmaWxsPSJ1cmwoI2JhY2tncm91bmQpIi8+PGNpcmNsZSBjeD0iMTUwIiBjeT0iMTUwIiByPSI0MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjYzRjNGIwIiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLW9wYWNpdHk9IjAuMyIvPjxjaXJjbGUgY3g9IjE1MCIgY3k9IjE1MCIgcj0iMzAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2M0YzRiMCIgc3Ryb2tlLXdpZHRoPSIxIiBzdHJva2Utb3BhY2l0eT0iMC4yIi8+PGNpcmNsZSBjeD0iMTUwIiBjeT0iMTUwIiByPSIyMCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjYzRjNGIwIiBzdHJva2Utd2lkdGg9IjAuOCIgc3Ryb2tlLW9wYWNpdHk9IjAuMiIvPjxjaXJjbGUgY3g9IjY1MCIgY3k9IjEwMCIgcj0iMzUiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2M0YzRiMCIgc3Ryb2tlLXdpZHRoPSIxLjUiIHN0cm9rZS1vcGFjaXR5PSIwLjMiLz48Y2lyY2xlIGN4PSI2NTAiIGN5PSIxMDAiIHI9IjI1IiBmaWxsPSJub25lIiBzdHJva2U9IiNjNGM0YjAiIHN0cm9rZS13aWR0aD0iMSIgc3Ryb2tlLW9wYWNpdHk9IjAuMiIvPjxjaXJjbGUgY3g9IjY1MCIgY3k9IjEwMCIgcj0iMTUiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2M0YzRiMCIgc3Ryb2tlLXdpZHRoPSIwLjgiIHN0cm9rZS1vcGFjaXR5PSIwLjIiLz48cGF0aCBkPSJNMjAwIDQwMEMyNTAgMzUwIDMwMCAzODAgMzUwIDQwMEM0MDAgNDIwIDQ1MCAzOTAgNTAwIDQwMCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjOGY4ZjdmIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1vcGFjaXR5PSIwLjMiLz48cGF0aCBkPSJNMjUwIDQ1MEMzMDAgNDAwIDM1MCA0MzAgNDAwIDQ1MEM0NTAgNDcwIDUwMCA0NDAgNTUwIDQ1MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjOGY4ZjdmIiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLW9wYWNpdHk9IjAuMyIvPjwvc3ZnPg=='); background-size: 800px 600px;"></button>
+                        <button class="bg-option chinese" data-bg="chinese" data-pattern="calligraphy" title="书法" 
+                            style="background-color:#F5F5DC; background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MDAiIGhlaWdodD0iNjAwIiB2aWV3Qm94PSIwIDAgODAwIDYwMCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJiYWNrZ3JvdW5kIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjAlIiB5Mj0iMTAwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iI2Y1ZjVkYyIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iI2VmZWJlOSIvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjxyZWN0IHdpZHRoPSI4MDAiIGhlaWdodD0iNjAwIiBmaWxsPSJ1cmwoI2JhY2tncm91bmQpIi8+PHBhdGggZD0iTTUwIDUwQzEwMCAxMDAgMTUwIDgwIDIwMCAxMjBDMjUwIDE2MCAzMDAgMTQwIDM1MCAxODBDNDAwIDIyMCA0NTAgMjAwIDUwMCAyNDBDNTUwIDI4MCA2MDAgMjYwIDY1MCAzMDBDNzAwIDM0MCA3NTAgMzIwIDgwMCAzNjAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzhmOGY3ZiIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2Utb3BhY2l0eT0iMC4zIi8+PHBhdGggZD0iTTUwIDIwMEMxMDAgMjUwIDE1MCAyMzAgMjAwIDI3MEMyNTAgMzEwIDMwMCAyOTAgMzUwIDMzMEM0MDAgMzcwIDQ1MCAzNTAgNTAwIDM5MEM1NTAgNDMwIDYwMCA0MTAgNjUwIDQ1MUM3MDAgNDkxIDc1MCA0NzEgODAwIDUxMCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjOGY4ZjdmIiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLW9wYWNpdHk9IjAuMyIvPjxwYXRoIGQ9TTUwIDM1MEMxMDAgNDAwIDE1MCAzODAgMjAwIDQyMEMyNTAgNDYwIDMwMCA0NDAgMzUwIDQ4MEM0MDAgNTIwIDQ1MCA1MDAgNTAwIDU0MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjOGY4ZjdmIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1vcGFjaXR5PSIwLjMiLz48L3N2Zz4='); background-size: 800px 600px;"></button>
+                        <button class="bg-option chinese" data-bg="chinese" data-pattern="lattice" title="窗棂" 
+                            style="background-color:#F5F5DC; background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MDAiIGhlaWdodD0iNjAwIiB2aWV3Qm94PSIwIDAgODAwIDYwMCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJiYWNrZ3JvdW5kIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjAlIiB5Mj0iMTAwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iI2Y1ZjVkYyIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iI2VmZWJlOSIvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjxyZWN0IHdpZHRoPSI4MDAiIGhlaWdodD0iNjAwIiBmaWxsPSJ1cmwoI2JhY2tncm91bmQpIi8+PHJlY3QgeD0iNTAiIHk9IjUwIiB3aWR0aD0iNzAwIiBoZWlnaHQ9IjUwMCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjYzRjNGIwIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1vcGFjaXR5PSIwLjMiLz48bGluZSB4MT0iMjUwIiB5MT0iNTAiIHgyPSIyNTAiIHkyPSI1NTAiIHN0cm9rZT0iI2M0YzRiMCIgc3Ryb2tlLXdpZHRoPSIxLjUiIHN0cm9rZS1vcGFjaXR5PSIwLjIiLz48bGluZSB4MT0iNTUwIiB5MT0iNTAiIHgyPSI1NTAiIHkyPSI1NTAiIHN0cm9rZT0iI2M0YzRiMCIgc3Ryb2tlLXdpZHRoPSIxLjUiIHN0cm9rZS1vcGFjaXR5PSIwLjIiLz48bGluZSB4MT0iNTAiIHkxPSIyMDAiIHgyPSI3NTAiIHkyPSIyMDAiIHN0cm9rZT0iI2M0YzRiMCIgc3Ryb2tlLXdpZHRoPSIxLjUiIHN0cm9rZS1vcGFjaXR5PSIwLjIiLz48bGluZSB4MT0iNTAiIHkxPSI0MDAiIHgyPSI3NTAiIHkyPSI0MDAiIHN0cm9rZT0iI2M0YzRiMCIgc3Ryb2tlLXdpZHRoPSIxLjUiIHN0cm9rZS1vcGFjaXR5PSIwLjIiLz48L3N2Zz4='); background-size: 800px 600px;"></button>
                     </div>
                 </div>
 
                 <!-- Stationery Backgrounds -->
                 <div class="bg-panel" id="stationeryPanel">
                     <div class="bg-grid">
-                        <button class="bg-option stationery" data-bg="stationery" data-pattern="notebook" title="笔记本" 
-                            style="background-color:#FFFFFF; background-image: linear-gradient(#f0f0f0 1px, transparent 1px); background-size: 100% 28px;"></button>
-                        <button class="bg-option stationery" data-bg="stationery" data-pattern="cornell" title="康奈尔" 
-                            style="background-color:#FFFFFF; background-image: linear-gradient(#e8e8e8 1px, transparent 1px), linear-gradient(90deg, #e8e8e8 1px, transparent 1px); background-size: 100% 28px, 200px 100%; background-position: 0 14px, 0 0;"></button>
-                        <button class="bg-option stationery" data-bg="stationery" data-pattern="legal" title="法律纸" 
-                            style="background-color:#FFFFFF; background-image: linear-gradient(90deg, transparent 39px, #e74c3c 39px, #e74c3c 41px, transparent 41px), linear-gradient(#f0f0f0 1px, transparent 1px); background-size: 100% 28px, 100% 28px; background-position: 0 0, 0 14px;"></button>
-                        <button class="bg-option stationery" data-bg="stationery" data-pattern="graph" title="方格纸" 
-                            style="background-color:#FFFFFF; background-image: linear-gradient(#c8d6e5 1px, transparent 1px), linear-gradient(#c8d6e5 1px, transparent 1px); background-size: 20px 20px;"></button>
+                        <button class="bg-option stationery" data-bg="stationery" data-pattern="vintage" title="复古信纸" 
+                            style="background-color:#FFFFFF; background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MDAiIGhlaWdodD0iNjAwIiB2aWV3Qm94PSIwIDAgODAwIDYwMCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJwYXBlckdyYWRpZW50IiB4MT0iMCUiIHkxPSIwJSIgeDI9IjAlIiB5Mj0iMTAwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iI2ZmZmZmZiIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iI2Y4ZjhmOCIvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjxyZWN0IHdpZHRoPSI4MDAiIGhlaWdodD0iNjAwIiBmaWxsPSJ1cmwoI3BhcGVyR3JhZGllbnQpIi8+PHJlY3QgeD0iNDAiIHk9IjQwIiB3aWR0aD0iNzIwIiBoZWlnaHQ9IjUyMCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZTBlMGUwIiBzdHJva2Utd2lkdGg9IjEiLz48bGluZSB4MT0iNjAiIHkxPSI2MCIgeDI9Ijc0MCIgeTI9IjYwIiBzdHJva2U9IiNlMGUwZTAiIHN0cm9rZS13aWR0aD0iMC41Ii8+PGxpbmUgeDE9IjYwIiB5MT0iODAiIHgyPSI3NDAiIHkyPSI4MCIgc3Ryb2tlPSIjZTBlMGUwIiBzdHJva2Utd2lkdGg9IjAuNSIvPjwvc3ZnPg=='); background-size: 800px 600px;"></button>
+                        <button class="bg-option stationery" data-bg="stationery" data-pattern="kraft" title="牛皮纸" 
+                            style="background-color:#F5F0E5; background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MDAiIGhlaWdodD0iNjAwIiB2aWV3Qm94PSIwIDAgODAwIDYwMCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJrcmFmdEdyYWRpZW50IiB4MT0iMCUiIHkxPSIwJSIgeDI9IjAlIiB5Mj0iMTAwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iI2Y1ZjBlNSIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iI2VmZWFlNSIvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjxyZWN0IHdpZHRoPSI4MDAiIGhlaWdodD0iNjAwIiBmaWxsPSJ1cmwoI2tyYWZ0R3JhZGllbnQpIi8+PGNpcmNsZSBjeD0iMTUwIiBjeT0iMTUwIiByPSIyNSIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZDBkMGQwIiBzdHJva2Utd2lkdGg9IjAuOCIgc3Ryb2tlLW9wYWNpdHk9IjAuMyIvPjxjaXJjbGUgY3g9IjY1MCIgY3k9IjE1MCIgcj0iMjUiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2QwZDBkMCIgc3Ryb2tlLXdpZHRoPSIwLjgiIHN0cm9rZS1vcGFjaXR5PSIwLjMiLz48Y2lyY2xlIGN4PSIxNTAiIGN5PSI0NTAiIHI9IjI1IiBmaWxsPSJub25lIiBzdHJva2U9IiNkMGQwZDAiIHN0cm9rZS13aWR0aD0iMC44IiBzdHJva2Utb3BhY2l0eT0iMC4zIi8+PGNpcmNsZSBjeD0iNjUwIiBjeT0iNDUwIiByPSIyNSIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZDBkMGQwIiBzdHJva2Utd2lkdGg9IjAuOCIgc3Ryb2tlLW9wYWNpdHk9IjAuMyIvPjwvc3ZnPg=='); background-size: 800px 600px;"></button>
+                        <button class="bg-option stationery" data-bg="stationery" data-pattern="watercolor" title="水彩纸" 
+                            style="background-color:#FFFFFF; background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MDAiIGhlaWdodD0iNjAwIiB2aWV3Qm94PSIwIDAgODAwIDYwMCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJ3YXRlckdyYWRpZW50IiB4MT0iMCUiIHkxPSIwJSIgeDI9IjAlIiB5Mj0iMTAwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iI2ZmZmZmZiIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iI2YwZjBmMCIvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjxyZWN0IHdpZHRoPSI4MDAiIGhlaWdodD0iNjAwIiBmaWxsPSJ1cmwoI3dhdGVyR3JhZGllbnQpIi8+PGVsbGlwc2UgY3g9IjIwMCIgY3k9IjE1MCIgcng9IjgwIiByeT0iNDAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2QwZDBkMCIgc3Ryb2tlLXdpZHRoPSIwLjgiIHN0cm9rZS1vcGFjaXR5PSIwLjIiLz48ZWxsaXBzZSBjeD0iNjAwIiBjeT0iMTUwIiByeD0iODAiIHJ5PSI0MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZDBkMGQwIiBzdHJva2Utd2lkdGg9IjAuOCIgc3Ryb2tlLW9wYWNpdHk9IjAuMiIvPjxlbGxpcHNlIGN4PSIyMDAiIGN5PSI0NTAiIHJ4PSI4MCIgcnk9IjQwIiBmaWxsPSJub25lIiBzdHJva2U9IiNkMGQwZDAiIHN0cm9rZS13aWR0aD0iMC44IiBzdHJva2Utb3BhY2l0eT0iMC4yIi8+PGVsbGlwc2UgY3g9IjYwMCIgY3k9IjQ1MCIgcng9IjgwIiByeT0iNDAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2QwZDBkMCIgc3Ryb2tlLXdpZHRoPSIwLjgiIHN0cm9rZS1vcGFjaXR5PSIwLjIiLz48L3N2Zz4='); background-size: 800px 600px;"></button>
+                        <button class="bg-option stationery" data-bg="stationery" data-pattern="sketch" title="素描纸" 
+                            style="background-color:#FFFFFF; background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MDAiIGhlaWdodD0iNjAwIiB2aWV3Qm94PSIwIDAgODAwIDYwMCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJza2V0Y2hHcmFkaWVudCIgeDE9IjAlIiB5MT0iMCUiIHgyPSIwJSIgeTI9IjEwMCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNmZmZmZmYiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiNmMGYwZjAiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iODAwIiBoZWlnaHQ9IjYwMCIgZmlsbD0idXJsKCNza2V0Y2hHcmFkaWVudCkiLz48bGluZSB4MT0iMTAwIiB5MT0iMTAwIiB4Mj0iNzAwIiB5Mj0iMTAwIiBzdHJva2U9IiNkMGQwZDAiIHN0cm9rZS13aWR0aD0iMC41IiBzdHJva2Utb3BhY2l0eT0iMC4zIi8+PGxpbmUgeDE9IjEwMCIgeTE9IjIwMCIgeDI9IjcwMCIgeTI9IjIwMCIgc3Ryb2tlPSIjZDBkMGQwIiBzdHJva2Utd2lkdGg9IjAuNSIgc3Ryb2tlLW9wYWNpdHk9IjAuMyIvPjxsaW5lIHgxPSIxMDAiIHkxPSIzMDAiIHgyPSI3MDAiIHkyPSIzMDAiIHN0cm9rZT0iI2QwZDBkMCIgc3Ryb2tlLXdpZHRoPSIwLjUiIHN0cm9rZS1vcGFjaXR5PSIwLjMiLz48bGluZSB4MT0iMTAwIiB5MT0iNDAwIiB4Mj0iNzAwIiB5Mj0iNDAwIiBzdHJva2U9IiNkMGQwZDAiIHN0cm9rZS13aWR0aD0iMC41IiBzdHJva2Utb3BhY2l0eT0iMC4zIi8+PGxpbmUgeDE9IjEwMCIgeTE9IjUwMCIgeDI9IjcwMCIgeTI9IjUwMCIgc3Ryb2tlPSIjZDBkMGQwIiBzdHJva2Utd2lkdGg9IjAuNSIgc3Ryb2tlLW9wYWNpdHk9IjAuMyIvPjwvc3ZnPg=='); background-size: 800px 600px;"></button>
                     </div>
                 </div>
             </div>
