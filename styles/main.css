@@ -516,33 +516,48 @@ body::before {
     border-color: var(--color-primary);
 }
 
-.theme-label-dark {
-    display: none;
+/* Theme label text - 使用 !important 确保优先级 */
+.theme-label-light {
+    display: inline !important;
 }
 
+.theme-label-dark {
+    display: none !important;
+}
+
+/* Dark mode theme labels */
 [data-theme="dark"] .theme-label-light {
-    display: none;
+    display: none !important;
 }
 
 [data-theme="dark"] .theme-label-dark {
-    display: inline;
+    display: inline !important;
 }
 
-/* Theme icons in label */
-.theme-icon-sun {
-    display: inline;
+/* Theme icons in label - 使用 !important 确保优先级 */
+.theme-icon-sun,
+.setting-label .theme-icon-sun {
+    display: inline-block !important;
+    width: 16px;
+    height: 16px;
 }
 
-.theme-icon-moon {
-    display: none;
+.theme-icon-moon,
+.setting-label .theme-icon-moon {
+    display: none !important;
+    width: 16px;
+    height: 16px;
 }
 
-[data-theme="dark"] .theme-icon-sun {
-    display: none;
+/* Dark mode theme icons */
+[data-theme="dark"] .theme-icon-sun,
+[data-theme="dark"] .setting-label .theme-icon-sun {
+    display: none !important;
 }
 
-[data-theme="dark"] .theme-icon-moon {
-    display: inline;
+[data-theme="dark"] .theme-icon-moon,
+[data-theme="dark"] .setting-label .theme-icon-moon {
+    display: inline-block !important;
 }
 
 /* Range Slider */

@@ -85,13 +85,20 @@
     // Initialize Application
     // ========================================
     function init() {
-        // Initialize Lucide icons
+        // Load and apply theme FIRST, before Lucide icons initialization
+        // This ensures the correct data-theme attribute is set before icons render
+        const savedTheme = localStorage.getItem('theme');
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        state.isDarkMode = savedTheme ? savedTheme === 'dark' : prefersDark;
+        document.documentElement.setAttribute('data-theme', state.isDarkMode ? 'dark' : 'light');
+        
+        // Initialize Lucide icons AFTER theme is set
         lucide.createIcons();
         
         // Load saved settings
         loadSettings();
         
-        // Load saved theme preference
+        // Apply theme styles (full apply, not just attribute)
         loadThemePreference();
         
         // Apply saved settings
@@ -334,15 +341,8 @@
     // Theme Management
     // ========================================
     function loadThemePreference() {
-        const savedTheme = localStorage.getItem('theme');
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        
-        if (savedTheme) {
-            state.isDarkMode = savedTheme === 'dark';
-        } else {
-            state.isDarkMode = prefersDark;
-        }
-        
+        // state.isDarkMode is already set in init() before Lucide icons render
+        // This function now just applies the full theme styles
         applyTheme();
     }
 
