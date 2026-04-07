@@ -78,6 +78,14 @@
             backgroundPattern: null,
             backgroundCSS: null,
             bgOpacity: 100
+        },
+        // 彩蛋相关状态
+        easterEggs: {
+            konamiCode: [],
+            totalWordsRead: 0,
+            readingStreak: 0,
+            lastReadDate: null,
+            badges: []
         }
     };
 
@@ -109,6 +117,9 @@
         
         // Bind event listeners
         bindEvents();
+        
+        // Initialize Easter Eggs
+        initEasterEggs();
         
         // Check for saved content
         loadSavedContent();
@@ -712,6 +723,9 @@
                 console.error('Render error:', err);
             }
             
+            // Update reading statistics for achievements
+            updateReadingStats(state.wordCount);
+            
             showToast('文件加载成功');
         };
         
@@ -884,6 +898,9 @@
             state.content = savedContent;
             renderContent(savedContent);
             showReadingMode(savedFile);
+            
+            // Update reading statistics for achievements
+            updateReadingStats(state.wordCount);
         }
     }
 
@@ -1375,13 +1392,461 @@
         elements.toastMessage.textContent = message;
         elements.toast.className = 'toast show' + (type === 'error' ? ' error' : '');
         
-        setTimeout(() => {
+        // 清除之前的定时器
+        if (window.toastTimer) {
+            clearTimeout(window.toastTimer);
+        }
+        
+        // 设置新的定时器，3秒后隐藏
+        window.toastTimer = setTimeout(() => {
             elements.toast.classList.remove('show');
         }, 3000);
     }
 
     // ========================================
-    // Initialize
+    // 🥚 彩蛋功能 (Easter Eggs)
     // ========================================
-    document.addEventListener('DOMContentLoaded', init);
+    
+    // 1. Konami Code - 键盘侠的致敬
+    const KONAMI_CODE = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
+    
+    function initEasterEggs() {
+        // 加载彩蛋数据
+        loadEasterEggData();
+        
+        // 绑定 Konami Code 监听
+        document.addEventListener('keydown', handleKonamiCode);
+        
+        // 检查深夜模式
+        checkLateNightMode();
+        
+        // 显示诗意加载语（在欢迎页面）
+        showPoeticLoadingText();
+    }
+    
+    function handleKonamiCode(e) {
+        // 将按键添加到序列
+        state.easterEggs.konamiCode.push(e.key);
+        
+        // 只保留最近10个按键
+        if (state.easterEggs.konamiCode.length > 10) {
+            state.easterEggs.konamiCode.shift();
+        }
+        
+        // 检查是否匹配 Konami Code
+        if (state.easterEggs.konamiCode.length === 10) {
+            const isMatch = state.easterEggs.konamiCode.every((key, index) => {
+                return key.toLowerCase() === KONAMI_CODE[index].toLowerCase();
+            });
+            
+            if (isMatch) {
+                console.log('Konami Code activated!'); // 调试信息
+                triggerMatrixRain();
+                state.easterEggs.konamiCode = []; // 重置
+            }
+        }
+    }
+    
+    // 黑客帝国数字雨效果
+    function triggerMatrixRain() {
+        console.log('triggerMatrixRain called'); // 调试信息
+        
+        // 先显示提示信息（5秒后自动消失）
+        showToast('🎮 欢迎进入黑客帝国！', 'success');
+        console.log('Toast should be shown'); // 调试信息
+        
+        // 延迟一点再创建canvas，让toast有时间显示
+        setTimeout(() => {
+            // 创建画布
+            const canvas = document.createElement('canvas');
+            canvas.id = 'matrix-rain';
+            canvas.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                z-index: 9999;
+                pointer-events: none;
+                background: rgba(0, 0, 0, 0.9);
+            `;
+            document.body.appendChild(canvas);
+        
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            
+            // 字符集 - 英文字母和编程符号
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-=[]{}|;:,.<>?/~`';
+            const fontSize = 14;
+            const columns = canvas.width / fontSize;
+            const drops = [];
+            
+            for (let i = 0; i < columns; i++) {
+                drops[i] = Math.random() * -100;
+            }
+            
+            let animationId;
+            let isRunning = true;
+            
+            function draw() {
+                if (!isRunning) return;
+                
+                // 半透明黑色背景，产生拖尾效果
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                ctx.fillStyle = '#0F0'; // 绿色
+                ctx.font = fontSize + 'px monospace';
+                
+                for (let i = 0; i < drops.length; i++) {
+                    const text = chars[Math.floor(Math.random() * chars.length)];
+                    ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+                    
+                    if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                        drops[i] = 0;
+                    }
+                    drops[i]++;
+                }
+                
+                animationId = requestAnimationFrame(draw);
+            }
+            
+            function stopMatrixRain() {
+                if (!isRunning) return;
+                isRunning = false;
+                cancelAnimationFrame(animationId);
+                
+                // 先隐藏canvas，再显示退出提示
+                canvas.style.transition = 'opacity 0.5s ease';
+                canvas.style.opacity = '0';
+                
+                setTimeout(() => {
+                    canvas.remove();
+                    // canvas移除后再显示退出提示，确保可见
+                    showToast('已退出黑客帝国模式', 'success');
+                }, 500);
+            }
+            
+            // 监听键盘事件，按S键退出
+            const exitHandler = (e) => {
+                if (e.key === 's' || e.key === 'S') {
+                    stopMatrixRain();
+                    document.removeEventListener('keydown', exitHandler);
+                }
+            };
+            document.addEventListener('keydown', exitHandler);
+            
+            // 开始动画
+            draw();
+        }, 100); // 延迟100ms创建canvas
+    }
+    
+    // 2. 诗意加载语
+    const POETIC_QUOTES = [
+        '文字是思想的翅膀',
+        '在空白处遇见灵感',
+        '阅读是与智者对话',
+        '每一页都是新的旅程',
+        '墨香深处有乾坤',
+        '静心阅读，遇见更好的自己',
+        '书中自有黄金屋',
+        '读万卷书，行万里路',
+        '文字如茶，细品回甘',
+        '在书海中寻找心灵的港湾',
+        '阅读让时光变得温柔',
+        '每一行代码都是诗',
+        '文档之间，自有天地',
+        '墨笈之中，藏着世界'
+    ];
+    
+    function showPoeticLoadingText() {
+        const welcomeContent = document.querySelector('.welcome-content');
+        if (!welcomeContent) return;
+        
+        // 检查是否已存在诗意文本元素
+        let poeticText = document.getElementById('poetic-text');
+        if (!poeticText) {
+            poeticText = document.createElement('p');
+            poeticText.id = 'poetic-text';
+            poeticText.className = 'poetic-text';
+            poeticText.style.cssText = `
+                margin-top: 20px;
+                font-size: 14px;
+                color: var(--text-secondary);
+                font-style: italic;
+                opacity: 0.8;
+                transition: opacity 0.5s ease;
+            `;
+            welcomeContent.appendChild(poeticText);
+        }
+        
+        // 随机选择一句
+        const randomQuote = POETIC_QUOTES[Math.floor(Math.random() * POETIC_QUOTES.length)];
+        poeticText.textContent = '「' + randomQuote + '」';
+    }
+    
+    // 3. 深夜模式自动触发
+    function checkLateNightMode() {
+        const hour = new Date().getHours();
+        const isLateNight = hour >= 22 || hour < 6;
+        
+        if (isLateNight && !state.isDarkMode) {
+            // 检查是否已经提示过
+            const lastPrompt = localStorage.getItem('lateNightPrompt');
+            const today = new Date().toDateString();
+            
+            if (lastPrompt !== today) {
+                // 延迟显示提示
+                setTimeout(() => {
+                    showLateNightPrompt();
+                }, 2000);
+                localStorage.setItem('lateNightPrompt', today);
+            }
+        }
+    }
+    
+    function showLateNightPrompt() {
+        // 创建提示弹窗
+        const modal = document.createElement('div');
+        modal.id = 'late-night-modal';
+        modal.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        `;
+        
+        modal.innerHTML = `
+            <div style="
+                background: var(--bg-primary);
+                padding: 30px 40px;
+                border-radius: 12px;
+                max-width: 400px;
+                text-align: center;
+                box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            ">
+                <div style="font-size: 48px; margin-bottom: 15px;">🌙</div>
+                <h3 style="margin: 0 0 10px 0; color: var(--text-primary);">夜深了</h3>
+                <p style="color: var(--text-secondary); margin-bottom: 20px; line-height: 1.6;">
+                    检测到当前是深夜时段（22:00-06:00），<br>
+                    是否开启护眼深夜模式？
+                </p>
+                <div style="display: flex; gap: 10px; justify-content: center;">
+                    <button id="late-night-yes" style="
+                        padding: 10px 24px;
+                        background: var(--accent-color);
+                        color: white;
+                        border: none;
+                        border-radius: 6px;
+                        cursor: pointer;
+                        font-size: 14px;
+                    ">开启护眼模式</button>
+                    <button id="late-night-no" style="
+                        padding: 10px 24px;
+                        background: transparent;
+                        color: var(--text-secondary);
+                        border: 1px solid var(--border-color);
+                        border-radius: 6px;
+                        cursor: pointer;
+                        font-size: 14px;
+                    ">保持当前</button>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        // 显示动画
+        requestAnimationFrame(() => {
+            modal.style.opacity = '1';
+        });
+        
+        // 绑定按钮事件
+        modal.querySelector('#late-night-yes').addEventListener('click', () => {
+            if (!state.isDarkMode) {
+                toggleTheme();
+            }
+            closeLateNightModal();
+            showToast('🌙 已开启护眼深夜模式');
+        });
+        
+        modal.querySelector('#late-night-no').addEventListener('click', closeLateNightModal);
+        
+        // 点击遮罩关闭
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                closeLateNightModal();
+            }
+        });
+        
+        function closeLateNightModal() {
+            modal.style.opacity = '0';
+            setTimeout(() => modal.remove(), 300);
+        }
+    }
+    
+    // 4. 字数成就系统
+    const ACHIEVEMENTS = {
+        novice: { name: '初窥门径', threshold: 10000, icon: '📖', description: '阅读满 10,000 字' },
+        scholar: { name: '博览群书', threshold: 100000, icon: '📚', description: '阅读满 100,000 字' },
+        persistent: { name: '持之以恒', threshold: 7, icon: '🔥', description: '连续阅读 7 天', type: 'streak' }
+    };
+    
+    function loadEasterEggData() {
+        const saved = localStorage.getItem('easterEggData');
+        if (saved) {
+            try {
+                const data = JSON.parse(saved);
+                state.easterEggs.totalWordsRead = data.totalWordsRead || 0;
+                state.easterEggs.readingStreak = data.readingStreak || 0;
+                state.easterEggs.lastReadDate = data.lastReadDate || null;
+                state.easterEggs.badges = data.badges || [];
+            } catch (e) {
+                console.warn('Failed to load easter egg data:', e);
+            }
+        }
+    }
+    
+    function saveEasterEggData() {
+        try {
+            localStorage.setItem('easterEggData', JSON.stringify({
+                totalWordsRead: state.easterEggs.totalWordsRead,
+                readingStreak: state.easterEggs.readingStreak,
+                lastReadDate: state.easterEggs.lastReadDate,
+                badges: state.easterEggs.badges
+            }));
+        } catch (e) {
+            console.warn('Failed to save easter egg data:', e);
+        }
+    }
+    
+    function updateReadingStats(wordCount) {
+        // 更新总阅读字数
+        state.easterEggs.totalWordsRead += wordCount;
+        
+        // 更新连续阅读天数
+        const today = new Date().toDateString();
+        const lastDate = state.easterEggs.lastReadDate;
+        
+        if (lastDate) {
+            const last = new Date(lastDate);
+            const now = new Date();
+            const diffDays = Math.floor((now - last) / (1000 * 60 * 60 * 24));
+            
+            if (diffDays === 1) {
+                // 连续阅读
+                state.easterEggs.readingStreak++;
+            } else if (diffDays > 1) {
+                // 断开了，重新计算
+                state.easterEggs.readingStreak = 1;
+            }
+            // diffDays === 0 表示今天已经读过，不增加
+        } else {
+            state.easterEggs.readingStreak = 1;
+        }
+        
+        state.easterEggs.lastReadDate = today;
+        
+        // 检查成就
+        checkAchievements();
+        
+        // 保存数据
+        saveEasterEggData();
+    }
+    
+    function checkAchievements() {
+        const { totalWordsRead, readingStreak, badges } = state.easterEggs;
+        
+        // 检查字数成就
+        if (totalWordsRead >= ACHIEVEMENTS.scholar.threshold && !badges.includes('scholar')) {
+            unlockAchievement('scholar');
+        } else if (totalWordsRead >= ACHIEVEMENTS.novice.threshold && !badges.includes('novice')) {
+            unlockAchievement('novice');
+        }
+        
+        // 检查连续阅读成就
+        if (readingStreak >= ACHIEVEMENTS.persistent.threshold && !badges.includes('persistent')) {
+            unlockAchievement('persistent');
+        }
+    }
+    
+    function unlockAchievement(achievementId) {
+        const achievement = ACHIEVEMENTS[achievementId];
+        if (!achievement) return;
+        
+        // 添加到已解锁徽章列表
+        if (!state.easterEggs.badges.includes(achievementId)) {
+            state.easterEggs.badges.push(achievementId);
+            
+            // 显示成就解锁通知
+            showAchievementNotification(achievement);
+            
+            // 保存数据
+            saveEasterEggData();
+        }
+    }
+    
+    function showAchievementNotification(achievement) {
+        // 创建成就通知元素
+        const notification = document.createElement('div');
+        notification.className = 'achievement-notification';
+        notification.style.cssText = `
+            position: fixed;
+            top: 100px;
+            right: -400px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 24px;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(102, 126, 234, 0.4);
+            z-index: 10001;
+            max-width: 350px;
+            transition: right 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        `;
+        
+        notification.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <div style="font-size: 36px;">${achievement.icon}</div>
+                <div style="flex: 1;">
+                    <div style="font-size: 12px; opacity: 0.9; margin-bottom: 4px;">🏆 成就解锁</div>
+                    <div style="font-size: 16px; font-weight: bold; margin-bottom: 4px;">${achievement.name}</div>
+                    <div style="font-size: 13px; opacity: 0.85;">${achievement.description}</div>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // 滑入动画
+        requestAnimationFrame(() => {
+            notification.style.right = '20px';
+        });
+        
+        // 4秒后滑出并移除
+        setTimeout(() => {
+            notification.style.right = '-400px';
+            setTimeout(() => {
+                notification.remove();
+            }, 500);
+        }, 4000);
+    }
+    
+    // ========================================
+    // Initialize Application on DOM Ready
+    // ========================================
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+    
 })();
