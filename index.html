@@ -101,9 +101,27 @@
                 <button class="icon-btn" id="homeBtn" title="返回主页">
                     <i data-lucide="home"></i>
                 </button>
-                <button class="icon-btn" id="exportBtn" title="导出 PDF">
-                    <i data-lucide="download"></i>
-                </button>
+                <div class="export-wrapper">
+                    <button class="icon-btn" id="exportBtn" title="导出">
+                        <i data-lucide="download"></i>
+                    </button>
+                    
+                    <!-- Export Dropdown Menu -->
+                    <div class="export-dropdown" id="exportDropdown">
+                        <div class="export-dropdown-item" id="exportTxt">
+                            <i data-lucide="file-text"></i>
+                            <span>导出为 TXT</span>
+                        </div>
+                        <div class="export-dropdown-item" id="exportMd">
+                            <i data-lucide="file-code"></i>
+                            <span>导出为 MD</span>
+                        </div>
+                        <div class="export-dropdown-item" id="exportPdf">
+                            <i data-lucide="file-badge"></i>
+                            <span>导出为 PDF</span>
+                        </div>
+                    </div>
+                </div>
                 <button class="icon-btn" id="tocBtn" title="目录导航">
                     <i data-lucide="list"></i>
                 </button>

@@ -17,6 +17,10 @@
         fileName: document.getElementById('fileName'),
         homeBtn: document.getElementById('homeBtn'),
         exportBtn: document.getElementById('exportBtn'),
+        exportDropdown: document.getElementById('exportDropdown'),
+        exportTxt: document.getElementById('exportTxt'),
+        exportMd: document.getElementById('exportMd'),
+        exportPdf: document.getElementById('exportPdf'),
         exportConfirmModal: document.getElementById('exportConfirmModal'),
         exportConfirmCancel: document.getElementById('exportConfirmCancel'),
         exportConfirmYes: document.getElementById('exportConfirmYes'),
@@ -482,13 +486,36 @@
             elements.floatingToc.classList.remove('visible');
         });
         
-        // Export button - show confirm modal
+        // Export button - toggle dropdown menu
         elements.exportBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             if (!state.currentFile) {
                 showToast('请先加载文档', 'error');
                 return;
             }
+            // Toggle dropdown visibility
+            elements.exportDropdown.classList.toggle('active');
+            // Re-initialize Lucide icons for the dropdown
+            lucide.createIcons();
+        });
+        
+        // Export dropdown items
+        elements.exportTxt.addEventListener('click', (e) => {
+            e.stopPropagation();
+            elements.exportDropdown.classList.remove('active');
+            exportToTxt();
+        });
+        
+        elements.exportMd.addEventListener('click', (e) => {
+            e.stopPropagation();
+            elements.exportDropdown.classList.remove('active');
+            exportToMd();
+        });
+        
+        elements.exportPdf.addEventListener('click', (e) => {
+            e.stopPropagation();
+            elements.exportDropdown.classList.remove('active');
+            // Show PDF confirm modal (original behavior)
             elements.exportConfirmModal.classList.add('active');
         });
         
@@ -500,6 +527,14 @@
         elements.exportConfirmYes.addEventListener('click', () => {
             elements.exportConfirmModal.classList.remove('active');
             exportToPdf();
+        });
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            const exportWrapper = elements.exportBtn.closest('.export-wrapper');
+            if (exportWrapper && !exportWrapper.contains(e.target)) {
+                elements.exportDropdown.classList.remove('active');
+            }
         });
         
         // Export modal close (if close button exists)
@@ -1265,8 +1300,112 @@
     }
 
     // ========================================
-    // Export Functions - PDF Only
+    // Export Functions - TXT, MD, PDF
     // ========================================
+    
+    // Export to TXT - 纯文本格式
+    function exportToTxt() {
+        if (!state.currentFile) {
+            showToast('请先加载文档', 'error');
+            return;
+        }
+        
+        try {
+            // 获取纯文本内容（去除Markdown格式）
+            const plainText = getPlainTextFromMarkdown(state.content);
+            
+            // 创建Blob并下载
+            const blob = new Blob([plainText], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const fileName = (state.currentFile.name || 'document').replace(/\.(md|txt)$/, '') + '.txt';
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showToast('已导出为 TXT 格式');
+        } catch (error) {
+            console.error('TXT export error:', error);
+            showToast('TXT 导出失败', 'error');
+        }
+    }
+    
+    // Export to MD - Markdown格式
+    function exportToMd() {
+        if (!state.currentFile) {
+            showToast('请先加载文档', 'error');
+            return;
+        }
+        
+        try {
+            // 直接使用原始Markdown内容
+            const blob = new Blob([state.content], { type: 'text/markdown;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const fileName = (state.currentFile.name || 'document').replace(/\.(md|txt)$/, '') + '.md';
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showToast('已导出为 MD 格式');
+        } catch (error) {
+            console.error('MD export error:', error);
+            showToast('MD 导出失败', 'error');
+        }
+    }
+    
+    // 将Markdown转换为纯文本
+    function getPlainTextFromMarkdown(markdown) {
+        let text = markdown;
+        
+        // 移除标题标记
+        text = text.replace(/^#{1,6}\s+/gm, '');
+        
+        // 移除粗体和斜体标记
+        text = text.replace(/\*\*\*(.*?)\*\*\*/g, '$1');
+        text = text.replace(/\*\*(.*?)\*\*/g, '$1');
+        text = text.replace(/\*(.*?)\*/g, '$1');
+        text = text.replace(/___(.*?)___/g, '$1');
+        text = text.replace(/__(.*?)__/g, '$1');
+        text = text.replace(/_(.*?)_/g, '$1');
+        
+        // 移除链接，保留文本
+        text = text.replace(/\[([^\]]+)\]\([^\)]+\)/g, '$1');
+        
+        // 移除图片
+        text = text.replace(/!\[([^\]]*)\]\([^\)]+\)/g, '');
+        
+        // 移除代码块标记
+        text = text.replace(/```[\w]*\n?/g, '');
+        text = text.replace(/```/g, '');
+        
+        // 移除行内代码标记
+        text = text.replace(/`([^`]+)`/g, '$1');
+        
+        // 移除引用标记
+        text = text.replace(/^>\s+/gm, '');
+        
+        // 移除列表标记
+        text = text.replace(/^[\*\-\+]\s+/gm, '');
+        text = text.replace(/^\d+\.\s+/gm, '');
+        
+        // 移除水平线
+        text = text.replace(/^[\*\-]{3,}$/gm, '');
+        text = text.replace(/^_{3,}$/gm, '');
+        
+        // 移除HTML标签
+        text = text.replace(/<[^>]+>/g, '');
+        
+        return text;
+    }
     function showExportModal() {
         elements.exportModal.classList.add('active');
         elements.exportProgressFill.style.width = '0%';

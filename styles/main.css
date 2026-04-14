@@ -1259,10 +1259,15 @@ input[type="range"]::-moz-range-thumb {
 /* ========================================
    Export Dropdown
    ======================================== */
+.export-wrapper {
+    position: relative;
+    display: inline-flex;
+}
+
 .export-dropdown {
     position: absolute;
     top: calc(100% + 8px);
-    right: 0;
+    left: 0;
     background: var(--color-bg);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-md);
@@ -1281,7 +1286,7 @@ input[type="range"]::-moz-range-thumb {
     transform: translateY(0);
 }
 
-.export-option {
+.export-dropdown-item {
     display: flex;
     align-items: center;
     gap: var(--space-sm);
@@ -1295,19 +1300,19 @@ input[type="range"]::-moz-range-thumb {
     transition: background-color var(--transition-fast);
 }
 
-.export-option:first-child {
+.export-dropdown-item:first-child {
     border-radius: var(--radius-md) var(--radius-md) 0 0;
 }
 
-.export-option:last-child {
+.export-dropdown-item:last-child {
     border-radius: 0 0 var(--radius-md) var(--radius-md);
 }
 
-.export-option:hover {
+.export-dropdown-item:hover {
     background: var(--color-bg-secondary);
 }
 
-.export-option svg {
+.export-dropdown-item svg {
     width: 16px;
     height: 16px;
     color: var(--color-text-secondary);
