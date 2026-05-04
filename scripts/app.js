@@ -15,6 +15,8 @@
         header: document.getElementById('header'),
         fileInfo: document.getElementById('fileInfo'),
         fileName: document.getElementById('fileName'),
+        editBtn: document.getElementById('editBtn'),
+
         homeBtn: document.getElementById('homeBtn'),
         exportBtn: document.getElementById('exportBtn'),
         exportDropdown: document.getElementById('exportDropdown'),
@@ -475,7 +477,14 @@
     // ========================================
     // Event Bindings
     // ========================================
+
+
     function bindEvents() {
+        // Edit button (placeholder - no functionality currently)
+        elements.editBtn && elements.editBtn.addEventListener('click', () => {
+            // Edit functionality will be implemented later
+        });
+        
         // Home button
         elements.homeBtn.addEventListener('click', () => {
             state.currentFile = null;
@@ -484,6 +493,7 @@
             showWelcomeMode();
             // Close TOC when returning to home
             elements.floatingToc.classList.remove('visible');
+
         });
         
         // Export button - toggle dropdown menu

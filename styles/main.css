@@ -291,6 +291,17 @@ body::before {
     height: 20px;
 }
 
+#editBtn svg {
+    width: 16px;
+    height: 16px;
+}
+
+/* Edit button - placeholder styles only */
+#editBtn {
+    opacity: 1;
+    cursor: pointer;
+}
+
 .theme-icon {
     transition: all var(--transition-normal);
 }
@@ -2191,3 +2202,5 @@ input[type="range"]::-moz-range-thumb {
     top: -9999px;
     opacity: 0;
 }
+
+
