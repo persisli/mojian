@@ -99,6 +99,11 @@
     // Initialize Application
     // ========================================
     function init() {
+        // Initialize i18n first
+        if (typeof i18n !== 'undefined') {
+            i18n.init();
+        }
+        
         // Load and apply theme FIRST, before Lucide icons initialization
         // This ensures the correct data-theme attribute is set before icons render
         const savedTheme = localStorage.getItem('theme');
@@ -108,6 +113,11 @@
         
         // Initialize Lucide icons AFTER theme is set
         lucide.createIcons();
+        
+        // Apply i18n translations
+        if (typeof i18n !== 'undefined') {
+            i18n.updatePageTranslations();
+        }
         
         // Load saved settings
         loadSettings();
@@ -500,7 +510,7 @@
         elements.exportBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             if (!state.currentFile) {
-                showToast('请先加载文档', 'error');
+                showToast(i18n.t('toast.loadFileFirst'), 'error');
                 return;
             }
             // Toggle dropdown visibility
@@ -585,6 +595,15 @@
         
         // Settings controls
         bindSettingsEvents();
+        
+        // Language selector
+        const languageSelect = document.getElementById('languageSelect');
+        if (languageSelect) {
+            languageSelect.value = i18n.getLanguage();
+            languageSelect.addEventListener('change', (e) => {
+                i18n.setLanguage(e.target.value);
+            });
+        }
     }
 
     function bindSettingsEvents() {
@@ -730,13 +749,13 @@
         const fileExt = '.' + file.name.split('.').pop().toLowerCase();
         
         if (!validTypes.includes(fileExt)) {
-            showToast('仅支持 .md 和 .txt 格式的文件', 'error');
+            showToast(i18n.t('toast.unsupportedFormat'), 'error');
             return;
         }
         
         // Validate file size (6MB limit)
         if (file.size > 6 * 1024 * 1024) {
-            showToast('文件大小不能超过 6MB', 'error');
+            showToast(i18n.t('toast.fileTooLarge'), 'error');
             return;
         }
         
@@ -771,11 +790,11 @@
             // Update reading statistics for achievements
             updateReadingStats(state.wordCount);
             
-            showToast('文件加载成功');
+            showToast(i18n.t('toast.fileLoaded'));
         };
         
         reader.onerror = function() {
-            showToast('文件读取失败，请重试', 'error');
+            showToast(i18n.t('toast.fileLoadError'), 'error');
         };
         
         reader.readAsText(file);
@@ -832,9 +851,9 @@
         // Reading time (300 chars per minute)
         state.readingTime = Math.ceil(state.wordCount / 300);
         
-        // Update UI
-        elements.wordCount.textContent = formatNumber(state.wordCount) + ' 字';
-        elements.readingTime.textContent = state.readingTime + ' 分钟';
+        // Update UI with i18n
+        elements.wordCount.textContent = i18n.t('status.wordCount', { count: formatNumber(state.wordCount) });
+        elements.readingTime.textContent = i18n.t('status.readingTime', { minutes: state.readingTime });
     }
 
     function formatNumber(num) {
@@ -892,8 +911,8 @@
         elements.statusBar.style.display = 'none';
         
         // Reset stats
-        elements.wordCount.textContent = '0 字';
-        elements.readingTime.textContent = '0 分钟';
+        elements.wordCount.textContent = i18n.t('status.wordCount', { count: 0 });
+        elements.readingTime.textContent = i18n.t('status.readingTime', { minutes: 0 });
         elements.progressPercent.textContent = '0%';
         elements.progressFill.style.width = '0%';
         
@@ -1108,7 +1127,7 @@
     async function copyCodeToClipboard(code) {
         try {
             await navigator.clipboard.writeText(code);
-            showToast('已复制到剪贴板');
+            showToast(i18n.t('toast.copied'));
         } catch (err) {
             // Fallback for older browsers
             const textarea = document.createElement('textarea');
@@ -1119,7 +1138,7 @@
             textarea.select();
             document.execCommand('copy');
             document.body.removeChild(textarea);
-            showToast('已复制到剪贴板');
+            showToast(i18n.t('toast.copied'));
         }
     }
     
@@ -1316,7 +1335,7 @@
     // Export to TXT - 纯文本格式
     function exportToTxt() {
         if (!state.currentFile) {
-            showToast('请先加载文档', 'error');
+            showToast(i18n.t('toast.loadFileFirst'), 'error');
             return;
         }
         
@@ -1337,7 +1356,7 @@
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
             
-            showToast('已导出为 TXT 格式');
+            showToast(i18n.t('toast.exportTxtSuccess'));
         } catch (error) {
             console.error('TXT export error:', error);
             showToast('TXT 导出失败', 'error');
@@ -1347,7 +1366,7 @@
     // Export to MD - Markdown格式
     function exportToMd() {
         if (!state.currentFile) {
-            showToast('请先加载文档', 'error');
+            showToast(i18n.t('toast.loadFileFirst'), 'error');
             return;
         }
         
@@ -1365,7 +1384,7 @@
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
             
-            showToast('已导出为 MD 格式');
+            showToast(i18n.t('toast.exportMdSuccess'));
         } catch (error) {
             console.error('MD export error:', error);
             showToast('MD 导出失败', 'error');
@@ -1433,12 +1452,12 @@
     
     async function exportToPdf() {
         if (!state.currentFile) {
-            showToast('请先加载文档', 'error');
+            showToast(i18n.t('toast.loadFileFirst'), 'error');
             return;
         }
 
         showExportModal();
-        updateExportProgress(10, '正在准备文档...');
+        updateExportProgress(10, i18n.t('export.progress.preparing'));
         
         try {
             // Wait a bit for UI update
@@ -1503,7 +1522,7 @@
             
             document.head.appendChild(printStyles);
             
-            updateExportProgress(50, '正在生成 PDF...');
+            updateExportProgress(50, i18n.t('export.progress.generating'));
             
             // Use browser's print to PDF
             const originalTitle = document.title;
@@ -1512,7 +1531,7 @@
             
             await new Promise(resolve => setTimeout(resolve, 200));
             
-            updateExportProgress(80, '正在调用打印机...');
+            updateExportProgress(80, i18n.t('export.progress.printing'));
             
             window.print();
             
@@ -1520,15 +1539,15 @@
             document.title = originalTitle;
             document.getElementById('print-styles')?.remove();
             
-            updateExportProgress(100, '导出完成！');
+            updateExportProgress(100, i18n.t('export.progress.complete'));
             await new Promise(resolve => setTimeout(resolve, 500));
             hideExportModal();
-            showToast('PDF 导出成功（请在打印对话框中选择"另存为 PDF"）');
-            
+            showToast(i18n.t('export.success'));
+                    
         } catch (error) {
             console.error('PDF export error:', error);
             hideExportModal();
-            showToast('PDF 导出失败：' + error.message, 'error');
+            showToast(i18n.t('toast.exportPdfFailed', { error: error.message }), 'error');
             // Cleanup on error
             document.getElementById('print-styles')?.remove();
         }
@@ -1566,10 +1585,7 @@
         // 绑定 Konami Code 监听
         document.addEventListener('keydown', handleKonamiCode);
         
-        // 检查深夜模式
-        checkLateNightMode();
-        
-        // 显示诗意加载语（在欢迎页面）
+        // 检查诗意加载语
         showPoeticLoadingText();
     }
     
@@ -1601,7 +1617,7 @@
         console.log('triggerMatrixRain called'); // 调试信息
         
         // 先显示提示信息（5秒后自动消失）
-        showToast('🎮 欢迎进入黑客帝国！', 'success');
+        showToast(i18n.t('toast.konamiCode'), 'success');
         console.log('Toast should be shown'); // 调试信息
         
         // 延迟一点再创建canvas，让toast有时间显示
@@ -1673,7 +1689,7 @@
                 setTimeout(() => {
                     canvas.remove();
                     // canvas移除后再显示退出提示，确保可见
-                    showToast('已退出黑客帝国模式', 'success');
+                    showToast(i18n.t('toast.exitMatrix'), 'success');
                 }, 500);
             }
             
@@ -1735,120 +1751,16 @@
         poeticText.textContent = '「' + randomQuote + '」';
     }
     
-    // 3. 深夜模式自动触发
-    function checkLateNightMode() {
-        const hour = new Date().getHours();
-        const isLateNight = hour >= 22 || hour < 6;
-        
-        if (isLateNight && !state.isDarkMode) {
-            // 检查是否已经提示过
-            const lastPrompt = localStorage.getItem('lateNightPrompt');
-            const today = new Date().toDateString();
-            
-            if (lastPrompt !== today) {
-                // 延迟显示提示
-                setTimeout(() => {
-                    showLateNightPrompt();
-                }, 2000);
-                localStorage.setItem('lateNightPrompt', today);
-            }
-        }
-    }
-    
-    function showLateNightPrompt() {
-        // 创建提示弹窗
-        const modal = document.createElement('div');
-        modal.id = 'late-night-modal';
-        modal.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 10000;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        `;
-        
-        modal.innerHTML = `
-            <div style="
-                background: var(--bg-primary);
-                padding: 30px 40px;
-                border-radius: 12px;
-                max-width: 400px;
-                text-align: center;
-                box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            ">
-                <div style="font-size: 48px; margin-bottom: 15px;">🌙</div>
-                <h3 style="margin: 0 0 10px 0; color: var(--text-primary);">夜深了</h3>
-                <p style="color: var(--text-secondary); margin-bottom: 20px; line-height: 1.6;">
-                    检测到当前是深夜时段（22:00-06:00），<br>
-                    是否开启护眼深夜模式？
-                </p>
-                <div style="display: flex; gap: 10px; justify-content: center;">
-                    <button id="late-night-yes" style="
-                        padding: 10px 24px;
-                        background: var(--accent-color);
-                        color: white;
-                        border: none;
-                        border-radius: 6px;
-                        cursor: pointer;
-                        font-size: 14px;
-                    ">开启护眼模式</button>
-                    <button id="late-night-no" style="
-                        padding: 10px 24px;
-                        background: transparent;
-                        color: var(--text-secondary);
-                        border: 1px solid var(--border-color);
-                        border-radius: 6px;
-                        cursor: pointer;
-                        font-size: 14px;
-                    ">保持当前</button>
-                </div>
-            </div>
-        `;
-        
-        document.body.appendChild(modal);
-        
-        // 显示动画
-        requestAnimationFrame(() => {
-            modal.style.opacity = '1';
-        });
-        
-        // 绑定按钮事件
-        modal.querySelector('#late-night-yes').addEventListener('click', () => {
-            if (!state.isDarkMode) {
-                toggleTheme();
-            }
-            closeLateNightModal();
-            showToast('🌙 已开启护眼深夜模式');
-        });
-        
-        modal.querySelector('#late-night-no').addEventListener('click', closeLateNightModal);
-        
-        // 点击遮罩关闭
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) {
-                closeLateNightModal();
-            }
-        });
-        
-        function closeLateNightModal() {
-            modal.style.opacity = '0';
-            setTimeout(() => modal.remove(), 300);
-        }
-    }
+
     
     // 4. 字数成就系统
-    const ACHIEVEMENTS = {
-        novice: { name: '初窥门径', threshold: 10000, icon: '📖', description: '阅读满 10,000 字' },
-        scholar: { name: '博览群书', threshold: 100000, icon: '📚', description: '阅读满 100,000 字' },
-        persistent: { name: '持之以恒', threshold: 7, icon: '🔥', description: '连续阅读 7 天', type: 'streak' }
-    };
+    function getAchievements() {
+        return {
+            novice: { name: i18n.t('achievement.novice.name'), threshold: 10000, icon: '📖', description: i18n.t('achievement.novice.desc') },
+            scholar: { name: i18n.t('achievement.scholar.name'), threshold: 100000, icon: '📚', description: i18n.t('achievement.scholar.desc') },
+            persistent: { name: i18n.t('achievement.persistent.name'), threshold: 7, icon: '🔥', description: i18n.t('achievement.persistent.desc'), type: 'streak' }
+        };
+    }
     
     function loadEasterEggData() {
         const saved = localStorage.getItem('easterEggData');
@@ -1913,23 +1825,25 @@
     }
     
     function checkAchievements() {
+        const achievements = getAchievements();
         const { totalWordsRead, readingStreak, badges } = state.easterEggs;
         
         // 检查字数成就
-        if (totalWordsRead >= ACHIEVEMENTS.scholar.threshold && !badges.includes('scholar')) {
+        if (totalWordsRead >= achievements.scholar.threshold && !badges.includes('scholar')) {
             unlockAchievement('scholar');
-        } else if (totalWordsRead >= ACHIEVEMENTS.novice.threshold && !badges.includes('novice')) {
+        } else if (totalWordsRead >= achievements.novice.threshold && !badges.includes('novice')) {
             unlockAchievement('novice');
         }
         
         // 检查连续阅读成就
-        if (readingStreak >= ACHIEVEMENTS.persistent.threshold && !badges.includes('persistent')) {
+        if (readingStreak >= achievements.persistent.threshold && !badges.includes('persistent')) {
             unlockAchievement('persistent');
         }
     }
     
     function unlockAchievement(achievementId) {
-        const achievement = ACHIEVEMENTS[achievementId];
+        const achievements = getAchievements();
+        const achievement = achievements[achievementId];
         if (!achievement) return;
         
         // 添加到已解锁徽章列表
@@ -1966,7 +1880,7 @@
             <div style="display: flex; align-items: center; gap: 12px;">
                 <div style="font-size: 36px;">${achievement.icon}</div>
                 <div style="flex: 1;">
-                    <div style="font-size: 12px; opacity: 0.9; margin-bottom: 4px;">🏆 成就解锁</div>
+                    <div style="font-size: 12px; opacity: 0.9; margin-bottom: 4px;">${i18n.t('toast.achievementUnlock')}</div>
                     <div style="font-size: 16px; font-weight: bold; margin-bottom: 4px;">${achievement.name}</div>
                     <div style="font-size: 13px; opacity: 0.85;">${achievement.description}</div>
                 </div>

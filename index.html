@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>墨笈 · 优雅Markdown阅读器</title>
+    <title data-i18n="page.title">墨笈 · 优雅Markdown阅读器</title>
     
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -52,11 +52,11 @@
             <div class="export-confirm-icon">
                 <i data-lucide="file-badge"></i>
             </div>
-            <h3 class="export-confirm-title">导出为 PDF</h3>
-            <p class="export-confirm-desc">即将把当前文档导出为 PDF 格式，保留字体样式和背景设置。</p>
+            <h3 class="export-confirm-title" data-i18n="export.confirm.title">导出为 PDF</h3>
+            <p class="export-confirm-desc" data-i18n="export.confirm.desc">即将把当前文档导出为 PDF 格式，保留字体样式和背景设置。</p>
             <div class="export-confirm-actions">
-                <button class="export-confirm-btn cancel" id="exportConfirmCancel">取消</button>
-                <button class="export-confirm-btn confirm" id="exportConfirmYes">确认导出</button>
+                <button class="export-confirm-btn cancel" id="exportConfirmCancel" data-i18n="export.confirm.cancel">取消</button>
+                <button class="export-confirm-btn confirm" id="exportConfirmYes" data-i18n="export.confirm.yes">确认导出</button>
             </div>
         </div>
     </div>
@@ -65,14 +65,14 @@
     <div class="export-modal" id="exportModal">
         <div class="export-modal-content">
             <div class="export-modal-header">
-                <h3>正在导出...</h3>
+                <h3 data-i18n="export.progress.title">正在导出...</h3>
             </div>
             <div class="export-modal-body">
                 <div class="export-progress">
                     <div class="export-progress-bar">
                         <div class="export-progress-fill" id="exportProgressFill"></div>
                     </div>
-                    <span class="export-progress-text" id="exportProgressText">准备中...</span>
+                    <span class="export-progress-text" id="exportProgressText" data-i18n="export.progress.preparing">准备中...</span>
                 </div>
             </div>
         </div>
@@ -91,21 +91,21 @@
             <div class="header-left">
                 <div class="logo">
                     <i data-lucide="book-open" class="logo-icon"></i>
-                    <span class="logo-text">墨笈</span>
+                    <span class="logo-text" data-i18n="header.logo">墨笈</span>
                 </div>
                 <div class="file-info" id="fileInfo">
                     <span class="file-name" id="fileName"></span>
                 </div>
             </div>
             <div class="header-right">
-                <button class="icon-btn" id="homeBtn" title="返回主页">
+                <button class="icon-btn" id="homeBtn" data-i18n-title="header.home" title="返回主页">
                     <i data-lucide="home"></i>
                 </button>
-                <button class="icon-btn" id="editBtn" title="编辑">
+                <button class="icon-btn" id="editBtn" data-i18n-title="header.edit" title="编辑">
                     <i data-lucide="pencil"></i>
                 </button>
                 <div class="export-wrapper">
-                    <button class="icon-btn" id="exportBtn" title="导出">
+                    <button class="icon-btn" id="exportBtn" data-i18n-title="header.export" title="导出">
                         <i data-lucide="download"></i>
                     </button>
                     
@@ -113,22 +113,22 @@
                     <div class="export-dropdown" id="exportDropdown">
                         <div class="export-dropdown-item" id="exportTxt">
                             <i data-lucide="file-text"></i>
-                            <span>导出为 TXT</span>
+                            <span data-i18n="export.txt">导出为 TXT</span>
                         </div>
                         <div class="export-dropdown-item" id="exportMd">
                             <i data-lucide="file-code"></i>
-                            <span>导出为 MD</span>
+                            <span data-i18n="export.md">导出为 MD</span>
                         </div>
                         <div class="export-dropdown-item" id="exportPdf">
                             <i data-lucide="file-badge"></i>
-                            <span>导出为 PDF</span>
+                            <span data-i18n="export.pdf">导出为 PDF</span>
                         </div>
                     </div>
                 </div>
-                <button class="icon-btn" id="tocBtn" title="目录导航">
+                <button class="icon-btn" id="tocBtn" data-i18n-title="header.toc" title="目录导航">
                     <i data-lucide="list"></i>
                 </button>
-                <button class="icon-btn" id="settingsToggle" title="阅读设置">
+                <button class="icon-btn" id="settingsToggle" data-i18n-title="header.settings" title="阅读设置">
                     <i data-lucide="settings-2"></i>
                 </button>
             </div>
@@ -141,7 +141,7 @@
     <!-- Settings Sidebar -->
     <aside class="settings-sidebar" id="settingsSidebar">
         <div class="sidebar-header">
-            <h3 class="sidebar-title">阅读设置</h3>
+            <h3 class="sidebar-title" data-i18n="settings.title">阅读设置</h3>
             <button class="sidebar-close" id="sidebarClose">
                 <i data-lucide="x"></i>
             </button>
@@ -152,7 +152,7 @@
             <div class="setting-group">
                 <label class="setting-label">
                     <i data-lucide="text" class="setting-icon"></i>
-                    <span>正文字号</span>
+                    <span data-i18n="settings.fontSize.label">正文字号</span>
                 </label>
                 <div class="setting-control">
                     <button class="size-btn" id="fontSizeDown">
@@ -169,13 +169,13 @@
             <div class="setting-group">
                 <label class="setting-label">
                     <i data-lucide="type" class="setting-icon"></i>
-                    <span>正文字体</span>
+                    <span data-i18n="settings.fontFamily.label">正文字体</span>
                 </label>
                 <select id="fontSelect" class="setting-select">
-                    <option value="Noto Sans SC, Source Han Sans CN, sans-serif">思源黑体</option>
-                    <option value="Noto Serif SC, Source Han Serif CN, serif">思源宋体</option>
-                    <option value="LXGW WenKai, sans-serif">霞鹜文楷</option>
-                    <option value="system-ui, -apple-system, sans-serif">系统字体</option>
+                    <option value="Noto Sans SC, Source Han Sans CN, sans-serif" data-i18n="settings.fontFamily.notoSans">思源黑体</option>
+                    <option value="Noto Serif SC, Source Han Serif CN, serif" data-i18n="settings.fontFamily.notoSerif">思源宋体</option>
+                    <option value="LXGW WenKai, sans-serif" data-i18n="settings.fontFamily.wenKai">霞鹜文楷</option>
+                    <option value="system-ui, -apple-system, sans-serif" data-i18n="settings.fontFamily.system">系统字体</option>
                 </select>
             </div>
 
@@ -184,12 +184,12 @@
                 <label class="setting-label">
                     <i data-lucide="sun" class="setting-icon theme-icon-sun"></i>
                     <i data-lucide="moon" class="setting-icon theme-icon-moon"></i>
-                    <span>外观主题</span>
+                    <span data-i18n="settings.theme.label">外观主题</span>
                 </label>
                 <div class="setting-control">
                     <button class="theme-btn" id="themeToggle">
-                        <span class="theme-label-light">明亮模式</span>
-                        <span class="theme-label-dark">黑暗模式</span>
+                        <span class="theme-label-light" data-i18n="settings.theme.light">明亮模式</span>
+                        <span class="theme-label-dark" data-i18n="settings.theme.dark">黑暗模式</span>
                     </button>
                 </div>
             </div>
@@ -198,7 +198,7 @@
             <div class="setting-group">
                 <label class="setting-label">
                     <i data-lucide="move-horizontal" class="setting-icon"></i>
-                    <span>内容宽度</span>
+                    <span data-i18n="settings.width.label">内容宽度</span>
                 </label>
                 <div class="setting-control">
                     <input type="range" id="widthSlider" min="500" max="1200" value="1000" step="20">
@@ -210,7 +210,7 @@
             <div class="setting-group">
                 <label class="setting-label">
                     <i data-lucide="align-center" class="setting-icon"></i>
-                    <span>行高设置</span>
+                    <span data-i18n="settings.lineHeight.label">行高设置</span>
                 </label>
                 <div class="setting-control">
                     <input type="range" id="lineHeightSlider" min="1.4" max="2.4" value="1.9" step="0.1">
@@ -222,7 +222,7 @@
             <div class="setting-group">
                 <label class="setting-label">
                     <i data-lucide="droplet" class="setting-icon"></i>
-                    <span>背景透明度</span>
+                    <span data-i18n="settings.bgOpacity.label">背景透明度</span>
                 </label>
                 <div class="setting-control">
                     <input type="range" id="bgOpacitySlider" min="0" max="100" value="100" step="5">
@@ -230,45 +230,59 @@
                 </div>
             </div>
 
+            <!-- Language Setting -->
+            <div class="setting-group">
+                <label class="setting-label">
+                    <i data-lucide="globe" class="setting-icon"></i>
+                    <span data-i18n="settings.language.label">语言</span>
+                </label>
+                <div class="setting-control">
+                    <select id="languageSelect" class="setting-select">
+                        <option value="zh-CN">中文</option>
+                        <option value="en-US">English</option>
+                    </select>
+                </div>
+            </div>
+
             <!-- Background Setting -->
             <div class="setting-group">
                 <label class="setting-label">
                     <i data-lucide="palette" class="setting-icon"></i>
-                    <span>阅读背景</span>
+                    <span data-i18n="settings.background.label">阅读背景</span>
                 </label>
                 
                 <!-- Background Tabs -->
                 <div class="bg-tabs">
-                    <button class="bg-tab active" data-tab="solid">纯色</button>
-                    <button class="bg-tab" data-tab="artistic">文艺</button>
-                    <button class="bg-tab" data-tab="chinese">国风</button>
-                    <button class="bg-tab" data-tab="stationery">信笺</button>
+                    <button class="bg-tab active" data-tab="solid" data-i18n="settings.background.tabs.solid">纯色</button>
+                    <button class="bg-tab" data-tab="artistic" data-i18n="settings.background.tabs.artistic">文艺</button>
+                    <button class="bg-tab" data-tab="chinese" data-i18n="settings.background.tabs.chinese">国风</button>
+                    <button class="bg-tab" data-tab="stationery" data-i18n="settings.background.tabs.stationery">信笺</button>
                 </div>
 
                 <!-- Solid Colors -->
                 <div class="bg-panel active" id="solidPanel">
                     <div class="bg-grid">
-                        <button class="bg-option" data-bg="solid" data-color="#FAFAF8" style="background:#FAFAF8" title="米白"></button>
-                        <button class="bg-option" data-bg="solid" data-color="#F5F5DC" style="background:#F5F5DC" title="米黄"></button>
-                        <button class="bg-option" data-bg="solid" data-color="#E8F5E9" style="background:#E8F5E9" title="浅草绿"></button>
-                        <button class="bg-option" data-bg="solid" data-color="#E3F2FD" style="background:#E3F2FD" title="淡蓝"></button>
-                        <button class="bg-option" data-bg="solid" data-color="#FFF3E0" style="background:#FFF3E0" title="杏仁"></button>
-                        <button class="bg-option" data-bg="solid" data-color="#FCE4EC" style="background:#FCE4EC" title="淡粉"></button>
-                        <button class="bg-option" data-bg="solid" data-color="#F3E5F5" style="background:#F3E5F5" title="淡紫"></button>
-                        <button class="bg-option" data-bg="solid" data-color="#EFEBE9" style="background:#EFEBE9" title="暖灰"></button>
+                        <button class="bg-option" data-bg="solid" data-color="#FAFAF8" style="background:#FAFAF8" data-i18n-title="settings.bg.color.beige" title="米白"></button>
+                        <button class="bg-option" data-bg="solid" data-color="#F5F5DC" style="background:#F5F5DC" data-i18n-title="settings.bg.color.cream" title="米黄"></button>
+                        <button class="bg-option" data-bg="solid" data-color="#E8F5E9" style="background:#E8F5E9" data-i18n-title="settings.bg.color.green" title="浅草绿"></button>
+                        <button class="bg-option" data-bg="solid" data-color="#E3F2FD" style="background:#E3F2FD" data-i18n-title="settings.bg.color.blue" title="淡蓝"></button>
+                        <button class="bg-option" data-bg="solid" data-color="#FFF3E0" style="background:#FFF3E0" data-i18n-title="settings.bg.color.almond" title="杏仁"></button>
+                        <button class="bg-option" data-bg="solid" data-color="#FCE4EC" style="background:#FCE4EC" data-i18n-title="settings.bg.color.pink" title="淡粉"></button>
+                        <button class="bg-option" data-bg="solid" data-color="#F3E5F5" style="background:#F3E5F5" data-i18n-title="settings.bg.color.purple" title="淡紫"></button>
+                        <button class="bg-option" data-bg="solid" data-color="#EFEBE9" style="background:#EFEBE9" data-i18n-title="settings.bg.color.warmGray" title="暖灰"></button>
                     </div>
                 </div>
 
                 <!-- Artistic Patterns -->
                 <div class="bg-panel" id="artisticPanel">
                     <div class="bg-grid">
-                        <button class="bg-option artistic" data-bg="artistic" data-pattern="hexagon" title="六边形拓扑" 
+                        <button class="bg-option artistic" data-bg="artistic" data-pattern="hexagon" data-i18n-title="settings.bg.pattern.hexagon" title="六边形拓扑" 
                             style="background-color:#FAFAF8; background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxOCIgaGVpZ2h0PSIyMCIgdmlld0JveD0iLTkgLTEwIDE4IDIwIj48cGF0aCBkPSJNMCAtMTBMOC42NiAtNUw4LjY2IDVMMCAxMEwtOC42NiA1TC04LjY2IC01WiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZDBkMGQwIiBzdHJva2Utd2lkdGg9IjAuOCIvPjxjaXJjbGUgY3g9IjAiIGN5PSItMTAiIHI9IjEuNSIgZmlsbD0iI2QwZDBkMCIvPjxjaXJjbGUgY3g9IjguNjYiIGN5PSItNSIgcj0iMS41IiBmaWxsPSIjZDBkMGQwIi8+PGNpcmNsZSBjeD0iOC42NiIgY3k9IjUiIHI9IjEuNSIgZmlsbD0iI2QwZDBkMCIvPjxjaXJjbGUgY3g9IjAiIGN5PSIxMCIgcj0iMS41IiBmaWxsPSIjZDBkMGQwIi8+PGNpcmNsZSBjeD0iLTguNjYiIGN5PSI1IiByPSIxLjUiIGZpbGw9IiNkMGQwZDAiLz48Y2lyY2xlIGN4PSItOC42NiIgY3k9Ii01IiByPSIxLjUiIGZpbGw9IiNkMGQwZDAiLz48L3N2Zz4='); background-size: 18px 20px;"></button>
-                        <button class="bg-option artistic" data-bg="artistic" data-pattern="triangle" title="三角形拓扑" 
+                        <button class="bg-option artistic" data-bg="artistic" data-pattern="triangle" data-i18n-title="settings.bg.pattern.triangle" title="三角形拓扑" 
                             style="background-color:#FAFAF8; background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIzNSIgdmlld0JveD0iMCAwIDIwIDM1Ij48cGF0aCBkPSJNMTAgMEwyMCAxNy4zMkwwIDE3LjMyWiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZDBkMGQwIiBzdHJva2Utd2lkdGg9IjAuOCIvPjxwYXRoIGQ9Ik0wIDE3LjMyTDIwIDE3LjMyTDEwIDM0LjY0WiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZDBkMGQwIiBzdHJva2Utd2lkdGg9IjAuOCIvPjxjaXJjbGUgY3g9IjEwIiBjeT0iMCIgcj0iMS41IiBmaWxsPSIjZDBkMGQwIi8+PGNpcmNsZSBjeD0iMjAiIGN5PSIxNy4zMiIgcj0iMS41IiBmaWxsPSIjZDBkMGQwIi8+PGNpcmNsZSBjeD0iMCIgY3k9IjE3LjMyIiByPSIxLjUiIGZpbGw9IiNkMGQwZDAiLz48Y2lyY2xlIGN4PSIxMCIgY3k9IjM0LjY0IiByPSIxLjUiIGZpbGw9IiNkMGQwZDAiLz48L3N2Zz4='); background-size: 20px 35px;"></button>
-                        <button class="bg-option artistic" data-bg="artistic" data-pattern="diamond" title="菱形拓扑" 
+                        <button class="bg-option artistic" data-bg="artistic" data-pattern="diamond" data-i18n-title="settings.bg.pattern.diamond" title="菱形拓扑" 
                             style="background-color:#FAFAF8; background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MCIgaGVpZ2h0PSI4MCIgdmlld0JveD0iMCAwIDgwIDgwIj48cGF0aCBkPSJNNDAgMEw4MCA0MEw0MCA4MEwwIDQwWiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZDBkMGQwIiBzdHJva2Utd2lkdGg9IjAuOCIvPjxjaXJjbGUgY3g9IjQwIiBjeT0iMCIgcj0iMiIgZmlsbD0iI2QwZDBkMCIvPjxjaXJjbGUgY3g9IjgwIiBjeT0iNDAiIHI9IjIiIGZpbGw9IiNkMGQwZDAiLz48Y2lyY2xlIGN4PSI0MCIgY3k9IjgwIiByPSIyIiBmaWxsPSIjZDBkMGQwIi8+PGNpcmNsZSBjeD0iMCIgY3k9IjQwIiByPSIyIiBmaWxsPSIjZDBkMGQwIi8+PC9zdmc+'); background-size: 80px 80px;"></button>
-                        <button class="bg-option artistic" data-bg="artistic" data-pattern="nodes" title="节点连线" 
+                        <button class="bg-option artistic" data-bg="artistic" data-pattern="nodes" data-i18n-title="settings.bg.pattern.nodes" title="节点连线" 
                             style="background-color:#FAFAF8; background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MCIgaGVpZ2h0PSI4MCIgdmlld0JveD0iMCAwIDgwIDgwIj48bGluZSB4MT0iMCIgeTE9IjAiIHgyPSI4MCIgeTI9IjgwIiBzdHJva2U9IiNkMGQwZDAiIHN0cm9rZS13aWR0aD0iMC44Ii8+PGxpbmUgeDE9IjgwIiB5MT0iMCIgeDI9IjAiIHkyPSI4MCIgc3Ryb2tlPSIjZDBkMGQwIiBzdHJva2Utd2lkdGg9IjAuOCIvPjxsaW5lIHgxPSI0MCIgeTE9IjAiIHgyPSI0MCIgeTI9IjgwIiBzdHJva2U9IiNkMGQwZDAiIHN0cm9rZS13aWR0aD0iMC44Ii8+PGxpbmUgeDE9IjAiIHkxPSI0MCIgeDI9IjgwIiB5Mj0iNDAiIHN0cm9rZT0iI2QwZDBkMCIgc3Ryb2tlLXdpZHRoPSIwLjgiLz48Y2lyY2xlIGN4PSIwIiBjeT0iMCIgcj0iMyIgZmlsbD0iI2QwZDBkMCIvPjxjaXJjbGUgY3g9IjgwIiBjeT0iMCIgcj0iMyIgZmlsbD0iI2QwZDBkMCIvPjxjaXJjbGUgY3g9IjAiIGN5PSI4MCIgcj0iMyIgZmlsbD0iI2QwZDBkMCIvPjxjaXJjbGUgY3g9IjgwIiBjeT0iODAiIHI9IjMiIGZpbGw9IiNkMGQwZDAiLz48Y2lyY2xlIGN4PSI0MCIgY3k9IjQwIiByPSIzIiBmaWxsPSIjZDBkMGQwIi8+PGNpcmNsZSBjeD0iNDAiIGN5PSIwIiByPSIyIiBmaWxsPSIjZDBkMGQwIi8+PGNpcmNsZSBjeD0iNDAiIGN5PSI4MCIgcj0iMiIgZmlsbD0iI2QwZDBkMCIvPjxjaXJjbGUgY3g9IjAiIGN5PSI0MCIgcj0iMiIgZmlsbD0iI2QwZDBkMCIvPjxjaXJjbGUgY3g9IjgwIiBjeT0iNDAiIHI9IjIiIGZpbGw9IiNkMGQwZDAiLz48L3N2Zz4='); background-size: 80px 80px;"></button>
                     </div>
                 </div>
@@ -276,13 +290,13 @@
                 <!-- Chinese Style Patterns -->
                 <div class="bg-panel" id="chinesePanel">
                     <div class="bg-grid">
-                        <button class="bg-option chinese" data-bg="chinese" data-pattern="landscape" title="山水画" 
+                        <button class="bg-option chinese" data-bg="chinese" data-pattern="landscape" data-i18n-title="settings.bg.pattern.landscape" title="山水画" 
                             style="background-color:#F5F5DC; background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MDAiIGhlaWdodD0iNjAwIiB2aWV3Qm94PSIwIDAgODAwIDYwMCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJza3lHcmFkaWVudCIgeDE9IjAlIiB5MT0iMCUiIHgyPSIwJSIgeTI9IjEwMCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNmNWY1ZGMiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiNlOGY1ZTkiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iODAwIiBoZWlnaHQ9IjYwMCIgZmlsbD0idXJsKCNza3lHcmFkaWVudCkiLz48cGF0aCBkPSJNMCA0MDBRMTUwIDM1MCAzMDAgNDAwVDYwMCAzODBRNzUwIDQwMCA4MDAgMzkwVjYwMEgwVjQwMFoiIGZpbGw9IiNjNGM0YjAiIG9wYWNpdHk9IjAuMyIvPjxwYXRoIGQ9TTAgNDUwUTE1MCA0MDAgMzAwIDQ1MFQ2MDAgNDMwUTc1MCA0NTAgODAwIDQ0MFY2MDBIMFY0NTBaIiBmaWxsPSIjYTRhNDkwIiBvcGFjaXR5PSIwLjIiLz48cGF0aCBkPSJNMTUwIDM1MEwyMDAgMzAwTDI1MCAzNTBMMzAwIDI4MEwzNTAgMzUwTDQwMCAyOTBMNDUwIDM1MEw1MDAgMjgwTDU1MCAzNTBMNjAwIDMwMEw2NTAgMzUwTDcwMCAyOTBMNzUwIDM1MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjOGY4ZjdmIiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLW9wYWNpdHk9IjAuNCIvPjxwYXRoIGQ9TTEwMCA0MDBMMTUwIDM1MEwyMDAgNDAwTDI1MCAzNDBMMzAwIDQwMEwzNTAgMzMwTDQwMCA0MDBMNDUwIDM0MEw1MDAgNDAwTDU1MCAzMzBMNjAwIDQwMEw2NTAgMzQwTDcwMCA0MDAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzhmOGY3ZiIgc3Ryb2tlLXdpZHRoPSIxIiBzdHJva2Utb3BhY2l0eT0iMC4zIi8+PC9zdmc+'); background-size: 800px 600px;"></button>
-                        <button class="bg-option chinese" data-bg="chinese" data-pattern="flowers" title="花鸟画" 
+                        <button class="bg-option chinese" data-bg="chinese" data-pattern="flowers" data-i18n-title="settings.bg.pattern.flowers" title="花鸟画" 
                             style="background-color:#F5F5DC; background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MDAiIGhlaWdodD0iNjAwIiB2aWV3Qm94PSIwIDAgODAwIDYwMCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJiYWNrZ3JvdW5kIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjAlIiB5Mj0iMTAwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iI2Y1ZjVkYyIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iI2VmZWJlOSIvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjxyZWN0IHdpZHRoPSI4MDAiIGhlaWdodD0iNjAwIiBmaWxsPSJ1cmwoI2JhY2tncm91bmQpIi8+PGNpcmNsZSBjeD0iMTUwIiBjeT0iMTUwIiByPSI0MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjYzRjNGIwIiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLW9wYWNpdHk9IjAuMyIvPjxjaXJjbGUgY3g9IjE1MCIgY3k9IjE1MCIgcj0iMzAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2M0YzRiMCIgc3Ryb2tlLXdpZHRoPSIxIiBzdHJva2Utb3BhY2l0eT0iMC4yIi8+PGNpcmNsZSBjeD0iMTUwIiBjeT0iMTUwIiByPSIyMCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjYzRjNGIwIiBzdHJva2Utd2lkdGg9IjAuOCIgc3Ryb2tlLW9wYWNpdHk9IjAuMiIvPjxjaXJjbGUgY3g9IjY1MCIgY3k9IjEwMCIgcj0iMzUiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2M0YzRiMCIgc3Ryb2tlLXdpZHRoPSIxLjUiIHN0cm9rZS1vcGFjaXR5PSIwLjMiLz48Y2lyY2xlIGN4PSI2NTAiIGN5PSIxMDAiIHI9IjI1IiBmaWxsPSJub25lIiBzdHJva2U9IiNjNGM0YjAiIHN0cm9rZS13aWR0aD0iMSIgc3Ryb2tlLW9wYWNpdHk9IjAuMiIvPjxjaXJjbGUgY3g9IjY1MCIgY3k9IjEwMCIgcj0iMTUiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2M0YzRiMCIgc3Ryb2tlLXdpZHRoPSIwLjgiIHN0cm9rZS1vcGFjaXR5PSIwLjIiLz48cGF0aCBkPSJNMjAwIDQwMEMyNTAgMzUwIDMwMCAzODAgMzUwIDQwMEM0MDAgNDIwIDQ1MCAzOTAgNTAwIDQwMCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjOGY4ZjdmIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1vcGFjaXR5PSIwLjMiLz48cGF0aCBkPSJNMjUwIDQ1MEMzMDAgNDAwIDM1MCA0MzAgNDAwIDQ1MEM0NTAgNDcwIDUwMCA0NDAgNTUwIDQ1MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjOGY4ZjdmIiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLW9wYWNpdHk9IjAuMyIvPjwvc3ZnPg=='); background-size: 800px 600px;"></button>
-                        <button class="bg-option chinese" data-bg="chinese" data-pattern="calligraphy" title="书法" 
+                        <button class="bg-option chinese" data-bg="chinese" data-pattern="calligraphy" data-i18n-title="settings.bg.pattern.calligraphy" title="书法" 
                             style="background-color:#F5F5DC; background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MDAiIGhlaWdodD0iNjAwIiB2aWV3Qm94PSIwIDAgODAwIDYwMCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJiYWNrZ3JvdW5kIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjAlIiB5Mj0iMTAwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iI2Y1ZjVkYyIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iI2VmZWJlOSIvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjxyZWN0IHdpZHRoPSI4MDAiIGhlaWdodD0iNjAwIiBmaWxsPSJ1cmwoI2JhY2tncm91bmQpIi8+PHBhdGggZD0iTTUwIDUwQzEwMCAxMDAgMTUwIDgwIDIwMCAxMjBDMjUwIDE2MCAzMDAgMTQwIDM1MCAxODBDNDAwIDIyMCA0NTAgMjAwIDUwMCAyNDBDNTUwIDI4MCA2MDAgMjYwIDY1MCAzMDBDNzAwIDM0MCA3NTAgMzIwIDgwMCAzNjAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzhmOGY3ZiIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2Utb3BhY2l0eT0iMC4zIi8+PHBhdGggZD0iTTUwIDIwMEMxMDAgMjUwIDE1MCAyMzAgMjAwIDI3MEMyNTAgMzEwIDMwMCAyOTAgMzUwIDMzMEM0MDAgMzcwIDQ1MCAzNTAgNTAwIDM5MEM1NTAgNDMwIDYwMCA0MTAgNjUwIDQ1MUM3MDAgNDkxIDc1MCA0NzEgODAwIDUxMCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjOGY4ZjdmIiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLW9wYWNpdHk9IjAuMyIvPjxwYXRoIGQ9TTUwIDM1MEMxMDAgNDAwIDE1MCAzODAgMjAwIDQyMEMyNTAgNDYwIDMwMCA0NDAgMzUwIDQ4MEM0MDAgNTIwIDQ1MCA1MDAgNTAwIDU0MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjOGY4ZjdmIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1vcGFjaXR5PSIwLjMiLz48L3N2Zz4='); background-size: 800px 600px;"></button>
-                        <button class="bg-option chinese" data-bg="chinese" data-pattern="lattice" title="窗棂" 
+                        <button class="bg-option chinese" data-bg="chinese" data-pattern="lattice" data-i18n-title="settings.bg.pattern.lattice" title="窗棂" 
                             style="background-color:#F5F5DC; background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MDAiIGhlaWdodD0iNjAwIiB2aWV3Qm94PSIwIDAgODAwIDYwMCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJiYWNrZ3JvdW5kIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjAlIiB5Mj0iMTAwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iI2Y1ZjVkYyIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iI2VmZWJlOSIvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjxyZWN0IHdpZHRoPSI4MDAiIGhlaWdodD0iNjAwIiBmaWxsPSJ1cmwoI2JhY2tncm91bmQpIi8+PHJlY3QgeD0iNTAiIHk9IjUwIiB3aWR0aD0iNzAwIiBoZWlnaHQ9IjUwMCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjYzRjNGIwIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1vcGFjaXR5PSIwLjMiLz48bGluZSB4MT0iMjUwIiB5MT0iNTAiIHgyPSIyNTAiIHkyPSI1NTAiIHN0cm9rZT0iI2M0YzRiMCIgc3Ryb2tlLXdpZHRoPSIxLjUiIHN0cm9rZS1vcGFjaXR5PSIwLjIiLz48bGluZSB4MT0iNTUwIiB5MT0iNTAiIHgyPSI1NTAiIHkyPSI1NTAiIHN0cm9rZT0iI2M0YzRiMCIgc3Ryb2tlLXdpZHRoPSIxLjUiIHN0cm9rZS1vcGFjaXR5PSIwLjIiLz48bGluZSB4MT0iNTAiIHkxPSIyMDAiIHgyPSI3NTAiIHkyPSIyMDAiIHN0cm9rZT0iI2M0YzRiMCIgc3Ryb2tlLXdpZHRoPSIxLjUiIHN0cm9rZS1vcGFjaXR5PSIwLjIiLz48bGluZSB4MT0iNTAiIHkxPSI0MDAiIHgyPSI3NTAiIHkyPSI0MDAiIHN0cm9rZT0iI2M0YzRiMCIgc3Ryb2tlLXdpZHRoPSIxLjUiIHN0cm9rZS1vcGFjaXR5PSIwLjIiLz48L3N2Zz4='); background-size: 800px 600px;"></button>
                     </div>
                 </div>
@@ -290,13 +304,13 @@
                 <!-- Stationery Backgrounds -->
                 <div class="bg-panel" id="stationeryPanel">
                     <div class="bg-grid">
-                        <button class="bg-option stationery" data-bg="stationery" data-pattern="vintage" title="复古信纸" 
+                        <button class="bg-option stationery" data-bg="stationery" data-pattern="vintage" data-i18n-title="settings.bg.pattern.vintage" title="复古信纸" 
                             style="background-color:#FFFFFF; background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MDAiIGhlaWdodD0iNjAwIiB2aWV3Qm94PSIwIDAgODAwIDYwMCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJwYXBlckdyYWRpZW50IiB4MT0iMCUiIHkxPSIwJSIgeDI9IjAlIiB5Mj0iMTAwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iI2ZmZmZmZiIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iI2Y4ZjhmOCIvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjxyZWN0IHdpZHRoPSI4MDAiIGhlaWdodD0iNjAwIiBmaWxsPSJ1cmwoI3BhcGVyR3JhZGllbnQpIi8+PHJlY3QgeD0iNDAiIHk9IjQwIiB3aWR0aD0iNzIwIiBoZWlnaHQ9IjUyMCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZTBlMGUwIiBzdHJva2Utd2lkdGg9IjEiLz48bGluZSB4MT0iNjAiIHkxPSI2MCIgeDI9Ijc0MCIgeTI9IjYwIiBzdHJva2U9IiNlMGUwZTAiIHN0cm9rZS13aWR0aD0iMC41Ii8+PGxpbmUgeDE9IjYwIiB5MT0iODAiIHgyPSI3NDAiIHkyPSI4MCIgc3Ryb2tlPSIjZTBlMGUwIiBzdHJva2Utd2lkdGg9IjAuNSIvPjwvc3ZnPg=='); background-size: 800px 600px;"></button>
-                        <button class="bg-option stationery" data-bg="stationery" data-pattern="kraft" title="牛皮纸" 
+                        <button class="bg-option stationery" data-bg="stationery" data-pattern="kraft" data-i18n-title="settings.bg.pattern.kraft" title="牛皮纸" 
                             style="background-color:#F5F0E5; background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MDAiIGhlaWdodD0iNjAwIiB2aWV3Qm94PSIwIDAgODAwIDYwMCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJrcmFmdEdyYWRpZW50IiB4MT0iMCUiIHkxPSIwJSIgeDI9IjAlIiB5Mj0iMTAwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iI2Y1ZjBlNSIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iI2VmZWFlNSIvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjxyZWN0IHdpZHRoPSI4MDAiIGhlaWdodD0iNjAwIiBmaWxsPSJ1cmwoI2tyYWZ0R3JhZGllbnQpIi8+PGNpcmNsZSBjeD0iMTUwIiBjeT0iMTUwIiByPSIyNSIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZDBkMGQwIiBzdHJva2Utd2lkdGg9IjAuOCIgc3Ryb2tlLW9wYWNpdHk9IjAuMyIvPjxjaXJjbGUgY3g9IjY1MCIgY3k9IjE1MCIgcj0iMjUiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2QwZDBkMCIgc3Ryb2tlLXdpZHRoPSIwLjgiIHN0cm9rZS1vcGFjaXR5PSIwLjMiLz48Y2lyY2xlIGN4PSIxNTAiIGN5PSI0NTAiIHI9IjI1IiBmaWxsPSJub25lIiBzdHJva2U9IiNkMGQwZDAiIHN0cm9rZS13aWR0aD0iMC44IiBzdHJva2Utb3BhY2l0eT0iMC4zIi8+PGNpcmNsZSBjeD0iNjUwIiBjeT0iNDUwIiByPSIyNSIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZDBkMGQwIiBzdHJva2Utd2lkdGg9IjAuOCIgc3Ryb2tlLW9wYWNpdHk9IjAuMyIvPjwvc3ZnPg=='); background-size: 800px 600px;"></button>
-                        <button class="bg-option stationery" data-bg="stationery" data-pattern="watercolor" title="水彩纸" 
+                        <button class="bg-option stationery" data-bg="stationery" data-pattern="watercolor" data-i18n-title="settings.bg.pattern.watercolor" title="水彩纸" 
                             style="background-color:#FFFFFF; background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MDAiIGhlaWdodD0iNjAwIiB2aWV3Qm94PSIwIDAgODAwIDYwMCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJ3YXRlckdyYWRpZW50IiB4MT0iMCUiIHkxPSIwJSIgeDI9IjAlIiB5Mj0iMTAwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iI2ZmZmZmZiIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iI2YwZjBmMCIvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjxyZWN0IHdpZHRoPSI4MDAiIGhlaWdodD0iNjAwIiBmaWxsPSJ1cmwoI3dhdGVyR3JhZGllbnQpIi8+PGVsbGlwc2UgY3g9IjIwMCIgY3k9IjE1MCIgcng9IjgwIiByeT0iNDAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2QwZDBkMCIgc3Ryb2tlLXdpZHRoPSIwLjgiIHN0cm9rZS1vcGFjaXR5PSIwLjIiLz48ZWxsaXBzZSBjeD0iNjAwIiBjeT0iMTUwIiByeD0iODAiIHJ5PSI0MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZDBkMGQwIiBzdHJva2Utd2lkdGg9IjAuOCIgc3Ryb2tlLW9wYWNpdHk9IjAuMiIvPjxlbGxpcHNlIGN4PSIyMDAiIGN5PSI0NTAiIHJ4PSI4MCIgcnk9IjQwIiBmaWxsPSJub25lIiBzdHJva2U9IiNkMGQwZDAiIHN0cm9rZS13aWR0aD0iMC44IiBzdHJva2Utb3BhY2l0eT0iMC4yIi8+PGVsbGlwc2UgY3g9IjYwMCIgY3k9IjQ1MCIgcng9IjgwIiByeT0iNDAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2QwZDBkMCIgc3Ryb2tlLXdpZHRoPSIwLjgiIHN0cm9rZS1vcGFjaXR5PSIwLjIiLz48L3N2Zz4='); background-size: 800px 600px;"></button>
-                        <button class="bg-option stationery" data-bg="stationery" data-pattern="sketch" title="素描纸" 
+                        <button class="bg-option stationery" data-bg="stationery" data-pattern="sketch" data-i18n-title="settings.bg.pattern.sketch" title="素描纸" 
                             style="background-color:#FFFFFF; background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MDAiIGhlaWdodD0iNjAwIiB2aWV3Qm94PSIwIDAgODAwIDYwMCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJza2V0Y2hHcmFkaWVudCIgeDE9IjAlIiB5MT0iMCUiIHgyPSIwJSIgeTI9IjEwMCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNmZmZmZmYiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiNmMGYwZjAiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iODAwIiBoZWlnaHQ9IjYwMCIgZmlsbD0idXJsKCNza2V0Y2hHcmFkaWVudCkiLz48bGluZSB4MT0iMTAwIiB5MT0iMTAwIiB4Mj0iNzAwIiB5Mj0iMTAwIiBzdHJva2U9IiNkMGQwZDAiIHN0cm9rZS13aWR0aD0iMC41IiBzdHJva2Utb3BhY2l0eT0iMC4zIi8+PGxpbmUgeDE9IjEwMCIgeTE9IjIwMCIgeDI9IjcwMCIgeTI9IjIwMCIgc3Ryb2tlPSIjZDBkMGQwIiBzdHJva2Utd2lkdGg9IjAuNSIgc3Ryb2tlLW9wYWNpdHk9IjAuMyIvPjxsaW5lIHgxPSIxMDAiIHkxPSIzMDAiIHgyPSI3MDAiIHkyPSIzMDAiIHN0cm9rZT0iI2QwZDBkMCIgc3Ryb2tlLXdpZHRoPSIwLjUiIHN0cm9rZS1vcGFjaXR5PSIwLjMiLz48bGluZSB4MT0iMTAwIiB5MT0iNDAwIiB4Mj0iNzAwIiB5Mj0iNDAwIiBzdHJva2U9IiNkMGQwZDAiIHN0cm9rZS13aWR0aD0iMC41IiBzdHJva2Utb3BhY2l0eT0iMC4zIi8+PGxpbmUgeDE9IjEwMCIgeTE9IjUwMCIgeDI9IjcwMCIgeTI9IjUwMCIgc3Ryb2tlPSIjZDBkMGQwIiBzdHJva2Utd2lkdGg9IjAuNSIgc3Ryb2tlLW9wYWNpdHk9IjAuMyIvPjwvc3ZnPg=='); background-size: 800px 600px;"></button>
                     </div>
                 </div>
@@ -319,8 +333,8 @@
                         <line x1="42" y1="75" x2="60" y2="75" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                     </svg>
                 </div>
-                <h2 class="welcome-title">优雅地阅读Markdown</h2>
-                <p class="welcome-desc">拖拽文件到此处，或点击选择文件</p>
+                <h2 class="welcome-title" data-i18n="welcome.title">优雅地阅读Markdown</h2>
+                <p class="welcome-desc" data-i18n="welcome.desc">拖拽文件到此处，或点击选择文件</p>
                 <div class="welcome-formats">
                     <span class="format-badge">.md</span>
                     <span class="format-badge">.txt</span>
@@ -344,11 +358,11 @@
         <div class="status-content">
             <div class="status-item">
                 <i data-lucide="clock" class="status-icon"></i>
-                <span id="readingTime">0 分钟</span>
+                <span id="readingTime" data-i18n="status.readingTime" data-i18n-params='{"minutes": 0}'>0 分钟</span>
             </div>
             <div class="status-item">
                 <i data-lucide="type" class="status-icon"></i>
-                <span id="wordCount">0 字</span>
+                <span id="wordCount" data-i18n="status.wordCount" data-i18n-params='{"count": 0}'>0 字</span>
             </div>
             <div class="status-item progress-text">
                 <i data-lucide="bookmark" class="status-icon"></i>
@@ -367,6 +381,9 @@
     
     <!-- jsPDF for PDF generation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
+    <!-- Internationalization -->
+    <script src="scripts/i18n.js"></script>
     
     <script src="scripts/app.js?v=20260407-8"></script>
 </body>

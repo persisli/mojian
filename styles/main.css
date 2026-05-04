@@ -418,8 +418,26 @@ body::before {
 
 .sidebar-content {
     flex: 1;
-    overflow-y: auto;
+    overflow-y: scroll; /* 始终显示滚动条，防止宽度变化 */
     padding: var(--space-lg);
+}
+
+/* 侧边栏滚动条样式优化 */
+.sidebar-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.sidebar-content::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.sidebar-content::-webkit-scrollbar-thumb {
+    background: var(--color-border);
+    border-radius: var(--radius-full);
+}
+
+.sidebar-content::-webkit-scrollbar-thumb:hover {
+    background: var(--color-text-muted);
 }
 
 /* Setting Groups */
