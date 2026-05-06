@@ -138,7 +138,23 @@ const i18n = {
             'achievement.scholar.name': '博览群书',
             'achievement.scholar.desc': '阅读满 100,000 字',
             'achievement.persistent.name': '持之以恒',
-            'achievement.persistent.desc': '连续阅读 7 天'
+            'achievement.persistent.desc': '连续阅读 7 天',
+            
+            // Poetic Quotes
+            'poetic.quote.1': '文字是思想的翅膀',
+            'poetic.quote.2': '在空白处遇见灵感',
+            'poetic.quote.3': '阅读是与智者对话',
+            'poetic.quote.4': '每一页都是新的旅程',
+            'poetic.quote.5': '墨香深处有乾坤',
+            'poetic.quote.6': '静心阅读，遇见更好的自己',
+            'poetic.quote.7': '书中自有黄金屋',
+            'poetic.quote.8': '读万卷书，行万里路',
+            'poetic.quote.9': '文字如茶，细品回甘',
+            'poetic.quote.10': '在书海中寻找心灵的港湾',
+            'poetic.quote.11': '阅读让时光变得温柔',
+            'poetic.quote.12': '每一行代码都是诗',
+            'poetic.quote.13': '文档之间，自有天地',
+            'poetic.quote.14': '墨笈之中，藏着世界'
         },
         
         'en-US': {
@@ -267,7 +283,23 @@ const i18n = {
             'achievement.scholar.name': 'Scholar',
             'achievement.scholar.desc': 'Read 100,000 words',
             'achievement.persistent.name': 'Persistent',
-            'achievement.persistent.desc': 'Read for 7 consecutive days'
+            'achievement.persistent.desc': 'Read for 7 consecutive days',
+            
+            // Poetic Quotes
+            'poetic.quote.1': 'Words are the wings of thought',
+            'poetic.quote.2': 'Find inspiration in the blank spaces',
+            'poetic.quote.3': 'Reading is a dialogue with the wise',
+            'poetic.quote.4': 'Every page is a new journey',
+            'poetic.quote.5': 'Deep within the ink lies the universe',
+            'poetic.quote.6': 'Read quietly, meet a better self',
+            'poetic.quote.7': 'Books hold treasures beyond measure',
+            'poetic.quote.8': 'Read ten thousand books, travel ten thousand miles',
+            'poetic.quote.9': 'Words are like tea, savor the aftertaste',
+            'poetic.quote.10': 'Seek harbor for your soul in the sea of books',
+            'poetic.quote.11': 'Reading makes time gentle',
+            'poetic.quote.12': 'Every line of code is poetry',
+            'poetic.quote.13': 'Between documents lies a world',
+            'poetic.quote.14': 'Within Moji hides the world'
         }
     },
     
