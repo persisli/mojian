@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 墨笈 · 优雅Markdown阅读器
  * JavaScript Application Logic
  */
@@ -1620,6 +1620,17 @@
         showToast(i18n.t('toast.konamiCode'), 'success');
         console.log('Toast should be shown'); // 调试信息
         
+        // 进入全屏模式
+        if (document.documentElement.requestFullscreen) {
+            document.documentElement.requestFullscreen().catch(err => {
+                console.log('无法进入全屏模式:', err);
+            });
+        } else if (document.documentElement.webkitRequestFullscreen) {
+            document.documentElement.webkitRequestFullscreen();
+        } else if (document.documentElement.msRequestFullscreen) {
+            document.documentElement.msRequestFullscreen();
+        }
+        
         // 延迟一点再创建canvas，让toast有时间显示
         setTimeout(() => {
             // 创建画布
@@ -1641,18 +1652,32 @@
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
             
-            // 字符集 - 英文字母和编程符号
-            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-=[]{}|;:,.<>?/~`';
+            // 字符集 - 根据语言环境选择不同内容
+            let chars;
+            const isChinese = typeof i18n !== 'undefined' && i18n.isChinese();
+            if (isChinese) {
+                // 中文环境：道德经内容
+                chars = '道可非常名无天地之始有万物母欲以观其妙徼此两者同出异谓玄又众门根源善若水利争处恶几于居善地心渊与仁言信政治事能动时夫唯不故尤持盈满自遗咎功遂身退天之道载金玉堂莫守富贵骄孽四甚爱必大费藏厚亡知足辱止殆久视生之畜是谓玄德三十辐共一毂当无有车用埏埴为器户牖室五色令盲音聋味口爽驰骋畋猎心发狂难得货行妨圣为腹目故彼取此去去举泰氏成其私以身后先外存非无私耶邻父弃智民利百倍绝仁复孝慈圣无为而治见素抱朴少私寡欲绝学无忧唯与诃相几何善美信皆吹强羸载隳挫解纷和光尘湛兮存湛似或宗锐挫之纷解之和其光同其尘湛兮似或存吾不知谁之子象帝之先';
+            } else {
+                // 英文环境：英文字母和编程符号
+                chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-=[]{}|;:,.<>?/~';
+            }
             const fontSize = 14;
             const columns = canvas.width / fontSize;
             const drops = [];
+            const charIndices = []; // 记录每列当前字符的索引位置
             
             for (let i = 0; i < columns; i++) {
                 drops[i] = Math.random() * -100;
+                // 中文环境下，每列从随机位置开始按顺序显示字符
+                if (isChinese) {
+                    charIndices[i] = Math.floor(Math.random() * chars.length);
+                }
             }
             
             let animationId;
             let isRunning = true;
+            const frameDelay = 50; // 每帧延迟50ms，降低流动速度
             
             function draw() {
                 if (!isRunning) return;
@@ -1665,22 +1690,48 @@
                 ctx.font = fontSize + 'px monospace';
                 
                 for (let i = 0; i < drops.length; i++) {
-                    const text = chars[Math.floor(Math.random() * chars.length)];
+                    let text;
+                    if (isChinese) {
+                        // 中文环境：按字符集顺序连贯显示
+                        text = chars[charIndices[i] % chars.length];
+                        charIndices[i]++; // 移动到下一个字符
+                    } else {
+                        // 英文环境：保持随机选择
+                        text = chars[Math.floor(Math.random() * chars.length)];
+                    }
                     ctx.fillText(text, i * fontSize, drops[i] * fontSize);
                     
                     if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
                         drops[i] = 0;
+                        // 重置时也重置字符索引（中文环境）
+                        if (isChinese) {
+                            charIndices[i] = Math.floor(Math.random() * chars.length);
+                        }
                     }
                     drops[i]++;
                 }
                 
-                animationId = requestAnimationFrame(draw);
+                // 使用setTimeout控制帧率
+                setTimeout(() => {
+                    animationId = requestAnimationFrame(draw);
+                }, frameDelay);
             }
             
             function stopMatrixRain() {
                 if (!isRunning) return;
                 isRunning = false;
                 cancelAnimationFrame(animationId);
+                
+                // 退出全屏模式
+                if (document.exitFullscreen) {
+                    document.exitFullscreen().catch(err => {
+                        console.log('无法退出全屏模式:', err);
+                    });
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                } else if (document.msExitFullscreen) {
+                    document.msExitFullscreen();
+                }
                 
                 // 先隐藏canvas，再显示退出提示
                 canvas.style.transition = 'opacity 0.5s ease';
