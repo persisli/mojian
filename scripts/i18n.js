@@ -66,7 +66,7 @@ const i18n = {
             'settings.lineHeight.label': '行高设置',
             
             // Background Opacity
-            'settings.bgOpacity.label': '背景透明度',
+            'settings.bgOpacity.label': '背景不透明度',
             
             // Language
             'settings.language.label': '语言',
@@ -117,7 +117,7 @@ const i18n = {
             // Toast Messages
             'toast.fileLoaded': '文件加载成功',
             'toast.fileLoadError': '文件读取失败，请重试',
-            'toast.unsupportedFormat': '仅支持 .md 和 .txt 格式的文件',
+            'toast.unsupportedFormat': '仅支持 .md、.txt 和 .log 格式的文件',
             'toast.fileTooLarge': '文件大小不能超过 6MB',
             'toast.loadFileFirst': '请先加载文档',
             'toast.exportTxtSuccess': '已导出为 TXT 格式',
@@ -246,7 +246,7 @@ const i18n = {
             // Toast Messages
             'toast.fileLoaded': 'File loaded successfully',
             'toast.fileLoadError': 'Failed to read file, please try again',
-            'toast.unsupportedFormat': 'Only .md and .txt files are supported',
+            'toast.unsupportedFormat': 'Only .md, .txt and .log files are supported',
             'toast.fileTooLarge': 'File size cannot exceed 6MB',
             'toast.loadFileFirst': 'Please load a document first',
             'toast.exportTxtSuccess': 'Exported as TXT format',

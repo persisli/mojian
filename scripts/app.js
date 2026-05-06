@@ -10,8 +10,6 @@
     // DOM Elements
     // ========================================
     const elements = {
-        progressBar: document.getElementById('progressBar'),
-        progressFill: document.getElementById('progressFill'),
         header: document.getElementById('header'),
         fileInfo: document.getElementById('fileInfo'),
         fileName: document.getElementById('fileName'),
@@ -745,7 +743,7 @@
     function processFile(file) {
         console.log('processFile called with:', file.name);
         // Validate file type
-        const validTypes = ['.md', '.txt'];
+        const validTypes = ['.md', '.txt', '.log'];
         const fileExt = '.' + file.name.split('.').pop().toLowerCase();
         
         if (!validTypes.includes(fileExt)) {
@@ -764,8 +762,14 @@
         
         reader.onload = function(e) {
             console.log('FileReader onload triggered');
-            const content = e.target.result;
+            let content = e.target.result;
             state.currentFile = file;
+            
+            // 如果是log文件，清理ANSI转义序列等特殊字符
+            if (fileExt === '.log') {
+                content = cleanLogContent(content);
+            }
+            
             state.content = content;
             
             console.log('File loaded:', file.name, 'Size:', content.length);
@@ -781,7 +785,11 @@
             // Render content (may take time but UI is already switched)
             try {
                 console.log('Rendering content...');
-                renderContent(content);
+                if (fileExt === '.log') {
+                    renderLogContent(content);
+                } else {
+                    renderContent(content);
+                }
                 console.log('Content rendered');
             } catch (err) {
                 console.error('Render error:', err);
@@ -803,6 +811,249 @@
     // ========================================
     // Content Rendering
     // ========================================
+    
+    // Clean log content - remove ANSI escape sequences and special characters
+    function cleanLogContent(content) {
+        let cleaned = content;
+        
+        // Step 1: Remove OSC sequences (window title, etc.) - must be done first
+        // Matches ESC ] ... BEL or ESC ] ... ESC \
+        cleaned = cleaned.replace(/\x1b\][^\x07]*\x07/g, '');
+        cleaned = cleaned.replace(/\x1b\][^\x1b]*\x1b\\/g, '');
+        
+        // Step 2: Remove CSI sequences (ESC [ ... )
+        // This includes color codes, cursor movement, erase commands, etc.
+        cleaned = cleaned.replace(/\x1b\[[0-9;?]*[a-zA-Z]/g, '');
+        
+        // Step 3: Remove other escape sequences
+        // Bracket mode switching: ESC ( X or ESC ) X
+        cleaned = cleaned.replace(/\x1b[()][A-Za-z0-9]/g, '');
+        
+        // Simple escape sequences: ESC X
+        cleaned = cleaned.replace(/\x1b[A-Za-z]/g, '');
+        
+        // Step 4: Handle backspace sequences (character + backspace)
+        // This needs to be done iteratively to handle multiple backspaces
+        // Note: We exclude \b itself from matching [^\n] to avoid matching \b\b
+        let prevCleaned;
+        do {
+            prevCleaned = cleaned;
+            // Remove non-backspace-non-newline character followed by backspace
+            cleaned = cleaned.replace(/[^\n\x08]\x08/g, '');
+        } while (cleaned !== prevCleaned);
+        
+        // Remove any remaining standalone backspaces
+        cleaned = cleaned.replace(/\x08/g, '');
+        
+        // Step 5: Normalize line endings
+        // Convert CRLF to LF
+        cleaned = cleaned.replace(/\r\n/g, '\n');
+        // Remove standalone CR
+        cleaned = cleaned.replace(/\r/g, '');
+        
+        // Step 6: Clean up multiple consecutive blank lines (keep max 2)
+        cleaned = cleaned.replace(/\n{3,}/g, '\n\n');
+        
+        // Step 7: Trim leading/trailing whitespace from each line but preserve structure
+        const lines = cleaned.split('\n');
+        const cleanedLines = lines.map(line => {
+            // Remove trailing whitespace but keep leading spaces for indentation
+            return line.replace(/[\t ]+$/, '');
+        });
+        cleaned = cleanedLines.join('\n');
+        
+        return cleaned;
+    }
+    
+    // Render log content with proper formatting
+    function renderLogContent(content) {
+        // Highlight shell prompts before escaping HTML
+        const highlightedContent = highlightShellPrompts(content);
+        
+        // Create pre-formatted display for log files
+        const logHtml = `<pre class="log-content">${escapeHtml(highlightedContent)}</pre>`;
+        
+        // Insert into DOM
+        elements.markdownContent.innerHTML = logHtml;
+        
+        // Calculate statistics
+        calculateStats(content);
+        
+        // Apply background settings
+        if (state.isDarkMode) {
+            applyTheme();
+        } else {
+            applyBackground();
+        }
+        
+        // Reapply other settings (width, font, etc.)
+        applyOtherSettings();
+        
+        // Reset scroll position
+        window.scrollTo(0, 0);
+        
+        // Update progress
+        updateProgress();
+        
+        // Generate TOC (for log files, use line numbers as sections)
+        generateLogToc(content);
+    }
+    
+    // Escape HTML to prevent XSS, but preserve prompt markers
+    function escapeHtml(text) {
+        // First, temporarily replace prompt markers with placeholders
+        const promptMarkerStart = '\x00PROMPT\x00';
+        const promptMarkerEnd = '\x00ENDPROMPT\x00';
+        const placeholderStart = '___PROMPT_START___';
+        const placeholderEnd = '___PROMPT_END___';
+        
+        let processed = text.replace(new RegExp(promptMarkerStart, 'g'), placeholderStart);
+        processed = processed.replace(new RegExp(promptMarkerEnd, 'g'), placeholderEnd);
+        
+        // Escape HTML
+        const div = document.createElement('div');
+        div.textContent = processed;
+        let escaped = div.innerHTML;
+        
+        // Restore prompt markers as HTML span elements
+        escaped = escaped.replace(new RegExp(placeholderStart, 'g'), '<span class="shell-prompt">');
+        escaped = escaped.replace(new RegExp(placeholderEnd, 'g'), '</span>');
+        
+        return escaped;
+    }
+    
+    // Highlight shell prompts in log content
+    function highlightShellPrompts(content) {
+        // Common shell prompt patterns:
+        // - user@host:path$ or user@host:path#
+        // - root:~# or user:~$
+        // - [user@host path]$ or [user@host path]#
+        // - C:\Users\user> or /home/user $
+        
+        const promptPatterns = [
+            // Pattern 1: user@host:path$ or user@host:path#
+            // Example: radxa@radxa-cubie-a7a:~$ , root@server:/var/log#
+            /([a-zA-Z0-9_-]+@[a-zA-Z0-9._-]+:[^\n#$]*?)([$#])/g,
+            
+            // Pattern 2: simple user:path# or user:path$
+            // Example: root:~# , admin:/home$
+            /([a-zA-Z0-9_-]+:[^\n@$#]*?)([$#])/g,
+            
+            // Pattern 3: Windows-style prompt
+            // Example: C:\Users\admin> , D:\Projects>
+            /([A-Z]:\\[^\n>]*?)(>)/g,
+            
+            // Pattern 4: Unix path with $
+            // Example: /home/user $, /var/log $
+            /((?:\/[^\n]*?)|(~))\s*([$])/g
+        ];
+        
+        let highlighted = content;
+        
+        // Apply highlighting for each pattern
+        // We use a special marker that won't be affected by HTML escaping
+        const promptMarkerStart = '\x00PROMPT\x00';
+        const promptMarkerEnd = '\x00ENDPROMPT\x00';
+        
+        // Process each pattern
+        promptPatterns.forEach(pattern => {
+            highlighted = highlighted.replace(pattern, (match, prompt, symbol) => {
+                // Don't highlight if already highlighted
+                if (match.includes(promptMarkerStart)) return match;
+                return `${promptMarkerStart}${match}${promptMarkerEnd}`;
+            });
+        });
+        
+        return highlighted;
+    }
+    
+    // Generate TOC for log files based on content structure
+    function generateLogToc(content) {
+        const lines = content.split('\n');
+        const tocNav = elements.floatingTocNav;
+        tocNav.innerHTML = '';
+        
+        if (lines.length === 0) {
+            elements.floatingToc.classList.remove('visible');
+            return;
+        }
+        
+        const ul = document.createElement('ul');
+        ul.className = 'toc-list';
+        
+        // Find meaningful sections in log (timestamps, headers, etc.)
+        let sectionCount = 0;
+        const maxSections = 50; // Limit TOC items
+        
+        lines.forEach((line, index) => {
+            if (sectionCount >= maxSections) return;
+            
+            // Look for common log patterns: timestamps, level indicators, section headers
+            const isSection = /\d{4}[-/]\d{2}[-/]\d{2}/.test(line) || 
+                             /^(INFO|WARN|ERROR|DEBUG|TRACE|FATAL)/i.test(line) ||
+                             /^={3,}/.test(line) ||
+                             /^-{3,}/.test(line) ||
+                             (line.trim().length > 0 && line.trim().length < 100 && /^[A-Z][A-Z\s]+$/.test(line.trim()));
+            
+            if (isSection && line.trim()) {
+                const li = document.createElement('li');
+                li.className = 'toc-item';
+                li.dataset.level = 1;
+                
+                const a = document.createElement('a');
+                a.className = 'toc-link';
+                a.href = '#log-line-' + index;
+                // Truncate long lines for TOC
+                const displayText = line.trim().substring(0, 50);
+                a.textContent = displayText + (displayText.length < line.trim().length ? '...' : '');
+                
+                a.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    scrollToLine(index);
+                    // 移动端点击后自动关闭目录
+                    if (window.innerWidth <= 768) {
+                        elements.floatingToc.classList.remove('visible');
+                    }
+                });
+                
+                li.appendChild(a);
+                ul.appendChild(li);
+                sectionCount++;
+            }
+        });
+        
+        tocNav.appendChild(ul);
+    }
+    
+    // Scroll to specific line in log
+    function scrollToLine(lineIndex) {
+        const logContent = elements.markdownContent.querySelector('.log-content');
+        if (!logContent) return;
+        
+        const lines = logContent.textContent.split('\n');
+        let charCount = 0;
+        for (let i = 0; i < lineIndex && i < lines.length; i++) {
+            charCount += lines[i].length + 1; // +1 for newline
+        }
+        
+        // Create a temporary marker
+        const marker = document.createElement('span');
+        marker.id = 'log-line-' + lineIndex;
+        marker.style.position = 'absolute';
+        logContent.insertBefore(marker, logContent.childNodes[0]);
+        
+        const headerHeight = 80;
+        const targetPosition = marker.getBoundingClientRect().top + window.pageYOffset - headerHeight;
+        
+        window.scrollTo({
+            top: Math.max(0, targetPosition),
+            behavior: 'smooth'
+        });
+        
+        // Remove marker after scrolling
+        setTimeout(() => marker.remove(), 100);
+    }
+
     function renderContent(content) {
         // Parse markdown
         const html = marked.parse(content);
@@ -914,7 +1165,6 @@
         elements.wordCount.textContent = i18n.t('status.wordCount', { count: 0 });
         elements.readingTime.textContent = i18n.t('status.readingTime', { minutes: 0 });
         elements.progressPercent.textContent = '0%';
-        elements.progressFill.style.width = '0%';
         
         // Reset scroll
         window.scrollTo(0, 0);
@@ -937,7 +1187,6 @@
         const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
         const progress = scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0;
         
-        elements.progressFill.style.width = Math.min(progress, 100) + '%';
         elements.progressPercent.textContent = Math.round(progress) + '%';
     }
 
@@ -960,7 +1209,16 @@
         if (savedFile && savedContent) {
             state.currentFile = { name: savedFile };
             state.content = savedContent;
-            renderContent(savedContent);
+            
+            // 根据文件扩展名选择正确的渲染方式
+            const fileExt = '.' + savedFile.split('.').pop().toLowerCase();
+            
+            if (fileExt === '.log') {
+                renderLogContent(savedContent);
+            } else {
+                renderContent(savedContent);
+            }
+            
             showReadingMode(savedFile);
             
             // Update reading statistics for achievements
@@ -1341,12 +1599,18 @@
         
         try {
             // 获取纯文本内容（去除Markdown格式）
-            const plainText = getPlainTextFromMarkdown(state.content);
+            let plainText = state.content;
+            const fileExt = '.' + state.currentFile.name.split('.').pop().toLowerCase();
+            
+            // 如果是markdown文件，转换为纯文本
+            if (fileExt === '.md') {
+                plainText = getPlainTextFromMarkdown(state.content);
+            }
             
             // 创建Blob并下载
             const blob = new Blob([plainText], { type: 'text/plain;charset=utf-8' });
             const url = URL.createObjectURL(blob);
-            const fileName = (state.currentFile.name || 'document').replace(/\.(md|txt)$/, '') + '.txt';
+            const fileName = (state.currentFile.name || 'document').replace(/\.(md|txt|log)$/, '') + '.txt';
             
             const a = document.createElement('a');
             a.href = url;
@@ -1374,7 +1638,7 @@
             // 直接使用原始Markdown内容
             const blob = new Blob([state.content], { type: 'text/markdown;charset=utf-8' });
             const url = URL.createObjectURL(blob);
-            const fileName = (state.currentFile.name || 'document').replace(/\.(md|txt)$/, '') + '.md';
+            const fileName = (state.currentFile.name || 'document').replace(/\.(md|txt|log)$/, '') + '.md';
             
             const a = document.createElement('a');
             a.href = url;
@@ -1501,7 +1765,7 @@
                     .header, .status-bar, .floating-toc, 
                     .export-modal, .export-confirm-modal,
                     .settings-sidebar, .sidebar-overlay,
-                    .progress-bar, .toast {
+                    .toast {
                         display: none !important;
                     }
                     
@@ -1526,7 +1790,7 @@
             
             // Use browser's print to PDF
             const originalTitle = document.title;
-            const fileName = (state.currentFile.name || 'document').replace(/\.(md|txt)$/, '');
+            const fileName = (state.currentFile.name || 'document').replace(/\.(md|txt|log)$/, '');
             document.title = fileName;
             
             await new Promise(resolve => setTimeout(resolve, 200));

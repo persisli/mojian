@@ -7,7 +7,7 @@
     /* Light Theme */
     --color-primary: #2C3E50;
     --color-secondary: #34495E;
-    --color-accent: #E74C3C;
+    --color-accent: #ee7600;
     --color-bg: #FAFAF8;
     --color-bg-secondary: #F5F5F3;
     --color-text: #333333;
@@ -72,7 +72,7 @@
 [data-theme="dark"] {
     --color-primary: #ECF0F1;
     --color-secondary: #BDC3C7;
-    --color-accent: #E74C3C;
+    --color-accent: #ee7600;
     --color-bg: #1A1A2E;
     --color-bg-secondary: #16213E;
     --color-text: #E8E8E6;
@@ -164,28 +164,6 @@ body::before {
 
 ::-webkit-scrollbar-thumb:hover {
     background: var(--color-text-muted);
-}
-
-/* ========================================
-   Progress Bar
-   ======================================== */
-
-.progress-bar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: transparent;
-    z-index: 1000;
-}
-
-.progress-fill {
-    height: 100%;
-    background: linear-gradient(90deg, var(--color-accent), #F39C12);
-    width: 0%;
-    transition: width 0.1s ease-out;
-    box-shadow: 0 0 10px var(--color-accent);
 }
 
 /* ========================================
@@ -904,6 +882,33 @@ input[type="range"]::-moz-range-thumb {
     transition: font-size var(--transition-normal), line-height var(--transition-normal), background-color var(--transition-normal), background-image var(--transition-normal);
 }
 
+/* Log content styling */
+.log-content {
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    overflow-x: auto;
+    color: var(--color-text);
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    border: none;
+    tab-size: 4;
+}
+
+/* Shell prompt highlighting in log files */
+.log-content .shell-prompt {
+    color: #ee7600;
+    font-weight: bold;
+}
+
+/* Dark mode shell prompt */
+[data-theme="dark"] .log-content .shell-prompt {
+    color: #6a9fb5;
+}
+
 .markdown-content > *:first-child {
     margin-top: 0;
 }
@@ -1278,6 +1283,8 @@ input[type="range"]::-moz-range-thumb {
     gap: var(--space-xs);
     font-size: 0.875rem;
     color: var(--color-text-secondary);
+    min-width: 120px;
+    justify-content: center;
 }
 
 .status-icon {

@@ -41,11 +41,6 @@
     <link rel="stylesheet" href="styles/main.css">
 </head>
 <body>
-    <!-- Progress Bar -->
-    <div class="progress-bar" id="progressBar">
-        <div class="progress-fill" id="progressFill"></div>
-    </div>
-
     <!-- Export Confirmation Modal -->
     <div class="export-confirm-modal" id="exportConfirmModal">
         <div class="export-confirm-content">
@@ -222,7 +217,7 @@
             <div class="setting-group">
                 <label class="setting-label">
                     <i data-lucide="droplet" class="setting-icon"></i>
-                    <span data-i18n="settings.bgOpacity.label">背景透明度</span>
+                    <span data-i18n="settings.bgOpacity.label">背景不透明度</span>
                 </label>
                 <div class="setting-control">
                     <input type="range" id="bgOpacitySlider" min="0" max="100" value="100" step="5">
@@ -338,9 +333,10 @@
                 <div class="welcome-formats">
                     <span class="format-badge">.md</span>
                     <span class="format-badge">.txt</span>
+                    <span class="format-badge">.log</span>
                 </div>
             </label>
-            <input type="file" id="fileInput" accept=".md,.txt">
+            <input type="file" id="fileInput" accept=".md,.txt,.log">
         </div>
 
         <!-- Reading Area -->
