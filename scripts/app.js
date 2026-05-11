@@ -13,6 +13,7 @@
         header: document.getElementById('header'),
         fileInfo: document.getElementById('fileInfo'),
         fileName: document.getElementById('fileName'),
+        fileNameInput: document.getElementById('fileNameInput'),
         editBtn: document.getElementById('editBtn'),
 
         homeBtn: document.getElementById('homeBtn'),
@@ -40,6 +41,9 @@
         welcomeContent: document.querySelector('.welcome-content'),
         readingArea: document.getElementById('readingArea'),
         markdownContent: document.getElementById('markdownContent'),
+        editorContainer: document.getElementById('editorContainer'),
+        editorContent: document.getElementById('editorContent'),
+        editToolbar: document.getElementById('editToolbar'),
         statusBar: document.getElementById('statusBar'),
         readingTime: document.getElementById('readingTime'),
         wordCount: document.getElementById('wordCount'),
@@ -72,6 +76,8 @@
         wordCount: 0,
         readingTime: 0,
         isDarkMode: false,
+        isEditMode: false,
+        editor: null,
         settings: {
             width: 1000,
             fontFamily: 'Noto Sans SC, Source Han Sans CN, sans-serif',
@@ -94,6 +100,1028 @@
     };
 
     // ========================================
+    // Global State for Memory Management
+    // ========================================
+    let iconsInitialized = false;
+    let scrollRAF = null;
+    let resizeTimer = null;
+    let markedConfigured = false;
+    let matrixRainState = { isRunning: false, animationId: null, exitHandler: null };
+
+    // ========================================
+    // Editor Functions
+    // ========================================
+    
+    function toggleEditMode() {
+        if (state.isEditMode) {
+            // Exit edit mode
+            exitEditMode();
+        } else {
+            // Enter edit mode
+            enterEditMode();
+        }
+    }
+    
+    function enterEditMode() {
+        state.isEditMode = true;
+        
+        // 如果没有导入文档，创建新文档并显示阅读区域
+        if (!state.currentFile) {
+            elements.welcomeScreen.style.display = 'none';
+            elements.welcomeScreen.classList.remove('active');
+            elements.readingArea.style.display = 'block';
+            elements.readingArea.classList.add('active');
+            elements.statusBar.style.display = 'block';
+            state.currentFile = { name: '未命名文档.md' };
+            elements.fileName.textContent = state.currentFile.name;
+            elements.fileName.style.display = 'inline';
+            
+            // 创建空文档内容
+            state.content = '';
+            renderContent(state.content);
+        }
+        
+        // 让 markdownContent 可编辑
+        elements.markdownContent.setAttribute('contenteditable', 'true');
+        elements.markdownContent.classList.add('editing');
+        
+        // 聚焦到编辑区域
+        setTimeout(() => {
+            elements.markdownContent.focus();
+        }, 100);
+        
+        // 显示工具栏
+        elements.editToolbar.classList.add('visible');
+
+        // 更新按钮图标
+        elements.editBtn.innerHTML = '<i data-lucide="eye"></i>';
+        lucide.createIcons();
+
+        // 添加编辑模式专用的键盘事件监听器
+        elements.markdownContent.addEventListener('keydown', handleEditKeydown);
+
+        // 添加图片拉伸事件监听器
+        elements.markdownContent.addEventListener('mousedown', handleImageMouseDown);
+        document.addEventListener('mousemove', handleImageMouseMove);
+
+        showToast(i18n.t('toast.enterEditMode') || '进入编辑模式');
+    }
+    
+    let imageResizeState = {
+        isResizing: false,
+        currentImage: null,
+        originalImg: null,
+        startX: 0,
+        startY: 0,
+        startWidth: 0,
+        startHeight: 0,
+        aspectRatio: 1,
+        resizeEdge: null
+    };
+
+    function handleImageMouseDown(e) {
+        const img = e.target.closest('img');
+        if (!img || !state.isEditMode) return;
+
+        const rect = img.getBoundingClientRect();
+        const edgeThreshold = 25;
+
+        const isRightEdge = e.clientX >= rect.right - edgeThreshold;
+        const isBottomEdge = e.clientY >= rect.bottom - edgeThreshold;
+        const isLeftEdge = e.clientX <= rect.left + edgeThreshold;
+        const isTopEdge = e.clientY <= rect.top + edgeThreshold;
+
+        if (isRightEdge || isBottomEdge || isLeftEdge || isTopEdge) {
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+
+            const rect = img.getBoundingClientRect();
+            const aspectRatio = rect.width / rect.height;
+
+            img.style.visibility = 'hidden';
+
+            const targetImg = img.cloneNode(true);
+            targetImg.draggable = false;
+            targetImg.style.userSelect = 'none';
+            targetImg.style.webkitUserSelect = 'none';
+            targetImg.style.pointerEvents = 'none';
+            targetImg.style.position = 'fixed';
+            targetImg.style.left = rect.left + 'px';
+            targetImg.style.top = rect.top + 'px';
+            targetImg.style.width = rect.width + 'px';
+            targetImg.style.height = rect.height + 'px';
+            targetImg.style.maxWidth = 'none';
+            targetImg.style.maxHeight = 'none';
+            targetImg.style.visibility = 'visible';
+            targetImg.style.opacity = '0.7';
+            targetImg.style.zIndex = '1000';
+            targetImg.style.boxSizing = 'border-box';
+            document.body.appendChild(targetImg);
+
+            elements.markdownContent.style.pointerEvents = 'none';
+
+            let resizeEdge = 'right';
+            if (isLeftEdge && isTopEdge) resizeEdge = 'nw';
+            else if (isRightEdge && isTopEdge) resizeEdge = 'ne';
+            else if (isLeftEdge && isBottomEdge) resizeEdge = 'sw';
+            else if (isRightEdge && isBottomEdge) resizeEdge = 'se';
+            else if (isLeftEdge) resizeEdge = 'left';
+            else if (isRightEdge) resizeEdge = 'right';
+            else if (isTopEdge) resizeEdge = 'top';
+            else if (isBottomEdge) resizeEdge = 'bottom';
+
+            imageResizeState.isResizing = true;
+            imageResizeState.currentImage = targetImg;
+            imageResizeState.startX = e.clientX;
+            imageResizeState.startY = e.clientY;
+            imageResizeState.startWidth = rect.width;
+            imageResizeState.startHeight = rect.height;
+            imageResizeState.aspectRatio = aspectRatio;
+            imageResizeState.originalImg = img;
+            imageResizeState.resizeEdge = resizeEdge;
+
+            document.addEventListener('mousemove', handleImageMouseMove);
+            document.addEventListener('mouseup', handleImageMouseUp);
+        }
+    }
+
+    function handleImageMouseMove(e) {
+        if (imageResizeState.isResizing) {
+            const img = imageResizeState.currentImage;
+            if (!img || !img.isConnected) {
+                imageResizeState.isResizing = false;
+                imageResizeState.currentImage = null;
+                document.removeEventListener('mousemove', handleImageMouseMove);
+                document.removeEventListener('mouseup', handleImageMouseUp);
+                return;
+            }
+
+            const edge = imageResizeState.resizeEdge;
+            const deltaX = e.clientX - imageResizeState.startX;
+            const deltaY = e.clientY - imageResizeState.startY;
+            const startLeft = parseFloat(img.style.left);
+            const startTop = parseFloat(img.style.top);
+            let newWidth, newHeight, newLeft, newTop;
+
+            if (edge === 'right') {
+                newWidth = imageResizeState.startWidth + deltaX;
+                newWidth = Math.max(50, newWidth);
+                newHeight = newWidth / imageResizeState.aspectRatio;
+                newLeft = startLeft;
+                newTop = startTop;
+            } else if (edge === 'left') {
+                newWidth = imageResizeState.startWidth - deltaX;
+                newWidth = Math.max(50, newWidth);
+                newHeight = newWidth / imageResizeState.aspectRatio;
+                newLeft = startLeft + imageResizeState.startWidth - newWidth;
+                newTop = startTop;
+            } else if (edge === 'bottom') {
+                newHeight = imageResizeState.startHeight + deltaY;
+                newHeight = Math.max(50 / imageResizeState.aspectRatio, newHeight);
+                newWidth = newHeight * imageResizeState.aspectRatio;
+                newLeft = startLeft;
+                newTop = startTop;
+            } else if (edge === 'top') {
+                newHeight = imageResizeState.startHeight - deltaY;
+                newHeight = Math.max(50 / imageResizeState.aspectRatio, newHeight);
+                newWidth = newHeight * imageResizeState.aspectRatio;
+                newLeft = startLeft;
+                newTop = startTop;
+            } else if (edge === 'se') {
+                newWidth = imageResizeState.startWidth + deltaX;
+                newWidth = Math.max(50, newWidth);
+                newHeight = newWidth / imageResizeState.aspectRatio;
+                newLeft = startLeft;
+                newTop = startTop;
+            } else if (edge === 'sw') {
+                newWidth = imageResizeState.startWidth - deltaX;
+                newWidth = Math.max(50, newWidth);
+                newHeight = newWidth / imageResizeState.aspectRatio;
+                newLeft = startLeft + imageResizeState.startWidth - newWidth;
+                newTop = startTop;
+            } else if (edge === 'ne') {
+                newWidth = imageResizeState.startWidth + deltaX;
+                newWidth = Math.max(50, newWidth);
+                newHeight = newWidth / imageResizeState.aspectRatio;
+                newLeft = startLeft;
+                newTop = startTop;
+            } else if (edge === 'nw') {
+                newWidth = imageResizeState.startWidth - deltaX;
+                newWidth = Math.max(50, newWidth);
+                newHeight = newWidth / imageResizeState.aspectRatio;
+                newLeft = startLeft + imageResizeState.startWidth - newWidth;
+                newTop = startTop;
+            }
+
+            img.style.width = newWidth + 'px';
+            img.style.height = newHeight + 'px';
+            img.style.left = newLeft + 'px';
+            img.style.top = newTop + 'px';
+            img.style.maxWidth = 'none';
+            img.style.maxHeight = 'none';
+            return;
+        }
+
+        const img = e.target.closest('img');
+        if (!img || !state.isEditMode) return;
+
+        if (!img.isConnected) return;
+
+        img.style.pointerEvents = 'auto';
+        img.draggable = false;
+
+        const rect = img.getBoundingClientRect();
+        const edgeThreshold = 25;
+
+        const isRightEdge = e.clientX >= rect.right - edgeThreshold;
+        const isBottomEdge = e.clientY >= rect.bottom - edgeThreshold;
+        const isLeftEdge = e.clientX <= rect.left + edgeThreshold;
+        const isTopEdge = e.clientY <= rect.top + edgeThreshold;
+
+        if (isRightEdge && isBottomEdge) {
+            img.style.cursor = 'se-resize';
+            img.style.pointerEvents = 'auto';
+        } else if (isLeftEdge && isTopEdge) {
+            img.style.cursor = 'nw-resize';
+            img.style.pointerEvents = 'auto';
+        } else if (isRightEdge && isTopEdge) {
+            img.style.cursor = 'ne-resize';
+            img.style.pointerEvents = 'auto';
+        } else if (isLeftEdge && isBottomEdge) {
+            img.style.cursor = 'sw-resize';
+            img.style.pointerEvents = 'auto';
+        } else if (isRightEdge || isLeftEdge) {
+            img.style.cursor = 'ew-resize';
+            img.style.pointerEvents = 'auto';
+        } else if (isTopEdge || isBottomEdge) {
+            img.style.cursor = 'ns-resize';
+            img.style.pointerEvents = 'auto';
+        } else {
+            img.style.cursor = '';
+            img.style.pointerEvents = '';
+        }
+    }
+
+    function handleImageMouseUp() {
+        if (imageResizeState.currentImage) {
+            if (imageResizeState.originalImg && imageResizeState.currentImage.isConnected) {
+                const finalWidth = imageResizeState.currentImage.offsetWidth;
+                const finalHeight = imageResizeState.currentImage.offsetHeight;
+                imageResizeState.originalImg.style.visibility = 'visible';
+                imageResizeState.originalImg.style.width = finalWidth + 'px';
+                imageResizeState.originalImg.style.height = finalHeight + 'px';
+                imageResizeState.currentImage.remove();
+            }
+        }
+        imageResizeState.isResizing = false;
+        imageResizeState.currentImage = null;
+        imageResizeState.originalImg = null;
+        elements.markdownContent.style.pointerEvents = 'auto';
+        document.removeEventListener('mousemove', handleImageMouseMove);
+        document.removeEventListener('mouseup', handleImageMouseUp);
+    }
+
+    function exitEditMode() {
+        state.isEditMode = false;
+        
+        // 清除防抖定时器
+        if (autoSaveTimer) {
+            clearTimeout(autoSaveTimer);
+            autoSaveTimer = null;
+        }
+        
+        // 立即保存当前内容
+        if (elements.markdownContent.innerHTML) {
+            autoSaveContent(elements.markdownContent.innerHTML);
+        }
+        
+        // 隐藏工具栏
+        elements.editToolbar.classList.remove('visible');
+        
+        // 让 markdownContent 不可编辑
+        elements.markdownContent.setAttribute('contenteditable', 'false');
+        elements.markdownContent.classList.remove('editing');
+        
+        // 移除编辑模式专用的键盘事件监听器
+        elements.markdownContent.removeEventListener('keydown', handleEditKeydown);
+        elements.markdownContent.removeEventListener('mousedown', handleImageMouseDown);
+        document.removeEventListener('mousemove', handleImageMouseMove);
+        document.removeEventListener('mouseup', handleImageMouseUp);
+
+        // 获取编辑后的 HTML 内容并转换回 Markdown
+        const htmlContent = elements.markdownContent.innerHTML;
+        // console.log('📤 Exiting edit mode, HTML content length:', htmlContent.length);
+        
+        state.content = htmlToMarkdown(htmlContent);
+        
+        // console.log('📝 Updated state.content length:', state.content ? state.content.length : 0);
+        // console.log('📝 First 100 chars of state.content:', state.content ? state.content.substring(0, 100) : 'EMPTY');
+        
+        // 更新按钮图标
+        elements.editBtn.innerHTML = '<i data-lucide="pencil"></i>';
+        lucide.createIcons();
+
+        showToast(i18n.t('toast.exitEditMode') || '退出编辑模式');
+    }
+    
+    // ========================================
+    // Toolbar Helper Functions
+    // ========================================
+    
+    // 处理编辑模式下的键盘事件
+    function handleEditKeydown(e) {
+        // 只处理 Enter 键
+        if (e.key !== 'Enter') return;
+        
+        const selection = window.getSelection();
+        if (selection.rangeCount === 0) return;
+        
+        const range = selection.getRangeAt(0);
+        let currentNode = range.commonAncestorContainer;
+        
+        // 如果选中的是文本节点，获取其父元素
+        if (currentNode.nodeType === Node.TEXT_NODE) {
+            currentNode = currentNode.parentElement;
+        }
+        
+        // 检查是否在 blockquote 中
+        let isInBlockquote = false;
+        let blockquoteElement = null;
+        let el = currentNode;
+        while (el && el !== elements.markdownContent) {
+            if (el.tagName === 'BLOCKQUOTE') {
+                isInBlockquote = true;
+                blockquoteElement = el;
+                break;
+            }
+            el = el.parentElement;
+        }
+        
+        // 如果在引用块中，需要特殊处理
+        if (isInBlockquote) {
+            // 检查当前行是否为空（只有 <br> 或空白）
+            const currentParagraph = currentNode.closest('p') || currentNode;
+            const isEmpty = !currentParagraph.textContent.trim() || 
+                           (currentParagraph.childNodes.length === 1 && 
+                            currentParagraph.firstChild.nodeName === 'BR');
+            
+            if (isEmpty) {
+                // 如果当前行为空，跳出引用块，创建普通段落
+                e.preventDefault();
+                
+                const newParagraph = document.createElement('p');
+                newParagraph.innerHTML = '<br>';
+                
+                // 在引用块后插入新段落
+                blockquoteElement.parentNode.insertBefore(newParagraph, blockquoteElement.nextSibling);
+                
+                // 移动光标到新段落
+                const newRange = document.createRange();
+                newRange.setStart(newParagraph, 0);
+                newRange.collapse(true);
+                selection.removeAllRanges();
+                selection.addRange(newRange);
+                
+                // 聚焦到编辑区域
+                elements.markdownContent.focus();
+            }
+            // 如果当前行有内容，让浏览器默认行为处理（在引用块内创建新段落）
+        }
+        // 注意：列表的处理由浏览器默认行为处理，不需要干预
+    }
+    
+    // 应用标题
+    function applyHeading(level) {
+        const tag = `h${level}`;
+        document.execCommand('formatBlock', false, tag);
+    }
+    
+    // 应用行内代码
+    function applyInlineCode() {
+        const selection = window.getSelection();
+        if (selection.rangeCount === 0) return;
+        
+        const range = selection.getRangeAt(0);
+        const codeEl = document.createElement('code');
+        codeEl.textContent = range.toString();
+        
+        range.deleteContents();
+        range.insertNode(codeEl);
+    }
+    
+    // 应用任务列表
+    function applyTaskList() {
+        // 实现任务列表逻辑
+        showToast('任务列表功能需要额外扩展');
+    }
+    
+    // 应用链接
+    function applyLink() {
+        const url = prompt('输入链接URL:');
+        if (url) {
+            document.execCommand('createLink', false, url);
+        }
+    }
+    
+    // 应用图片
+    function applyImage() {
+        const imageUrl = prompt('输入图片URL:');
+        if (imageUrl) {
+            document.execCommand('insertImage', false, imageUrl);
+        }
+    }
+    
+    // 应用代码块
+    function applyCodeBlock() {
+        const pre = document.createElement('pre');
+        const code = document.createElement('code');
+        pre.appendChild(code);
+        
+        const selection = window.getSelection();
+        if (selection.rangeCount > 0) {
+            const range = selection.getRangeAt(0);
+            code.textContent = range.toString();
+            range.deleteContents();
+            range.insertNode(pre);
+        } else {
+            code.textContent = '\n';
+            elements.markdownContent.appendChild(pre);
+        }
+    }
+    
+    // 应用表格
+    function applyTable() {
+        // 实现表格插入逻辑
+        const table = document.createElement('table');
+        const tbody = document.createElement('tbody');
+        
+        for (let i = 0; i < 3; i++) {
+            const row = document.createElement('tr');
+            for (let j = 0; j < 3; j++) {
+                const cell = document.createElement('td');
+                cell.textContent = '';
+                row.appendChild(cell);
+            }
+            tbody.appendChild(row);
+        }
+        
+        table.appendChild(tbody);
+        
+        const selection = window.getSelection();
+        if (selection.rangeCount > 0) {
+            const range = selection.getRangeAt(0);
+            range.insertNode(table);
+        } else {
+            elements.markdownContent.appendChild(table);
+        }
+    }
+    
+    function initEditor() {
+        try {
+            // Wait for Tiptap modules to be loaded
+            if (!window.TiptapEditor) {
+                console.warn('Tiptap not loaded yet, retrying...');
+                setTimeout(initEditor, 500);
+                return;
+            }
+            
+            const { Editor, StarterKit, Link, Image, Table, TableRow, TableCell, TableHeader } = window.TiptapEditor;
+            
+            state.editor = new Editor({
+                element: elements.editorContent,
+                extensions: [
+                    StarterKit.configure({
+                        heading: {
+                            levels: [1, 2, 3]
+                        }
+                    }),
+                    Link.configure({
+                        openOnClick: false
+                    }),
+                    Image,
+                    Table.configure({
+                        resizable: true
+                    }),
+                    TableRow,
+                    TableHeader,
+                    TableCell
+                ],
+                content: '',
+                onCreate: ({ editor }) => {
+                    console.log('Editor created, ProseMirror element:', editor.view.dom);
+                },
+                onUpdate: ({ editor }) => {
+                    // Auto-save to localStorage on every change
+                    autoSaveContent(editor.getHTML());
+                    updateWordCount();
+                },
+                onSelectionUpdate: ({ editor }) => {
+                    updateToolbarState();
+                }
+            });
+            
+            console.log('Editor initialized successfully with all extensions');
+        } catch (error) {
+            console.error('Failed to initialize editor:', error);
+            showToast('编辑器初始化失败: ' + error.message, 'error');
+        }
+    }
+    
+    function handleToolbarAction(btn) {
+        // 不再检查 state.editor，而是检查 markdownContent 是否可编辑
+        if (!elements.markdownContent.isContentEditable) return;
+        
+        const action = btn.dataset.action;
+        const level = btn.dataset.level;
+        
+        try {
+            switch(action) {
+                case 'heading':
+                    applyHeading(parseInt(level));
+                    break;
+                case 'bold':
+                    // 切换加粗状态
+                    document.execCommand('bold', false, null);
+                    break;
+                case 'italic':
+                    // 切换斜体状态
+                    document.execCommand('italic', false, null);
+                    break;
+                case 'strike':
+                    // 切换删除线状态
+                    document.execCommand('strikeThrough', false, null);
+                    break;
+                case 'code':
+                    applyInlineCode();
+                    break;
+                case 'bulletList':
+                    // 切换无序列表状态
+                    document.execCommand('insertUnorderedList', false, null);
+                    break;
+                case 'orderedList':
+                    // 切换有序列表状态
+                    document.execCommand('insertOrderedList', false, null);
+                    break;
+                case 'taskList':
+                    applyTaskList();
+                    break;
+                case 'blockquote':
+                    // 切换引用状态
+                    document.execCommand('formatBlock', false, 'blockquote');
+                    break;
+                case 'horizontalRule':
+                    document.execCommand('insertHorizontalRule', false, null);
+                    break;
+                case 'link':
+                    applyLink();
+                    break;
+                case 'image':
+                    applyImage();
+                    break;
+                case 'codeBlock':
+                    applyCodeBlock();
+                    break;
+                case 'table':
+                    applyTable();
+                    break;
+            }
+        } catch (error) {
+            console.error('Toolbar action error:', error);
+            showToast('操作失败', 'error');
+        }
+        
+        updateToolbarState();
+    }
+    
+    function updateToolbarState() {
+        // 检查是否在编辑模式
+        if (!elements.markdownContent.isContentEditable) return;
+        
+        const selection = window.getSelection();
+        if (selection.rangeCount === 0) return;
+        
+        const range = selection.getRangeAt(0);
+        let parentElement = range.commonAncestorContainer;
+        
+        // 如果选中的是文本节点，获取其父元素
+        if (parentElement.nodeType === Node.TEXT_NODE) {
+            parentElement = parentElement.parentElement;
+        }
+        
+        // 更新按钮状态
+        document.querySelectorAll('.toolbar-btn').forEach(btn => {
+            const action = btn.dataset.action;
+            const level = btn.dataset.level;
+            let isActive = false;
+            
+            // 向上遍历查找匹配的父元素
+            let el = parentElement;
+            while (el && el !== elements.markdownContent) {
+                switch(action) {
+                    case 'heading':
+                        if (el.tagName === `H${level}`) {
+                            isActive = true;
+                        }
+                        break;
+                    case 'bold':
+                        if (el.tagName === 'STRONG' || el.tagName === 'B') {
+                            isActive = true;
+                        }
+                        break;
+                    case 'italic':
+                        if (el.tagName === 'EM' || el.tagName === 'I') {
+                            isActive = true;
+                        }
+                        break;
+                    case 'strike':
+                        if (el.tagName === 'DEL' || el.tagName === 'S' || el.tagName === 'STRIKE') {
+                            isActive = true;
+                        }
+                        break;
+                    case 'code':
+                        if (el.tagName === 'CODE' && !el.closest('pre')) {
+                            isActive = true;
+                        }
+                        break;
+                    case 'bulletList':
+                        if (el.tagName === 'UL') {
+                            isActive = true;
+                        }
+                        break;
+                    case 'orderedList':
+                        if (el.tagName === 'OL') {
+                            isActive = true;
+                        }
+                        break;
+                    case 'blockquote':
+                        if (el.tagName === 'BLOCKQUOTE') {
+                            isActive = true;
+                        }
+                        break;
+                    case 'codeBlock':
+                        if (el.tagName === 'PRE') {
+                            isActive = true;
+                        }
+                        break;
+                }
+                
+                if (isActive) break;
+                el = el.parentElement;
+            }
+            
+            if (isActive) {
+                btn.classList.add('is-active');
+            } else {
+                btn.classList.remove('is-active');
+            }
+        });
+    }
+    
+    // 防抖定时器
+    let autoSaveTimer = null;
+    
+    function autoSaveContent(htmlContent) {
+        try {
+            // 将 HTML 转换为 Markdown 保存
+            const markdown = htmlToMarkdown(htmlContent);
+            localStorage.setItem('savedContent', markdown);
+            localStorage.setItem('editorDraft', htmlContent);
+            // 静默保存，不显示任何提示
+        } catch (e) {
+            console.warn('Auto-save failed:', e);
+        }
+    }
+    
+    function updateWordCount() {
+        // 从 markdownContent 获取文本内容
+        const text = elements.markdownContent.innerText || elements.markdownContent.textContent;
+        const count = text.trim().length;
+        state.wordCount = count;
+        
+        // Update status bar
+        if (elements.wordCount) {
+            const i18nParams = JSON.stringify({ count: count });
+            elements.wordCount.setAttribute('data-i18n-params', i18nParams);
+            elements.wordCount.textContent = i18n.t('status.wordCount', { count: count });
+        }
+        
+        // Calculate reading time (average 300 chars per minute)
+        state.readingTime = Math.ceil(count / 300);
+        if (elements.readingTime) {
+            const timeParams = JSON.stringify({ minutes: state.readingTime });
+            elements.readingTime.setAttribute('data-i18n-params', timeParams);
+            elements.readingTime.textContent = i18n.t('status.readingTime', { minutes: state.readingTime });
+        }
+    }
+    
+    // HTML to Markdown converter using Turndown
+    let turndownService = null;
+    
+    function getTurndownService() {
+        if (!turndownService) {
+            // Check if Turndown is available
+            if (typeof TurndownService === 'undefined') {
+                console.warn('⚠️ TurndownService is not defined. Library may not be loaded.');
+                return null;
+            }
+            
+            try {
+                turndownService = new TurndownService({
+                    headingStyle: 'atx',        // 使用 # 标题样式
+                    codeBlockStyle: 'fenced',   // 使用 ``` 代码块
+                    bulletListMarker: '-',      // 使用 - 作为列表标记
+                    emDelimiter: '*',           // 使用 * 作为斜体标记
+                    strongDelimiter: '**',      // 使用 ** 作为粗体标记
+                    linkStyle: 'inlined',       // 使用内联链接
+                    linkReferenceStyle: 'full', // 完整的链接引用样式
+                    hr: '---',                  // 使用 --- 作为水平线
+                    blankReplacement: function(content, node) {
+                        // 保留空白行的处理
+                        return node.isBlock ? '\n\n' : '';
+                    }
+                });
+                
+                console.log('✅ TurndownService initialized successfully');
+                
+                // 自定义规则：保持代码块的语言标识和完整内容
+                turndownService.addRule('codeBlock', {
+                    filter: function(node) {
+                        const isPre = node.nodeName === 'PRE';
+                        // if (isPre) {
+                        //     console.log('💻 Found PRE element, has code child:', !!node.querySelector('code'));
+                        // }
+                        return isPre;
+                    },
+                    replacement: function(content, node) {
+                        // console.log('💻 Processing PRE, content length:', content.length);
+                        
+                        // 查找 code 元素（可能在子节点中）
+                        let code = node.querySelector('code');
+                        if (!code) {
+                            // console.log('💻 No code element, using PRE textContent');
+                            code = node;
+                        }
+                        
+                        // 从 class 中提取语言标识
+                        const langClass = Array.from(code.classList).find(cls => cls.startsWith('language-'));
+                        const lang = langClass ? langClass.replace('language-', '') : '';
+                        // console.log('💻 Language:', lang || '(none)');
+                        
+                        // 获取原始代码内容，忽略 Prism.js 添加的行号和高亮 span
+                        let codeContent = '';
+                        
+                        // 方法 1: 尝试从 data-raw-code 属性获取（如果有）
+                        if (code.dataset.rawCode) {
+                            codeContent = code.dataset.rawCode;
+                            // console.log('💻 Using data-raw-code, length:', codeContent.length);
+                        }
+                        // 方法 2: 使用 textContent 并清理 Prism.js 添加的内容
+                        else {
+                            // 移除行号元素
+                            const clone = code.cloneNode(true);
+                            const lineNumbers = clone.querySelectorAll('.line-numbers, .line-number, [class*="line"]');
+                            lineNumbers.forEach(el => el.remove());
+                            
+                            // 移除 code-block-header 等增强元素
+                            const headers = clone.querySelectorAll('.code-block-header, .code-block-actions, .code-block-btn, .code-block-lang');
+                            headers.forEach(el => el.remove());
+                            
+                            // 获取纯文本
+                            codeContent = clone.textContent;
+                            // console.log('💻 Extracted code content length:', codeContent.length);
+                        }
+                        
+                        // 清理多余的前后空行
+                        codeContent = codeContent.replace(/^\n+/, '').replace(/\n+$/, '');
+                        
+                        // 使用三反引号代码块
+                        const result = '\n\n```' + lang + '\n' + codeContent + '\n```\n\n';
+                        // console.log('💻 Code block converted, result length:', result.length);
+                        // console.log('💻 First 100 chars:', result.substring(0, 100));
+                        return result;
+                    }
+                });
+                
+                // 自定义规则：处理任务列表
+                turndownService.addRule('taskList', {
+                    filter: function(node) {
+                        return node.nodeName === 'LI' && node.querySelector('input[type="checkbox"]');
+                    },
+                    replacement: function(content, node) {
+                        const checkbox = node.querySelector('input[type="checkbox"]');
+                        const checked = checkbox && checkbox.checked ? 'x' : ' ';
+                        const text = content.replace(/\[\s*\]/, '').trim();
+                        return '- [' + checked + '] ' + text + '\n';
+                    }
+                });
+                
+                // 自定义规则：优化表格转换
+                turndownService.addRule('table', {
+                    filter: 'table',
+                    replacement: function(content, node) {
+                        // console.log('📊 Processing table, rows:', node.querySelectorAll('tr').length);
+                        const rows = Array.from(node.querySelectorAll('tr'));
+                        if (rows.length === 0) return content;
+                        
+                        let markdown = '\n\n';
+                        
+                        rows.forEach((row, rowIndex) => {
+                            const cells = Array.from(row.querySelectorAll('th, td'));
+                            const cellContents = cells.map(cell => {
+                                // 清理单元格内容，移除多余换行
+                                let text = cell.textContent.trim().replace(/\n+/g, ' ');
+                                return ' ' + text + ' ';
+                            });
+                            
+                            markdown += '| ' + cellContents.join(' | ') + ' |\n';
+                            
+                            // 在表头后添加分隔行
+                            if (rowIndex === 0 && row.querySelector('th')) {
+                                const separator = cells.map(() => '------').join(' | ');
+                                markdown += '| ' + separator + ' |\n';
+                            }
+                        });
+                        
+                        // console.log('📊 Table converted, length:', markdown.length);
+                        return markdown + '\n';
+                    }
+                });
+                
+                // 自定义规则：优化列表项格式
+                turndownService.addRule('listItem', {
+                    filter: 'li',
+                    replacement: function(content, node, options) {
+                        content = content
+                            .replace(/^\n+/, '') // 移除开头的换行
+                            .replace(/\n+$/, '\n') // 确保结尾有一个换行
+                            .replace(/\n/gm, '\n    '); // 缩进多行内容
+                        
+                        let prefix = options.bulletListMarker + ' ';
+                        const parent = node.parentNode;
+                        
+                        if (parent.nodeName === 'OL') {
+                            const start = parent.getAttribute('start');
+                            const index = Array.prototype.indexOf.call(parent.children, node);
+                            prefix = (start ? Number(start) + index : index + 1) + '.  ';
+                        }
+                        
+                        return prefix + content + (node.nextSibling && !/\n$/.test(content) ? '\n' : '');
+                    }
+                });
+                
+                // 自定义规则：处理 blockquote
+                turndownService.addRule('blockquote', {
+                    filter: 'blockquote',
+                    replacement: function(content) {
+                        content = content.trim();
+                        content = content.replace(/\n{3,}/g, '\n\n');
+                        return '\n\n> ' + content.replace(/\n/g, '\n> ') + '\n\n';
+                    }
+                });
+                
+                // 自定义规则：忽略代码块增强元素（语言标签、按钮等）
+                turndownService.addRule('codeBlockEnhancements', {
+                    filter: function(node) {
+                        // 不要过滤 PRE 和 CODE 元素，只过滤它们的子元素
+                        if (node.nodeName === 'PRE' || node.nodeName === 'CODE') {
+                            return false;
+                        }
+                        
+                        return node.classList && (
+                            node.classList.contains('code-block-header') ||
+                            node.classList.contains('code-block-lang') ||
+                            node.classList.contains('code-block-actions') ||
+                            node.classList.contains('code-block-btn') ||
+                            node.classList.contains('line-numbers') ||
+                            node.classList.contains('line-number')
+                        );
+                    },
+                    replacement: function() {
+                        // 这些元素不应该出现在 Markdown 中，返回空字符串
+                        return '';
+                    }
+                });
+                
+                console.log('✅ Turndown custom rules added');
+            } catch (error) {
+                console.error('❌ Failed to initialize TurndownService:', error);
+                return null;
+            }
+        }
+        return turndownService;
+    }
+    
+    function htmlToMarkdown(html) {
+        try {
+            const service = getTurndownService();
+            if (service) {
+                // 使用 Turndown 进行转换
+                // console.log('🔄 Converting HTML to Markdown, HTML length:', html.length);
+                let markdown = service.turndown(html);
+                // console.log('✅ Turndown result length:', markdown.length);
+                // console.log('📝 First 200 chars:', markdown.substring(0, 200));
+                
+                // 清理多余的空行
+                markdown = markdown.replace(/\n{3,}/g, '\n\n');
+                markdown = markdown.trim();
+                
+                // console.log('📦 Final markdown length:', markdown.length);
+                
+                // 如果结果为空，使用 fallback
+                if (!markdown || markdown.length === 0) {
+                    // console.warn('⚠️ Turndown returned empty result, using fallback');
+                    return fallbackHtmlToMarkdown(html);
+                }
+                
+                return markdown;
+            } else {
+                console.warn('Turndown not available, using fallback converter');
+                return fallbackHtmlToMarkdown(html);
+            }
+        } catch (error) {
+            console.error('❌ Turndown conversion error:', error);
+            return fallbackHtmlToMarkdown(html);
+        }
+    }
+    
+    // Fallback converter (original implementation)
+    function fallbackHtmlToMarkdown(html) {
+        let md = html;
+        
+        // Convert headings
+        md = md.replace(/<h1[^>]*>(.*?)<\/h1>/gi, '# $1\n\n');
+        md = md.replace(/<h2[^>]*>(.*?)<\/h2>/gi, '## $1\n\n');
+        md = md.replace(/<h3[^>]*>(.*?)<\/h3>/gi, '### $1\n\n');
+        md = md.replace(/<h4[^>]*>(.*?)<\/h4>/gi, '#### $1\n\n');
+        md = md.replace(/<h5[^>]*>(.*?)<\/h5>/gi, '##### $1\n\n');
+        md = md.replace(/<h6[^>]*>(.*?)<\/h6>/gi, '###### $1\n\n');
+        
+        // Convert bold and italic
+        md = md.replace(/<strong[^>]*>(.*?)<\/strong>/gi, '**$1**');
+        md = md.replace(/<b[^>]*>(.*?)<\/b>/gi, '**$1**');
+        md = md.replace(/<em[^>]*>(.*?)<\/em>/gi, '*$1*');
+        md = md.replace(/<i[^>]*>(.*?)<\/i>/gi, '*$1*');
+        md = md.replace(/<del[^>]*>(.*?)<\/del>/gi, '~~$1~~');
+        md = md.replace(/<s[^>]*>(.*?)<\/s>/gi, '~~$1~~');
+        
+        // Convert links
+        md = md.replace(/<a[^>]*href="([^"]*)"[^>]*>(.*?)<\/a>/gi, '[$2]($1)');
+        
+        // Convert images
+        md = md.replace(/<img[^>]*src="([^"]*)"[^>]*>/gi, '![]($1)');
+        
+        // Convert code blocks
+        md = md.replace(/<pre[^>]*><code[^>]*>(.*?)<\/code><\/pre>/gis, '```\n$1\n```\n\n');
+        md = md.replace(/<code[^>]*>(.*?)<\/code>/gi, '`$1`');
+        
+        // Convert blockquotes
+        md = md.replace(/<blockquote[^>]*>(.*?)<\/blockquote>/gis, '> $1\n\n');
+        
+        // Convert lists
+        md = md.replace(/<ul[^>]*>(.*?)<\/ul>/gis, (match, content) => {
+            return content.replace(/<li[^>]*>(.*?)<\/li>/gi, '- $1\n') + '\n';
+        });
+        md = md.replace(/<ol[^>]*>(.*?)<\/ol>/gis, (match, content, offset, string) => {
+            let index = 1;
+            return content.replace(/<li[^>]*>(.*?)<\/li>/gi, () => {
+                return `${index++}. $1\n`;
+            }) + '\n';
+        });
+        
+        // Convert horizontal rules
+        md = md.replace(/<hr[^>]*>/gi, '---\n\n');
+        
+        // Convert paragraphs
+        md = md.replace(/<p[^>]*>(.*?)<\/p>/gi, '$1\n\n');
+        
+        // Convert tables
+        md = md.replace(/<table[^>]*>(.*?)<\/table>/gis, (match, content) => {
+            // Simplified table conversion
+            return content.replace(/<tr[^>]*>(.*?)<\/tr>/gis, (trMatch, trContent) => {
+                return '| ' + trContent.replace(/<t[dh][^>]*>(.*?)<\/t[dh]>/gi, '$1 |') + '\n';
+            }) + '\n';
+        });
+        
+        // Remove remaining HTML tags
+        md = md.replace(/<[^>]+>/g, '');
+        
+        // Clean up extra whitespace
+        md = md.replace(/\n{3,}/g, '\n\n');
+        md = md.trim();
+        
+        return md;
+    }
+    
+    // Load saved draft if exists
+    function loadSavedDraft() {
+        const draft = localStorage.getItem('editorDraft');
+        if (draft && state.editor) {
+            state.editor.commands.setContent(draft);
+        }
+    }
+    
+    // ========================================
     // Initialize Application
     // ========================================
     function init() {
@@ -109,8 +1137,28 @@
         state.isDarkMode = savedTheme ? savedTheme === 'dark' : prefersDark;
         document.documentElement.setAttribute('data-theme', state.isDarkMode ? 'dark' : 'light');
         
-        // Initialize Lucide icons AFTER theme is set
-        lucide.createIcons();
+        // 检查是否有刷新前的状态需要恢复（从黑暗模式切换回来）
+        const savedState = sessionStorage.getItem('beforeRefreshState');
+        if (savedState) {
+            try {
+                const parsedState = JSON.parse(savedState);
+                if (parsedState.currentFile && parsedState.content) {
+                    state.currentFile = parsedState.currentFile;
+                    state.content = parsedState.content;
+                    state.isDarkMode = parsedState.isDarkMode;
+                    // 清除已恢复的状态
+                    sessionStorage.removeItem('beforeRefreshState');
+                }
+            } catch (e) {
+                console.error('Failed to restore state:', e);
+            }
+        }
+        
+        // Initialize Lucide icons AFTER theme is set (only once)
+        if (!iconsInitialized) {
+            lucide.createIcons();
+            iconsInitialized = true;
+        }
         
         // Apply i18n translations
         if (typeof i18n !== 'undefined') {
@@ -131,6 +1179,7 @@
         
         // Bind event listeners
         bindEvents();
+        bindFileNameEvents();
         
         // Initialize Easter Eggs
         initEasterEggs();
@@ -142,6 +1191,68 @@
         if (!state.currentFile) {
             showWelcomeMode();
         }
+        
+        // Load saved draft if exists (for editor)
+        setTimeout(() => {
+            if (state.editor) {
+                loadSavedDraft();
+            }
+        }, 500);
+
+        // Cleanup on page unload to prevent memory leaks
+        window.addEventListener('beforeunload', cleanup);
+    }
+
+    function cleanup() {
+        // Remove all event listeners that were added in this context
+        document.removeEventListener('keydown', handleKonamiCode);
+        document.removeEventListener('keydown', handleKeydown);
+        document.removeEventListener('keydown', matrixRainState.exitHandler);
+        document.removeEventListener('selectionchange', handleSelectionChange);
+        document.removeEventListener('dragover', handleDragOver);
+        document.removeEventListener('dragleave', handleDragLeave);
+        document.removeEventListener('drop', handleDrop);
+        document.removeEventListener('click', handleDocumentClick);
+
+        window.removeEventListener('scroll', handleScroll);
+        window.removeEventListener('resize', handleResize);
+        window.removeEventListener('beforeunload', cleanup);
+
+        // Cancel pending timers
+        if (autoSaveTimer) clearTimeout(autoSaveTimer);
+        if (resizeTimer) clearTimeout(resizeTimer);
+        if (scrollRAF) cancelAnimationFrame(scrollRAF);
+
+        // Destroy Tiptap editor if exists
+        if (state.editor) {
+            state.editor.destroy();
+            state.editor = null;
+        }
+
+        // Stop matrix rain if running
+        if (matrixRainState.isRunning && matrixRainState.animationId) {
+            cancelAnimationFrame(matrixRainState.animationId);
+            const canvas = document.getElementById('matrix-rain');
+            if (canvas) canvas.remove();
+        }
+
+        // Clear matrix rain state
+        matrixRainState = { isRunning: false, animationId: null, exitHandler: null };
+
+        // Clean up image resize state
+        if (imageResizeState.isResizing && imageResizeState.originalImg) {
+            imageResizeState.originalImg.style.visibility = 'visible';
+            if (imageResizeState.currentImage && imageResizeState.currentImage.isConnected) {
+                imageResizeState.currentImage.remove();
+            }
+        }
+        imageResizeState = { isResizing: false, currentImage: null, originalImg: null, startX: 0, startY: 0, startWidth: 0, startHeight: 0, aspectRatio: 1 };
+
+        // Reset all initialization flags
+        iconsInitialized = false;
+        easterEggsInitialized = false;
+        markedConfigured = false;
+        scrollRAFScheduled = false;
     }
 
     // ========================================
@@ -179,6 +1290,9 @@
         
         // Update background selection UI
         updateBackgroundSelection();
+        
+        // 在黑暗模式下，禁用背景设置UI
+        updateBackgroundUIState();
     }
     
     function applyOtherSettings() {
@@ -270,6 +1384,27 @@
             return `rgba(${r}, ${g}, ${b}, ${alpha})`;
         };
         
+        // 混合两个颜色（用于模拟透明度效果但不真正透明）
+        const blendColors = (foreground, background, opacity) => {
+            const fg = foreground.replace('#', '');
+            const bg = background.replace('#', '');
+            
+            const fgR = parseInt(fg.substr(0, 2), 16);
+            const fgG = parseInt(fg.substr(2, 2), 16);
+            const fgB = parseInt(fg.substr(4, 2), 16);
+            
+            const bgR = parseInt(bg.substr(0, 2), 16);
+            const bgG = parseInt(bg.substr(2, 2), 16);
+            const bgB = parseInt(bg.substr(4, 2), 16);
+            
+            // 混合公式：result = foreground * opacity + background * (1 - opacity)
+            const r = Math.round(fgR * opacity + bgR * (1 - opacity));
+            const g = Math.round(fgG * opacity + bgG * (1 - opacity));
+            const b = Math.round(fgB * opacity + bgB * (1 - opacity));
+            
+            return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+        };
+        
         // Calculate derived colors for blockquote, code, and table header
         // These will be slightly different shades of the base color
         const adjustColor = (color, amount) => {
@@ -344,7 +1479,12 @@
         // Apply to tables - 特殊元素使用带透明度的纯色背景
         const tables = elements.markdownContent.querySelectorAll('table');
         tables.forEach(table => {
-            table.style.backgroundColor = bgColorWithOpacity;
+            // 米白色纯色背景下使用固定颜色 rgb(251, 251, 251)
+            if (state.settings.backgroundType === 'solid' && baseColor.toUpperCase() === '#FAFAF8') {
+                table.style.backgroundColor = 'rgb(251, 251, 251)';
+            } else {
+                table.style.backgroundColor = bgColorWithOpacity;
+            }
             table.style.backgroundImage = 'none';
         });
         
@@ -355,11 +1495,14 @@
             th.style.backgroundImage = 'none';
         });
         
-        // header 和 statusBar 使用带透明度的纯色背景
-        elements.header.style.backgroundColor = bgColorWithOpacity;
+        // header 和 statusBar 使用颜色混合而非透明度，保持不透明但视觉上改变深浅
+        const themeBgColor = state.isDarkMode ? '#1A1A2E' : '#FAFAF8';
+        const blendedHeaderBg = blendColors(baseColor, themeBgColor, opacity);
+        elements.header.style.backgroundColor = blendedHeaderBg;
         elements.header.style.backgroundImage = 'none';
         
-        elements.statusBar.style.backgroundColor = bgColorWithOpacity;
+        const blendedStatusBg = blendColors(baseColor, themeBgColor, opacity);
+        elements.statusBar.style.backgroundColor = blendedStatusBg;
         elements.statusBar.style.backgroundImage = 'none';
     }
 
@@ -376,6 +1519,29 @@
         });
     }
 
+    // 更新背景设置UI的启用/禁用状态
+    function updateBackgroundUIState() {
+        const isDisabled = state.isDarkMode;
+        
+        // 禁用/启用背景标签页
+        elements.bgTabs.forEach(tab => {
+            tab.disabled = isDisabled;
+            tab.style.pointerEvents = isDisabled ? 'none' : 'auto';
+            tab.style.opacity = isDisabled ? '0.5' : '1';
+        });
+        
+        // 禁用/启用背景选项
+        elements.bgOptions.forEach(option => {
+            option.style.pointerEvents = isDisabled ? 'none' : 'auto';
+            option.style.opacity = isDisabled ? '0.5' : '1';
+        });
+        
+        // 禁用/启用背景透明度滑块
+        elements.bgOpacitySlider.disabled = isDisabled;
+        elements.bgOpacitySlider.style.pointerEvents = isDisabled ? 'none' : 'auto';
+        elements.bgOpacitySlider.style.opacity = isDisabled ? '0.5' : '1';
+    }
+
     // ========================================
     // Theme Management
     // ========================================
@@ -386,9 +1552,18 @@
     }
 
     function toggleTheme() {
+        const wasDarkMode = state.isDarkMode;
         state.isDarkMode = !state.isDarkMode;
         localStorage.setItem('theme', state.isDarkMode ? 'dark' : 'light');
-        applyTheme();
+        
+        // 无论切换到哪种模式，都强制刷新页面以确保背景设置正确应用
+        // 保存当前状态到 sessionStorage，以便刷新后恢复
+        sessionStorage.setItem('beforeRefreshState', JSON.stringify({
+            currentFile: state.currentFile,
+            content: state.content,
+            isDarkMode: state.isDarkMode
+        }));
+        location.reload();
     }
 
     function applyTheme() {
@@ -470,13 +1645,23 @@
     // Marked.js Configuration
     // ========================================
     function configureMarked() {
+        if (markedConfigured) return;
+        markedConfigured = true;
+
+        const renderer = new marked.Renderer();
+        renderer.heading = function(text, level, raw) {
+            const slug = raw.toLowerCase().replace(/[^\w]+/g, '-');
+            return `<h${level} id="${slug}">${text}</h${level}>`;
+        };
+
         marked.setOptions({
             breaks: true,
             gfm: true,
             headerIds: true,
             mangle: false,
+            renderer: renderer,
             highlight: function(code, lang) {
-                if (lang && Prism.languages[lang]) {
+                if (lang && typeof Prism !== 'undefined' && Prism.languages && Prism.languages[lang]) {
                     try {
                         return Prism.highlight(code, Prism.languages[lang], lang);
                     } catch (e) {
@@ -486,14 +1671,6 @@
                 return code;
             }
         });
-        
-        // Add IDs to headings for TOC navigation
-        const renderer = new marked.Renderer();
-        renderer.heading = function(text, level, raw) {
-            const slug = raw.toLowerCase().replace(/[^\w]+/g, '-');
-            return `<h${level} id="${slug}">${text}</h${level}>`;
-        };
-        marked.setOptions({ renderer });
     }
 
     // ========================================
@@ -502,13 +1679,84 @@
 
 
     function bindEvents() {
-        // Edit button (placeholder - no functionality currently)
-        elements.editBtn && elements.editBtn.addEventListener('click', () => {
-            // Edit functionality will be implemented later
+        // Edit button - toggle edit mode
+        elements.editBtn.addEventListener('click', () => {
+            toggleEditMode();
+        });
+        
+        // Toolbar buttons
+        document.querySelectorAll('.toolbar-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                // 保存当前选择
+                const selection = window.getSelection();
+                const range = selection.rangeCount > 0 ? selection.getRangeAt(0).cloneRange() : null;
+                
+                // 执行工具栏操作
+                handleToolbarAction(btn);
+                
+                // 恢复选择并聚焦到编辑区域
+                if (range && elements.markdownContent.contains(range.commonAncestorContainer)) {
+                    elements.markdownContent.focus();
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+                }
+                
+                // 延迟更新工具栏状态，确保 DOM 已更新
+                setTimeout(() => {
+                    updateToolbarState();
+                }, 10);
+            });
+        });
+        
+        // 监听编辑区域的输入事件进行自动保存（带防抖）
+        elements.markdownContent.addEventListener('input', function() {
+            if (state.isEditMode) {
+                // 清除之前的定时器
+                if (autoSaveTimer) {
+                    clearTimeout(autoSaveTimer);
+                }
+                
+                // 设置新的定时器，500ms 后保存
+                autoSaveTimer = setTimeout(() => {
+                    autoSaveContent(elements.markdownContent.innerHTML);
+                    updateWordCount();
+                }, 500);
+            }
+        });
+        
+        // 监听选择变化，实时更新工具栏状态
+        document.addEventListener('selectionchange', () => {
+            if (state.isEditMode && elements.markdownContent.isContentEditable) {
+                // 使用 requestAnimationFrame 确保在 DOM 更新后执行
+                requestAnimationFrame(() => {
+                    updateToolbarState();
+                });
+            }
+        });
+        
+        // 监听鼠标松开和键盘抬起事件，确保工具栏状态及时更新
+        elements.markdownContent.addEventListener('mouseup', () => {
+            if (state.isEditMode) {
+                updateToolbarState();
+            }
+        });
+        
+        elements.markdownContent.addEventListener('keyup', () => {
+            if (state.isEditMode) {
+                updateToolbarState();
+            }
         });
         
         // Home button
         elements.homeBtn.addEventListener('click', () => {
+            // Exit edit mode if active
+            if (state.isEditMode) {
+                exitEditMode();
+            }
+            
             state.currentFile = null;
             state.content = '';
             clearSavedContent();
@@ -527,8 +1775,6 @@
             }
             // Toggle dropdown visibility
             elements.exportDropdown.classList.toggle('active');
-            // Re-initialize Lucide icons for the dropdown
-            lucide.createIcons();
         });
         
         // Export dropdown items
@@ -598,9 +1844,9 @@
         document.addEventListener('dragleave', handleDragLeave);
         document.addEventListener('drop', handleDrop);
         
-        // Scroll progress
+        // Scroll progress (with optimized RAF and debounced resize)
         window.addEventListener('scroll', handleScroll);
-        window.addEventListener('resize', handleScroll);
+        window.addEventListener('resize', handleResize);
         
         // Keyboard shortcuts
         document.addEventListener('keydown', handleKeydown);
@@ -665,6 +1911,13 @@
         
         // Background opacity slider
         elements.bgOpacitySlider.addEventListener('input', (e) => {
+            // 在黑暗模式下，禁用背景透明度设置
+            if (state.isDarkMode) {
+                showToast('黑暗模式下无法更改背景设置', 'error');
+                e.target.value = state.settings.bgOpacity; // 恢复原值
+                return;
+            }
+            
             const value = parseInt(e.target.value);
             state.settings.bgOpacity = value;
             elements.bgOpacityValue.textContent = value + '%';
@@ -675,6 +1928,12 @@
         // Background tabs
         elements.bgTabs.forEach(tab => {
             tab.addEventListener('click', () => {
+                // 在黑暗模式下，禁用背景标签切换
+                if (state.isDarkMode) {
+                    showToast('黑暗模式下无法更改背景设置', 'error');
+                    return;
+                }
+                
                 const tabName = tab.dataset.tab;
                 
                 // Update tab active state
@@ -692,6 +1951,12 @@
         // Background options
         elements.bgOptions.forEach(option => {
             option.addEventListener('click', () => {
+                // 在黑暗模式下，禁用背景设置
+                if (state.isDarkMode) {
+                    showToast('黑暗模式下无法更改背景设置', 'error');
+                    return;
+                }
+                
                 const bgType = option.dataset.bg;
                 
                 if (bgType === 'solid') {
@@ -1084,6 +2349,9 @@
         // Wrap tables for horizontal scrolling
         wrapTables();
         
+        // Wrap images for cursor control in edit mode
+        wrapImages();
+        
         // Trigger Prism highlighting
         Prism.highlightAllUnder(elements.markdownContent);
         
@@ -1187,13 +2455,25 @@
     // ========================================
     // Progress Tracking
     // ========================================
+    let scrollRAFScheduled = false;
+
     function handleScroll() {
+        if (scrollRAFScheduled) return;
+        scrollRAFScheduled = true;
         requestAnimationFrame(() => {
+            scrollRAFScheduled = false;
             updateProgress();
             if (elements.floatingToc.classList.contains('visible')) {
                 updateActiveTocItem();
             }
         });
+    }
+
+    function handleResize() {
+        if (resizeTimer) clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => {
+            handleScroll();
+        }, 100);
     }
 
     function updateProgress() {
@@ -1202,6 +2482,93 @@
         const progress = scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0;
         
         elements.progressPercent.textContent = Math.round(progress) + '%';
+    }
+
+    // ========================================
+    // File Name Editing
+    // ========================================
+    function enableFileNameEdit() {
+        if (!state.currentFile) return;
+        
+        const currentName = state.currentFile.name;
+        elements.fileName.style.display = 'none';
+        elements.fileNameInput.style.display = 'inline-block';
+        elements.fileNameInput.value = currentName;
+        elements.fileNameInput.focus();
+        elements.fileNameInput.select();
+    }
+    
+    function disableFileNameEdit(save = true) {
+        elements.fileNameInput.style.display = 'none';
+        elements.fileName.style.display = 'inline';
+        
+        if (save && state.currentFile) {
+            const newName = elements.fileNameInput.value.trim();
+            if (newName && newName !== state.currentFile.name) {
+                // Validate file name
+                const validName = validateFileName(newName);
+                state.currentFile.name = validName;
+                elements.fileName.textContent = validName;
+                
+                // Update localStorage with new file name
+                try {
+                    localStorage.setItem('currentFile', validName);
+                } catch (e) {
+                    console.warn('Failed to update file name in localStorage:', e);
+                }
+                
+                showToast(i18n.t('toast.fileNameUpdated') || '文件名已更新');
+            } else {
+                elements.fileName.textContent = state.currentFile.name;
+            }
+        } else {
+            elements.fileName.textContent = state.currentFile ? state.currentFile.name : '';
+        }
+    }
+    
+    function validateFileName(name) {
+        // Remove invalid characters for file names
+        const invalidChars = /[<>:"/\\|?*]/g;
+        let validName = name.replace(invalidChars, '_');
+        
+        // Ensure it has .md extension
+        if (!validName.match(/\.(md|txt|log)$/i)) {
+            validName += '.md';
+        }
+        
+        // Limit length
+        if (validName.length > 100) {
+            validName = validName.substring(0, 100);
+        }
+        
+        return validName || '未命名文档.md';
+    }
+    
+    function bindFileNameEvents() {
+        // Click on file name to edit
+        elements.fileName.addEventListener('click', () => {
+            if (state.currentFile) {
+                enableFileNameEdit();
+            }
+        });
+        
+        // Handle Enter key in input
+        elements.fileNameInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                disableFileNameEdit(true);
+            } else if (e.key === 'Escape') {
+                e.preventDefault();
+                disableFileNameEdit(false);
+            }
+        });
+        
+        // Handle blur (click outside)
+        elements.fileNameInput.addEventListener('blur', () => {
+            setTimeout(() => {
+                disableFileNameEdit(true);
+            }, 200);
+        });
     }
 
     // ========================================
@@ -1302,6 +2669,23 @@
             
             // Move table into wrapper
             wrapper.appendChild(table);
+        });
+    }
+
+    // ========================================
+    // Image Enhancement - Wrap images for cursor control in edit mode
+    // ========================================
+    function wrapImages() {
+        const images = elements.markdownContent.querySelectorAll('img');
+        images.forEach((img) => {
+            if (img.parentElement && img.parentElement.classList.contains('img-wrapper')) return;
+            
+            const wrapper = document.createElement('span');
+            wrapper.className = 'img-wrapper';
+            wrapper.contentEditable = 'false';
+            
+            img.parentNode.insertBefore(wrapper, img);
+            wrapper.appendChild(img);
         });
     }
 
@@ -1606,25 +2990,33 @@
     
     // Export to TXT - 纯文本格式
     function exportToTxt() {
-        if (!state.currentFile) {
+        if (!state.currentFile && !state.content) {
             showToast(i18n.t('toast.loadFileFirst'), 'error');
             return;
         }
         
         try {
             // 获取纯文本内容（去除Markdown格式）
-            let plainText = state.content;
-            const fileExt = '.' + state.currentFile.name.split('.').pop().toLowerCase();
+            let contentToExport = state.content;
+            
+            // If in edit mode, get content from editor
+            if (state.isEditMode && state.editor) {
+                const htmlContent = state.editor.getHTML();
+                contentToExport = htmlToMarkdown(htmlContent);
+            }
+            
+            let plainText = contentToExport;
+            const fileExt = state.currentFile ? '.' + state.currentFile.name.split('.').pop().toLowerCase() : '.md';
             
             // 如果是markdown文件，转换为纯文本
             if (fileExt === '.md') {
-                plainText = getPlainTextFromMarkdown(state.content);
+                plainText = getPlainTextFromMarkdown(contentToExport);
             }
             
             // 创建Blob并下载
             const blob = new Blob([plainText], { type: 'text/plain;charset=utf-8' });
             const url = URL.createObjectURL(blob);
-            const fileName = (state.currentFile.name || 'document').replace(/\.(md|txt|log)$/, '') + '.txt';
+            const fileName = (state.currentFile?.name || 'document').replace(/\.(md|txt|log)$/, '') + '.txt';
             
             const a = document.createElement('a');
             a.href = url;
@@ -1643,16 +3035,29 @@
     
     // Export to MD - Markdown格式
     function exportToMd() {
-        if (!state.currentFile) {
+        if (!state.currentFile && !state.content) {
             showToast(i18n.t('toast.loadFileFirst'), 'error');
             return;
         }
         
         try {
+            let contentToExport = state.content;
+            
+            // console.log('📦 Exporting MD, state.content length:', contentToExport ? contentToExport.length : 0);
+            // console.log('📝 First 100 chars:', contentToExport ? contentToExport.substring(0, 100) : 'EMPTY');
+            
+            // If in edit mode, get content from editor
+            if (state.isEditMode && state.editor) {
+                const htmlContent = state.editor.getHTML();
+                contentToExport = htmlToMarkdown(htmlContent);
+            }
+            
+            // console.log('📤 Final content to export length:', contentToExport ? contentToExport.length : 0);
+            
             // 直接使用原始Markdown内容
-            const blob = new Blob([state.content], { type: 'text/markdown;charset=utf-8' });
+            const blob = new Blob([contentToExport], { type: 'text/markdown;charset=utf-8' });
             const url = URL.createObjectURL(blob);
-            const fileName = (state.currentFile.name || 'document').replace(/\.(md|txt|log)$/, '') + '.md';
+            const fileName = (state.currentFile?.name || 'document').replace(/\.(md|txt|log)$/, '') + '.md';
             
             const a = document.createElement('a');
             a.href = url;
@@ -1852,17 +3257,21 @@
     // ========================================
     // 🥚 彩蛋功能 (Easter Eggs)
     // ========================================
-    
+
     // 1. Konami Code - 键盘侠的致敬
     const KONAMI_CODE = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
-    
+    let easterEggsInitialized = false;
+
     function initEasterEggs() {
+        if (easterEggsInitialized) return;
+        easterEggsInitialized = true;
+
         // 加载彩蛋数据
         loadEasterEggData();
-        
-        // 绑定 Konami Code 监听
+
+        // 绑定 Konami Code 监听 (使用命名函数以便移除)
         document.addEventListener('keydown', handleKonamiCode);
-        
+
         // 检查诗意加载语
         showPoeticLoadingText();
     }
@@ -1954,20 +3363,20 @@
                 }
             }
             
-            let animationId;
-            let isRunning = true;
+            matrixRainState.animationId = null;
+            matrixRainState.isRunning = true;
             const frameDelay = 50; // 每帧延迟50ms，降低流动速度
-            
+
             function draw() {
-                if (!isRunning) return;
-                
+                if (!matrixRainState.isRunning) return;
+
                 // 半透明黑色背景，产生拖尾效果
                 ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
-                
+
                 ctx.fillStyle = '#0F0'; // 绿色
                 ctx.font = fontSize + 'px monospace';
-                
+
                 for (let i = 0; i < drops.length; i++) {
                     let text;
                     if (isChinese) {
@@ -1979,7 +3388,7 @@
                         text = chars[Math.floor(Math.random() * chars.length)];
                     }
                     ctx.fillText(text, i * fontSize, drops[i] * fontSize);
-                    
+
                     if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
                         drops[i] = 0;
                         // 重置时也重置字符索引（中文环境）
@@ -1989,18 +3398,21 @@
                     }
                     drops[i]++;
                 }
-                
+
                 // 使用setTimeout控制帧率
                 setTimeout(() => {
-                    animationId = requestAnimationFrame(draw);
+                    matrixRainState.animationId = requestAnimationFrame(draw);
                 }, frameDelay);
             }
-            
+
             function stopMatrixRain() {
-                if (!isRunning) return;
-                isRunning = false;
-                cancelAnimationFrame(animationId);
-                
+                if (!matrixRainState.isRunning) return;
+                matrixRainState.isRunning = false;
+                if (matrixRainState.animationId) {
+                    cancelAnimationFrame(matrixRainState.animationId);
+                    matrixRainState.animationId = null;
+                }
+
                 // 退出全屏模式 - 先检查是否处于全屏状态
                 const exitFullscreen = () => {
                     if (document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement) {
@@ -2016,11 +3428,17 @@
                     }
                 };
                 exitFullscreen();
-                
+
+                // 移除 exitHandler
+                if (matrixRainState.exitHandler) {
+                    document.removeEventListener('keydown', matrixRainState.exitHandler);
+                    matrixRainState.exitHandler = null;
+                }
+
                 // 先隐藏canvas，再显示退出提示
                 canvas.style.transition = 'opacity 0.5s ease';
                 canvas.style.opacity = '0';
-                
+
                 setTimeout(() => {
                     canvas.remove();
                     // canvas移除后再显示退出提示，确保可见
@@ -2029,13 +3447,14 @@
             }
             
             // 监听键盘事件，按S键退出
-            const exitHandler = (e) => {
+            matrixRainState.exitHandler = (e) => {
                 if (e.key === 's' || e.key === 'S') {
                     stopMatrixRain();
-                    document.removeEventListener('keydown', exitHandler);
+                    document.removeEventListener('keydown', matrixRainState.exitHandler);
+                    matrixRainState.exitHandler = null;
                 }
             };
-            document.addEventListener('keydown', exitHandler);
+            document.addEventListener('keydown', matrixRainState.exitHandler);
             
             // 开始动画
             draw();

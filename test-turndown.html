@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Turndown Test</title>
+</head>
+<body>
+    <h1>Turndown Library Test</h1>
+    <div id="result"></div>
+    
+    <!-- Load Turndown -->
+    <script src="https://unpkg.com/turndown@7.1.2/dist/turndown.js"></script>
+    <script>
+        const resultDiv = document.getElementById('result');
+        
+        if (typeof TurndownService !== 'undefined') {
+            resultDiv.innerHTML = '<p style="color: green;">✅ Turndown loaded successfully!</p>';
+            
+            // Test conversion
+            const turndownService = new TurndownService();
+            const html = '<h1>Hello World</h1><p>This is a <strong>test</strong>.</p>';
+            const markdown = turndownService.turndown(html);
+            
+            resultDiv.innerHTML += '<h2>Test Conversion:</h2>';
+            resultDiv.innerHTML += '<pre>' + markdown + '</pre>';
+            resultDiv.innerHTML += '<p><strong>Original HTML:</strong> ' + html + '</p>';
+            resultDiv.innerHTML += '<p><strong>Converted Markdown:</strong></p><pre>' + markdown + '</pre>';
+        } else {
+            resultDiv.innerHTML = '<p style="color: red;">❌ Turndown failed to load!</p>';
+        }
+    </script>
+</body>
+</html>

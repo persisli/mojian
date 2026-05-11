@@ -20,6 +20,7 @@ const i18n = {
             'header.logo': '墨笈',
             'header.home': '返回主页',
             'header.edit': '编辑',
+            'header.save': '保存',
             'header.export': '导出',
             'header.toc': '目录导航',
             'header.settings': '阅读设置',
@@ -127,10 +128,32 @@ const i18n = {
             'toast.konamiCode': '🎮 欢迎进入黑客帝国！',
             'toast.exitMatrix': '已退出黑客帝国模式',
             'toast.achievementUnlock': '🏆 成就解锁',
+            'toast.enterEditMode': '进入编辑模式',
+            'toast.exitEditMode': '退出编辑模式',
+            'toast.saveSuccess': '保存成功',
+            'toast.fileNameUpdated': '文件名已更新',
             
             // Code Block Actions
             'code.download': '下载',
             'code.copy': '复制',
+            
+            // Edit Toolbar Buttons
+            'toolbar.heading1': '标题1 (H1)',
+            'toolbar.heading2': '标题2 (H2)',
+            'toolbar.heading3': '标题3 (H3)',
+            'toolbar.bold': '加粗',
+            'toolbar.italic': '斜体',
+            'toolbar.strike': '删除线',
+            'toolbar.code': '行内代码',
+            'toolbar.bulletList': '无序列表',
+            'toolbar.orderedList': '有序列表',
+            'toolbar.taskList': '任务列表',
+            'toolbar.blockquote': '引用',
+            'toolbar.horizontalRule': '分割线',
+            'toolbar.link': '插入链接',
+            'toolbar.image': '插入图片',
+            'toolbar.codeBlock': '代码块',
+            'toolbar.table': '插入表格',
             
             // Achievements
             'achievement.novice.name': '初窥门径',
@@ -165,6 +188,7 @@ const i18n = {
             'header.logo': 'Moji',
             'header.home': 'Home',
             'header.edit': 'Edit',
+            'header.save': 'Save',
             'header.export': 'Export',
             'header.toc': 'Table of Contents',
             'header.settings': 'Reading Settings',
@@ -272,10 +296,32 @@ const i18n = {
             'toast.konamiCode': '🎮 Welcome to The Matrix!',
             'toast.exitMatrix': 'Exited Matrix mode',
             'toast.achievementUnlock': '🏆 Achievement Unlocked',
+            'toast.enterEditMode': 'Enter edit mode',
+            'toast.exitEditMode': 'Exit edit mode',
+            'toast.saveSuccess': 'Saved successfully',
+            'toast.fileNameUpdated': 'File name updated',
             
             // Code Block Actions
             'code.download': 'Download',
             'code.copy': 'Copy',
+            
+            // Edit Toolbar Buttons
+            'toolbar.heading1': 'Heading 1 (H1)',
+            'toolbar.heading2': 'Heading 2 (H2)',
+            'toolbar.heading3': 'Heading 3 (H3)',
+            'toolbar.bold': 'Bold',
+            'toolbar.italic': 'Italic',
+            'toolbar.strike': 'Strikethrough',
+            'toolbar.code': 'Inline Code',
+            'toolbar.bulletList': 'Bullet List',
+            'toolbar.orderedList': 'Numbered List',
+            'toolbar.taskList': 'Task List',
+            'toolbar.blockquote': 'Blockquote',
+            'toolbar.horizontalRule': 'Horizontal Rule',
+            'toolbar.link': 'Insert Link',
+            'toolbar.image': 'Insert Image',
+            'toolbar.codeBlock': 'Code Block',
+            'toolbar.table': 'Insert Table',
             
             // Achievements
             'achievement.novice.name': 'Novice Reader',

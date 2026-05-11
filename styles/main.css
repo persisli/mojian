@@ -232,6 +232,27 @@ body::before {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.file-name:hover {
+    background: var(--color-hover);
+    color: var(--color-text);
+}
+
+.file-name-input {
+    font-size: 0.875rem;
+    padding: 4px 8px;
+    border: 1px solid var(--color-primary);
+    border-radius: 4px;
+    background: var(--color-bg);
+    color: var(--color-text);
+    outline: none;
+    max-width: 300px;
+    min-width: 150px;
 }
 
 .header-right {
@@ -280,6 +301,16 @@ body::before {
     cursor: pointer;
 }
 
+/* Save button */
+#saveBtn {
+    opacity: 1;
+    cursor: pointer;
+}
+
+#saveBtn.active {
+    color: var(--color-accent);
+}
+
 .theme-icon {
     transition: all var(--transition-normal);
 }
@@ -306,6 +337,290 @@ body::before {
 
 #themeToggle:hover .theme-icon.moon {
     transform: rotate(-15deg);
+}
+
+/* ========================================
+   Edit Toolbar
+   ======================================== */
+
+.edit-toolbar {
+    position: fixed;
+    top: var(--header-height);
+    left: 0;
+    right: 0;
+    background: var(--color-bg);
+    border-bottom: 1px solid var(--color-border);
+    padding: var(--space-sm) var(--space-lg);
+    display: none;
+    align-items: center;
+    gap: var(--space-sm);
+    z-index: 99;
+    box-shadow: 0 2px 8px var(--color-shadow);
+    transition: all var(--transition-normal);
+    overflow-x: auto;
+}
+
+/* 让工具栏内容与 header-content 对齐 */
+.edit-toolbar::before {
+    content: '';
+    display: block;
+    min-width: calc((100vw - 1200px) / 2 - var(--space-lg));
+}
+
+.edit-toolbar.visible {
+    display: flex;
+}
+
+.toolbar-group {
+    display: flex;
+    gap: var(--space-xs);
+    align-items: center;
+}
+
+.toolbar-divider {
+    width: 1px;
+    height: 24px;
+    background: var(--color-border);
+    margin: 0 var(--space-xs);
+}
+
+.toolbar-btn {
+    min-width: 32px;
+    height: 32px;
+    padding: 0 var(--space-sm);
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--color-text);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 500;
+    transition: all var(--transition-fast);
+    white-space: nowrap;
+}
+
+.toolbar-btn:hover {
+    background: var(--color-bg-secondary);
+    border-color: var(--color-border);
+}
+
+.toolbar-btn.is-active {
+    background: var(--color-primary);
+    color: var(--color-bg);
+    border-color: var(--color-primary);
+}
+
+.toolbar-btn svg {
+    width: 16px;
+    height: 16px;
+}
+
+/* Editor Container */
+.editor-container {
+    display: none;
+    min-height: calc(100vh - var(--header-height) - var(--status-bar-height) - 60px);
+    animation: fadeIn 0.3s ease-out;
+}
+
+.editor-container.visible {
+    display: block;
+}
+
+.editor-content {
+    max-width: var(--content-max-width);
+    margin: 0 auto;
+    padding: var(--space-2xl) var(--space-lg);
+    outline: none;
+    min-height: 400px;
+}
+
+/* Tiptap Editor Styles */
+.editor-content .ProseMirror {
+    font-size: 1rem;
+    line-height: 1.9;
+    outline: none;
+    min-height: 200px;
+}
+
+.editor-content .ProseMirror:focus {
+    outline: none;
+}
+
+/* Ensure cursor is visible in empty editor */
+.editor-content .ProseMirror p.is-editor-empty:first-child::before {
+    content: attr(data-placeholder);
+    float: left;
+    color: #adb5bd;
+    pointer-events: none;
+    height: 0;
+}
+
+.editor-content .ProseMirror > * + * {
+    margin-top: 1.5em;
+}
+
+.editor-content .ProseMirror h1,
+.editor-content .ProseMirror h2,
+.editor-content .ProseMirror h3,
+.editor-content .ProseMirror h4,
+.editor-content .ProseMirror h5,
+.editor-content .ProseMirror h6 {
+    font-family: var(--font-serif);
+    font-weight: 600;
+    color: var(--color-primary);
+    line-height: 1.4;
+}
+
+.editor-content .ProseMirror h1 { font-size: 2rem; }
+.editor-content .ProseMirror h2 { font-size: 1.5rem; }
+.editor-content .ProseMirror h3 { font-size: 1.25rem; }
+.editor-content .ProseMirror h4 { font-size: 1.125rem; }
+.editor-content .ProseMirror h5 { font-size: 1rem; }
+.editor-content .ProseMirror h6 { font-size: 0.875rem; }
+
+.editor-content .ProseMirror p {
+    margin-bottom: 1.5em;
+}
+
+.editor-content .ProseMirror strong {
+    font-weight: 700;
+    color: var(--color-primary);
+}
+
+.editor-content .ProseMirror em {
+    font-style: italic;
+}
+
+.editor-content .ProseMirror code {
+    font-family: var(--font-mono);
+    font-size: 0.875em;
+    background-color: var(--color-code-bg);
+    padding: 0.2em 0.4em;
+    border-radius: var(--radius-sm);
+    color: var(--color-accent);
+    border: 1px solid var(--color-code-border);
+}
+
+.editor-content .ProseMirror pre {
+    margin: 1.5em 0;
+    padding: var(--space-md);
+    background-color: var(--color-code-bg);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-code-border);
+}
+
+.editor-content .ProseMirror pre code {
+    background: transparent;
+    padding: 0;
+    border: none;
+    color: inherit;
+}
+
+.editor-content .ProseMirror blockquote {
+    margin: 1.5em 0;
+    padding: var(--space-md) var(--space-lg);
+    background-color: var(--color-blockquote-bg);
+    border-left: 4px solid var(--color-blockquote-border);
+    border-radius: 0 var(--radius-md) var(--radius-md) 0;
+    color: var(--color-blockquote);
+    font-style: italic;
+}
+
+.editor-content .ProseMirror ul,
+.editor-content .ProseMirror ol {
+    margin-bottom: 1.5em;
+    padding-left: 1.5em;
+}
+
+.editor-content .ProseMirror li {
+    margin-bottom: 0.5em;
+}
+
+.editor-content .ProseMirror hr {
+    margin: 2em 0;
+    border: none;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--color-hr), transparent);
+}
+
+.editor-content .ProseMirror a {
+    color: var(--color-link);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: all var(--transition-fast);
+}
+
+.editor-content .ProseMirror a:hover {
+    color: var(--color-link-hover);
+    border-bottom-color: var(--color-link-hover);
+}
+
+.editor-content .ProseMirror img {
+    max-width: 100%;
+    height: auto;
+    border-radius: var(--radius-md);
+    margin: 1.5em 0;
+}
+
+/* Task List Styles */
+.editor-content .ProseMirror ul[data-type="taskList"] {
+    list-style: none;
+    padding-left: 0;
+}
+
+.editor-content .ProseMirror ul[data-type="taskList"] li {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-sm);
+}
+
+.editor-content .ProseMirror ul[data-type="taskList"] li > label {
+    flex-shrink: 0;
+    margin-top: 0.25em;
+}
+
+.editor-content .ProseMirror ul[data-type="taskList"] li > div {
+    flex: 1;
+}
+
+/* Table Styles */
+.editor-content .ProseMirror table {
+    width: 100%;
+    margin: 1.5em 0;
+    border-collapse: collapse;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    border: 1px solid var(--color-table-border);
+}
+
+.editor-content .ProseMirror th,
+.editor-content .ProseMirror td {
+    padding: var(--space-sm) var(--space-md);
+    text-align: left;
+    border-bottom: 1px solid var(--color-table-border);
+    border-right: 1px solid var(--color-table-border);
+}
+
+.editor-content .ProseMirror th {
+    background-color: var(--color-table-header);
+    font-weight: 600;
+    color: var(--color-primary);
+}
+
+.editor-content .ProseMirror tr:last-child td {
+    border-bottom: none;
+}
+
+.editor-content .ProseMirror td:last-child,
+.editor-content .ProseMirror th:last-child {
+    border-right: none;
+}
+
+.editor-content .ProseMirror .selectedCell {
+    background: var(--color-bg-secondary);
 }
 
 /* ========================================
@@ -882,6 +1197,17 @@ input[type="range"]::-moz-range-thumb {
     transition: font-size var(--transition-normal), line-height var(--transition-normal), background-color var(--transition-normal), background-image var(--transition-normal);
 }
 
+/* 编辑模式下的 markdownContent */
+.markdown-content[contenteditable="true"] {
+    outline: none;
+    cursor: text;
+}
+
+/* 编辑模式下的光标样式 */
+.markdown-content.editing:focus {
+    outline: none;
+}
+
 /* Log content styling */
 .log-content {
     font-family: var(--font-mono);
@@ -1163,8 +1489,42 @@ input[type="range"]::-moz-range-thumb {
     max-width: 100%;
     height: auto;
     border-radius: var(--radius-md);
-    margin: 1.5em 0;
-    box-shadow: 0 4px 20px var(--color-shadow);
+    margin: 0;
+    vertical-align: top;
+}
+
+/* 编辑模式下图片光标定位 */
+.markdown-content[contenteditable="true"] .img-wrapper {
+    display: inline-block;
+    vertical-align: top;
+    line-height: 0;
+    font-size: 0;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.markdown-content[contenteditable="true"] .img-wrapper * {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.markdown-content[contenteditable="true"] .img-wrapper img {
+    display: inline-block;
+    vertical-align: top;
+    line-height: normal;
+    font-size: 1rem;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    border-radius: var(--radius-md);
+}
+
+/* 确保图片后的光标保持正常文本高度 */
+.markdown-content[contenteditable="true"] .img-wrapper::after {
+    content: none;
 }
 
 /* Tables - 增强样式，确保背景图案应用 */
@@ -2226,6 +2586,31 @@ input[type="range"]::-moz-range-thumb {
     left: -9999px;
     top: -9999px;
     opacity: 0;
+    width: 0;
+    height: 0;
+    background-color: transparent !important;
+    border: none !important;
+}
+
+/* Ensure file input has no visual impact in any theme */
+[data-theme="dark"] #fileInput,
+[data-theme="light"] #fileInput {
+    background-color: transparent !important;
+    color: transparent !important;
+}
+
+/* Disable background settings in dark mode - visual indication */
+[data-theme="dark"] .bg-tab,
+[data-theme="dark"] .bg-option {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+[data-theme="dark"] input[type="range"]:disabled,
+[data-theme="dark"] .setting-control:has(#bgOpacitySlider) {
+    opacity: 0.5;
+    pointer-events: none;
 }
 
 

@@ -10,33 +10,70 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;600;700&family=JetBrains+Mono:wght@400;500&family=LXGW+WenKai:wght@400;500;700&display=swap" rel="stylesheet">
     
-    <!-- Prism.js for syntax highlighting -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+    <!-- Prism.js Theme -->
+    <link rel="stylesheet" href="libs/prism-tomorrow.min.css">
     
     <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <script src="libs/lucide.min.js"></script>
     
     <!-- Marked.js for Markdown parsing -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
+    <script src="libs/marked.min.js"></script>
+    
+    <!-- Turndown for HTML to Markdown conversion -->
+    <script src="libs/turndown.js"></script>
+    <script>
+        // Verify Turndown is loaded
+        if (typeof TurndownService !== 'undefined') {
+            console.log('✅ Turndown library loaded successfully, version:', TurndownService.version || 'unknown');
+        } else {
+            console.error('❌ Turndown library failed to load');
+        }
+    </script>
+    
+    <!-- Tiptap Editor - Complete bundle with all dependencies -->
+    <script type="module">
+        import { Editor } from 'https://esm.sh/@tiptap/core@2.1.0?target=es2022';
+        import StarterKit from 'https://esm.sh/@tiptap/starter-kit@2.1.0?target=es2022';
+        import Link from 'https://esm.sh/@tiptap/extension-link@2.1.0?target=es2022';
+        import Image from 'https://esm.sh/@tiptap/extension-image@2.1.0?target=es2022';
+        import Table from 'https://esm.sh/@tiptap/extension-table@2.1.0?target=es2022';
+        import TableRow from 'https://esm.sh/@tiptap/extension-table-row@2.1.0?target=es2022';
+        import TableCell from 'https://esm.sh/@tiptap/extension-table-cell@2.1.0?target=es2022';
+        import TableHeader from 'https://esm.sh/@tiptap/extension-table-header@2.1.0?target=es2022';
+        
+        // Export to global scope
+        window.TiptapEditor = {
+            Editor,
+            StarterKit,
+            Link,
+            Image,
+            Table,
+            TableRow,
+            TableCell,
+            TableHeader
+        };
+        
+        console.log('Tiptap modules loaded successfully');
+    </script>
     
     <!-- Prism.js for code highlighting -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-css.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-markdown.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-yaml.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-sql.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-java.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-c.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-cpp.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-go.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-rust.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-typescript.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-jsx.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-tsx.min.js"></script>
+    <script src="libs/prism.js"></script>
+    <script src="libs/prism-javascript.min.js"></script>
+    <script src="libs/prism-python.min.js"></script>
+    <script src="libs/prism-css.min.js"></script>
+    <script src="libs/prism-bash.min.js"></script>
+    <script src="libs/prism-json.min.js"></script>
+    <script src="libs/prism-markdown.min.js"></script>
+    <script src="libs/prism-yaml.min.js"></script>
+    <script src="libs/prism-sql.min.js"></script>
+    <script src="libs/prism-java.min.js"></script>
+    <script src="libs/prism-c.min.js"></script>
+    <script src="libs/prism-cpp.min.js"></script>
+    <script src="libs/prism-go.min.js"></script>
+    <script src="libs/prism-rust.min.js"></script>
+    <script src="libs/prism-typescript.min.js"></script>
+    <script src="libs/prism-jsx.min.js"></script>
+    <script src="libs/prism-tsx.min.js"></script>
     
     <link rel="stylesheet" href="styles/main.css">
 </head>
@@ -90,6 +127,7 @@
                 </div>
                 <div class="file-info" id="fileInfo">
                     <span class="file-name" id="fileName"></span>
+                    <input type="text" class="file-name-input" id="fileNameInput" style="display: none;">
                 </div>
             </div>
             <div class="header-right">
@@ -128,6 +166,72 @@
                 </button>
             </div>
         </div>
+        
+        <!-- Edit Toolbar -->
+        <div class="edit-toolbar" id="editToolbar">
+            <div class="toolbar-group">
+                <button class="toolbar-btn" data-action="heading" data-level="1" data-i18n-title="toolbar.heading1" title="标题1 (H1)">
+                    <span>H1</span>
+                </button>
+                <button class="toolbar-btn" data-action="heading" data-level="2" data-i18n-title="toolbar.heading2" title="标题2 (H2)">
+                    <span>H2</span>
+                </button>
+                <button class="toolbar-btn" data-action="heading" data-level="3" data-i18n-title="toolbar.heading3" title="标题3 (H3)">
+                    <span>H3</span>
+                </button>
+            </div>
+            <div class="toolbar-divider"></div>
+            <div class="toolbar-group">
+                <button class="toolbar-btn" data-action="bold" data-i18n-title="toolbar.bold" title="加粗">
+                    <i data-lucide="bold"></i>
+                </button>
+                <button class="toolbar-btn" data-action="italic" data-i18n-title="toolbar.italic" title="斜体">
+                    <i data-lucide="italic"></i>
+                </button>
+                <button class="toolbar-btn" data-action="strike" data-i18n-title="toolbar.strike" title="删除线">
+                    <i data-lucide="strikethrough"></i>
+                </button>
+                <button class="toolbar-btn" data-action="code" data-i18n-title="toolbar.code" title="行内代码">
+                    <i data-lucide="code"></i>
+                </button>
+            </div>
+            <div class="toolbar-divider"></div>
+            <div class="toolbar-group">
+                <button class="toolbar-btn" data-action="bulletList" data-i18n-title="toolbar.bulletList" title="无序列表">
+                    <i data-lucide="list"></i>
+                </button>
+                <button class="toolbar-btn" data-action="orderedList" data-i18n-title="toolbar.orderedList" title="有序列表">
+                    <i data-lucide="list-ordered"></i>
+                </button>
+                <button class="toolbar-btn" data-action="taskList" data-i18n-title="toolbar.taskList" title="任务列表">
+                    <i data-lucide="square-check"></i>
+                </button>
+            </div>
+            <div class="toolbar-divider"></div>
+            <div class="toolbar-group">
+                <button class="toolbar-btn" data-action="blockquote" data-i18n-title="toolbar.blockquote" title="引用">
+                    <i data-lucide="quote"></i>
+                </button>
+                <button class="toolbar-btn" data-action="horizontalRule" data-i18n-title="toolbar.horizontalRule" title="分割线">
+                    <i data-lucide="minus"></i>
+                </button>
+                <button class="toolbar-btn" data-action="link" data-i18n-title="toolbar.link" title="插入链接">
+                    <i data-lucide="link"></i>
+                </button>
+                <button class="toolbar-btn" data-action="image" data-i18n-title="toolbar.image" title="插入图片">
+                    <i data-lucide="image"></i>
+                </button>
+            </div>
+            <div class="toolbar-divider"></div>
+            <div class="toolbar-group">
+                <button class="toolbar-btn" data-action="codeBlock" data-i18n-title="toolbar.codeBlock" title="代码块">
+                    <i data-lucide="file-code-2"></i>
+                </button>
+                <button class="toolbar-btn" data-action="table" data-i18n-title="toolbar.table" title="插入表格">
+                    <i data-lucide="table"></i>
+                </button>
+            </div>
+        </div>
     </header>
 
     <!-- Settings Sidebar Overlay -->
@@ -145,10 +249,10 @@
         <div class="sidebar-content">
             <!-- Font Size Setting -->
             <div class="setting-group">
-                <label class="setting-label">
+                <div class="setting-label">
                     <i data-lucide="text" class="setting-icon"></i>
                     <span data-i18n="settings.fontSize.label">正文字号</span>
-                </label>
+                </div>
                 <div class="setting-control">
                     <button class="size-btn" id="fontSizeDown">
                         <i data-lucide="minus"></i>
@@ -162,7 +266,7 @@
 
             <!-- Font Family Setting -->
             <div class="setting-group">
-                <label class="setting-label">
+                <label class="setting-label" for="fontSelect">
                     <i data-lucide="type" class="setting-icon"></i>
                     <span data-i18n="settings.fontFamily.label">正文字体</span>
                 </label>
@@ -176,11 +280,11 @@
 
             <!-- Theme Toggle Setting -->
             <div class="setting-group">
-                <label class="setting-label">
+                <div class="setting-label">
                     <i data-lucide="sun" class="setting-icon theme-icon-sun"></i>
                     <i data-lucide="moon" class="setting-icon theme-icon-moon"></i>
                     <span data-i18n="settings.theme.label">外观主题</span>
-                </label>
+                </div>
                 <div class="setting-control">
                     <button class="theme-btn" id="themeToggle">
                         <span class="theme-label-light" data-i18n="settings.theme.light">明亮模式</span>
@@ -191,7 +295,7 @@
 
             <!-- Width Setting -->
             <div class="setting-group">
-                <label class="setting-label">
+                <label class="setting-label" for="widthSlider">
                     <i data-lucide="move-horizontal" class="setting-icon"></i>
                     <span data-i18n="settings.width.label">内容宽度</span>
                 </label>
@@ -203,10 +307,10 @@
 
             <!-- Line Height Setting -->
             <div class="setting-group">
-                <label class="setting-label">
+                <div class="setting-label">
                     <i data-lucide="align-center" class="setting-icon"></i>
                     <span data-i18n="settings.lineHeight.label">行高设置</span>
-                </label>
+                </div>
                 <div class="setting-control">
                     <input type="range" id="lineHeightSlider" min="1.4" max="2.4" value="1.9" step="0.1">
                     <span class="setting-value" id="lineHeightValue">1.9</span>
@@ -215,10 +319,10 @@
 
             <!-- Background Opacity Setting -->
             <div class="setting-group">
-                <label class="setting-label">
+                <div class="setting-label">
                     <i data-lucide="droplet" class="setting-icon"></i>
                     <span data-i18n="settings.bgOpacity.label">背景不透明度</span>
-                </label>
+                </div>
                 <div class="setting-control">
                     <input type="range" id="bgOpacitySlider" min="0" max="100" value="100" step="5">
                     <span class="setting-value" id="bgOpacityValue">100%</span>
@@ -227,7 +331,7 @@
 
             <!-- Language Setting -->
             <div class="setting-group">
-                <label class="setting-label">
+                <label class="setting-label" for="languageSelect">
                     <i data-lucide="globe" class="setting-icon"></i>
                     <span data-i18n="settings.language.label">语言</span>
                 </label>
@@ -241,10 +345,10 @@
 
             <!-- Background Setting -->
             <div class="setting-group">
-                <label class="setting-label">
+                <div class="setting-label">
                     <i data-lucide="palette" class="setting-icon"></i>
                     <span data-i18n="settings.background.label">阅读背景</span>
-                </label>
+                </div>
                 
                 <!-- Background Tabs -->
                 <div class="bg-tabs">
@@ -344,6 +448,9 @@
             <article class="markdown-content" id="markdownContent">
                 <!-- Markdown content will be rendered here -->
             </article>
+            <div class="editor-container" id="editorContainer">
+                <div class="editor-content" id="editorContent"></div>
+            </div>
         </div>
 
 
@@ -381,6 +488,6 @@
     <!-- Internationalization -->
     <script src="scripts/i18n.js"></script>
     
-    <script src="scripts/app.js?v=20260407-8"></script>
+    <script src="scripts/app.js?v=20260508-7"></script>
 </body>
 </html>
