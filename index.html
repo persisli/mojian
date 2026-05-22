@@ -4,6 +4,30 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title data-i18n="page.title">墨笈 · 优雅Markdown阅读器</title>
+
+    <!-- 页面状态恢复：在首次渲染前检查是否需要恢复阅读/编辑模式，防止欢迎页闪烁 -->
+    <script>
+        (function() {
+            try {
+                var saved = sessionStorage.getItem('beforeRefreshState');
+                if (saved) {
+                    var state = JSON.parse(saved);
+                    if (state.currentFile && state.content) {
+                        document.documentElement.classList.add('mojian-restoring');
+                    }
+                }
+            } catch (e) {}
+        })();
+    </script>
+    <style>
+        .mojian-restoring #welcomeScreen,
+        .mojian-restoring .welcome-screen { display: none !important; }
+        .mojian-restoring #readingArea,
+        .mojian-restoring .reading-area { display: block !important; }
+        .mojian-restoring #statusBar,
+        .mojian-restoring .status-bar { display: block !important; }
+        .mojian-restoring #fileName { display: inline !important; }
+    </style>
     
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -56,24 +80,24 @@
         console.log('Tiptap modules loaded successfully');
     </script>
     
-    <!-- Prism.js for code highlighting -->
-    <script src="libs/prism.js"></script>
-    <script src="libs/prism-javascript.min.js"></script>
-    <script src="libs/prism-python.min.js"></script>
-    <script src="libs/prism-css.min.js"></script>
-    <script src="libs/prism-bash.min.js"></script>
-    <script src="libs/prism-json.min.js"></script>
-    <script src="libs/prism-markdown.min.js"></script>
-    <script src="libs/prism-yaml.min.js"></script>
-    <script src="libs/prism-sql.min.js"></script>
-    <script src="libs/prism-java.min.js"></script>
-    <script src="libs/prism-c.min.js"></script>
-    <script src="libs/prism-cpp.min.js"></script>
-    <script src="libs/prism-go.min.js"></script>
-    <script src="libs/prism-rust.min.js"></script>
-    <script src="libs/prism-typescript.min.js"></script>
-    <script src="libs/prism-jsx.min.js"></script>
-    <script src="libs/prism-tsx.min.js"></script>
+    <!-- Prism.js for code highlighting (deferred to reduce blocking) -->
+    <script src="libs/prism.js" defer></script>
+    <script src="libs/prism-javascript.min.js" defer></script>
+    <script src="libs/prism-python.min.js" defer></script>
+    <script src="libs/prism-css.min.js" defer></script>
+    <script src="libs/prism-bash.min.js" defer></script>
+    <script src="libs/prism-json.min.js" defer></script>
+    <script src="libs/prism-markdown.min.js" defer></script>
+    <script src="libs/prism-yaml.min.js" defer></script>
+    <script src="libs/prism-sql.min.js" defer></script>
+    <script src="libs/prism-java.min.js" defer></script>
+    <script src="libs/prism-c.min.js" defer></script>
+    <script src="libs/prism-cpp.min.js" defer></script>
+    <script src="libs/prism-go.min.js" defer></script>
+    <script src="libs/prism-rust.min.js" defer></script>
+    <script src="libs/prism-typescript.min.js" defer></script>
+    <script src="libs/prism-jsx.min.js" defer></script>
+    <script src="libs/prism-tsx.min.js" defer></script>
     
     <link rel="stylesheet" href="styles/main.css">
 </head>
@@ -479,15 +503,47 @@
         <span class="toast-message" id="toastMessage"></span>
     </div>
 
-    <!-- html2canvas for PDF generation -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    
-    <!-- jsPDF for PDF generation -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    
     <!-- Internationalization -->
     <script src="scripts/i18n.js"></script>
-    
-    <script src="scripts/app.js?v=20260508-7"></script>
+
+    <!-- Core -->
+    <script src="scripts/core/state.js"></script>
+    <script src="scripts/core/utils.js"></script>
+    <script src="scripts/core/settings.js"></script>
+
+    <!-- UI -->
+    <script src="scripts/ui/toast.js"></script>
+    <script src="scripts/ui/sidebar.js"></script>
+    <script src="scripts/ui/file-name-edit.js"></script>
+
+    <!-- Reader -->
+    <script src="scripts/reader/background.js"></script>
+    <script src="scripts/reader/progress.js"></script>
+    <script src="scripts/reader/toc.js"></script>
+    <script src="scripts/reader/renderer.js"></script>
+
+    <!-- Editor -->
+    <script src="scripts/editor/html-to-md.js"></script>
+    <script src="scripts/editor/toolbar.js"></script>
+    <script src="scripts/editor/editor.js"></script>
+
+    <!-- Export -->
+    <script src="scripts/export/export.js"></script>
+
+    <!-- File -->
+    <script src="scripts/file/storage.js"></script>
+    <script src="scripts/file/file-handler.js"></script>
+
+    <!-- Keyboard -->
+    <script src="scripts/keyboard/shortcuts.js"></script>
+
+    <!-- Easter Eggs -->
+    <script src="scripts/easter-eggs/poetic-loader.js"></script>
+    <script src="scripts/easter-eggs/matrix-rain.js"></script>
+    <script src="scripts/easter-eggs/konami-code.js"></script>
+    <script src="scripts/easter-eggs/easter-eggs.js"></script>
+
+    <!-- Entry -->
+    <script src="scripts/app.js?v=20260508-8"></script>
 </body>
 </html>
