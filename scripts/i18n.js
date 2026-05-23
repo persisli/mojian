@@ -106,7 +106,13 @@ const i18n = {
             'settings.bg.pattern.kraft': '牛皮纸',
             'settings.bg.pattern.watercolor': '水彩纸',
             'settings.bg.pattern.sketch': '素描纸',
-            
+
+            // Status Bar Display
+            'settings.statusBar.label': '状态栏',
+            'settings.statusBar.time': '时长',
+            'settings.statusBar.wordCount': '字数',
+            'settings.statusBar.progress': '进度',
+
             // Welcome Screen
             'welcome.title': '优雅地阅读Markdown',
             'welcome.desc': '拖拽文件到此处，或点击选择文件',
@@ -154,6 +160,26 @@ const i18n = {
             'toolbar.image': '插入图片',
             'toolbar.codeBlock': '代码块',
             'toolbar.table': '插入表格',
+            
+            // Insert Link Modal
+            'insertLink.title': '插入链接',
+            'insertLink.desc': '输入链接地址，将插入到当前光标位置。',
+            'insertLink.urlLabel': '链接地址',
+            'insertLink.urlPlaceholder': 'https://example.com',
+            'insertLink.textLabel': '显示文本（可选）',
+            'insertLink.textPlaceholder': '链接文本',
+            'insertLink.cancel': '取消',
+            'insertLink.confirm': '插入链接',
+            
+            // Insert Image Modal
+            'insertImage.title': '插入图片',
+            'insertImage.desc': '输入图片地址，将插入到当前光标位置。',
+            'insertImage.urlLabel': '图片地址',
+            'insertImage.urlPlaceholder': 'https://example.com/image.png',
+            'insertImage.altLabel': '替代文本（可选）',
+            'insertImage.altPlaceholder': '图片描述',
+            'insertImage.cancel': '取消',
+            'insertImage.confirm': '插入图片',
             
             // Achievements
             'achievement.novice.name': '初窥门径',
@@ -274,7 +300,13 @@ const i18n = {
             'settings.bg.pattern.kraft': 'Kraft Paper',
             'settings.bg.pattern.watercolor': 'Watercolor Paper',
             'settings.bg.pattern.sketch': 'Sketch Paper',
-            
+
+            // Status Bar Display
+            'settings.statusBar.label': 'Status Bar',
+            'settings.statusBar.time': 'Time',
+            'settings.statusBar.wordCount': 'Words',
+            'settings.statusBar.progress': 'Progress',
+
             // Welcome Screen
             'welcome.title': 'Elegant Markdown Reading',
             'welcome.desc': 'Drag files here, or click to select a file',
@@ -322,6 +354,26 @@ const i18n = {
             'toolbar.image': 'Insert Image',
             'toolbar.codeBlock': 'Code Block',
             'toolbar.table': 'Insert Table',
+            
+            // Insert Link Modal
+            'insertLink.title': 'Insert Link',
+            'insertLink.desc': 'Enter the link URL to insert at the current cursor position.',
+            'insertLink.urlLabel': 'Link URL',
+            'insertLink.urlPlaceholder': 'https://example.com',
+            'insertLink.textLabel': 'Display Text (optional)',
+            'insertLink.textPlaceholder': 'Link text',
+            'insertLink.cancel': 'Cancel',
+            'insertLink.confirm': 'Insert Link',
+            
+            // Insert Image Modal
+            'insertImage.title': 'Insert Image',
+            'insertImage.desc': 'Enter the image URL to insert at the current cursor position.',
+            'insertImage.urlLabel': 'Image URL',
+            'insertImage.urlPlaceholder': 'https://example.com/image.png',
+            'insertImage.altLabel': 'Alt Text (optional)',
+            'insertImage.altPlaceholder': 'Image description',
+            'insertImage.cancel': 'Cancel',
+            'insertImage.confirm': 'Insert Image',
             
             // Achievements
             'achievement.novice.name': 'Novice Reader',
@@ -428,7 +480,16 @@ const i18n = {
         // 更新所有带有data-i18n属性的元素
         document.querySelectorAll('[data-i18n]').forEach(element => {
             const key = element.getAttribute('data-i18n');
-            const text = this.t(key);
+            const paramsAttr = element.getAttribute('data-i18n-params');
+            let params = {};
+            if (paramsAttr) {
+                try {
+                    params = JSON.parse(paramsAttr);
+                } catch (e) {
+                    console.warn(`Failed to parse data-i18n-params for key ${key}:`, e);
+                }
+            }
+            const text = this.t(key, params);
             
             // 根据元素类型更新内容
             if (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA') {

@@ -134,6 +134,52 @@
         </div>
     </div>
 
+    <!-- Insert Link Modal -->
+    <div class="insert-modal" id="insertLinkModal">
+        <div class="insert-modal-content">
+            <div class="insert-modal-icon">
+                <i data-lucide="link"></i>
+            </div>
+            <h3 class="insert-modal-title" data-i18n="insertLink.title">插入链接</h3>
+            <p class="insert-modal-desc" data-i18n="insertLink.desc">输入链接地址，将插入到当前光标位置。</p>
+            <div class="insert-modal-field">
+                <label class="insert-modal-label" data-i18n="insertLink.urlLabel">链接地址</label>
+                <input type="url" class="insert-modal-input" id="insertLinkUrl" placeholder="https://example.com" data-i18n-placeholder="insertLink.urlPlaceholder">
+            </div>
+            <div class="insert-modal-field">
+                <label class="insert-modal-label" data-i18n="insertLink.textLabel">显示文本（可选）</label>
+                <input type="text" class="insert-modal-input" id="insertLinkText" placeholder="链接文本" data-i18n-placeholder="insertLink.textPlaceholder">
+            </div>
+            <div class="insert-modal-actions">
+                <button class="insert-modal-btn cancel" id="insertLinkCancel" data-i18n="insertLink.cancel">取消</button>
+                <button class="insert-modal-btn confirm" id="insertLinkConfirm" data-i18n="insertLink.confirm">插入链接</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Insert Image Modal -->
+    <div class="insert-modal" id="insertImageModal">
+        <div class="insert-modal-content">
+            <div class="insert-modal-icon">
+                <i data-lucide="image"></i>
+            </div>
+            <h3 class="insert-modal-title" data-i18n="insertImage.title">插入图片</h3>
+            <p class="insert-modal-desc" data-i18n="insertImage.desc">输入图片地址，将插入到当前光标位置。</p>
+            <div class="insert-modal-field">
+                <label class="insert-modal-label" data-i18n="insertImage.urlLabel">图片地址</label>
+                <input type="url" class="insert-modal-input" id="insertImageUrl" placeholder="https://example.com/image.png" data-i18n-placeholder="insertImage.urlPlaceholder">
+            </div>
+            <div class="insert-modal-field">
+                <label class="insert-modal-label" data-i18n="insertImage.altLabel">替代文本（可选）</label>
+                <input type="text" class="insert-modal-input" id="insertImageAlt" placeholder="图片描述" data-i18n-placeholder="insertImage.altPlaceholder">
+            </div>
+            <div class="insert-modal-actions">
+                <button class="insert-modal-btn cancel" id="insertImageCancel" data-i18n="insertImage.cancel">取消</button>
+                <button class="insert-modal-btn confirm" id="insertImageConfirm" data-i18n="insertImage.confirm">插入图片</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Floating TOC -->
     <nav class="floating-toc" id="floatingToc">
         <div class="floating-toc-nav" id="floatingTocNav">
@@ -436,6 +482,19 @@
                         <button class="bg-option stationery" data-bg="stationery" data-pattern="sketch" data-i18n-title="settings.bg.pattern.sketch" title="素描纸" 
                             style="background-color:#FFFFFF; background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MDAiIGhlaWdodD0iNjAwIiB2aWV3Qm94PSIwIDAgODAwIDYwMCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJza2V0Y2hHcmFkaWVudCIgeDE9IjAlIiB5MT0iMCUiIHgyPSIwJSIgeTI9IjEwMCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNmZmZmZmYiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiNmMGYwZjAiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iODAwIiBoZWlnaHQ9IjYwMCIgZmlsbD0idXJsKCNza2V0Y2hHcmFkaWVudCkiLz48bGluZSB4MT0iMTAwIiB5MT0iMTAwIiB4Mj0iNzAwIiB5Mj0iMTAwIiBzdHJva2U9IiNkMGQwZDAiIHN0cm9rZS13aWR0aD0iMC41IiBzdHJva2Utb3BhY2l0eT0iMC4zIi8+PGxpbmUgeDE9IjEwMCIgeTE9IjIwMCIgeDI9IjcwMCIgeTI9IjIwMCIgc3Ryb2tlPSIjZDBkMGQwIiBzdHJva2Utd2lkdGg9IjAuNSIgc3Ryb2tlLW9wYWNpdHk9IjAuMyIvPjxsaW5lIHgxPSIxMDAiIHkxPSIzMDAiIHgyPSI3MDAiIHkyPSIzMDAiIHN0cm9rZT0iI2QwZDBkMCIgc3Ryb2tlLXdpZHRoPSIwLjUiIHN0cm9rZS1vcGFjaXR5PSIwLjMiLz48bGluZSB4MT0iMTAwIiB5MT0iNDAwIiB4Mj0iNzAwIiB5Mj0iNDAwIiBzdHJva2U9IiNkMGQwZDAiIHN0cm9rZS13aWR0aD0iMC41IiBzdHJva2Utb3BhY2l0eT0iMC4zIi8+PGxpbmUgeDE9IjEwMCIgeTE9IjUwMCIgeDI9IjcwMCIgeTI9IjUwMCIgc3Ryb2tlPSIjZDBkMGQwIiBzdHJva2Utd2lkdGg9IjAuNSIgc3Ryb2tlLW9wYWNpdHk9IjAuMyIvPjwvc3ZnPg=='); background-size: 800px 600px;"></button>
                     </div>
+                </div>
+            </div>
+
+            <!-- Status Bar Display Setting -->
+            <div class="setting-group">
+                <div class="setting-label">
+                    <i data-lucide="layout-list" class="setting-icon"></i>
+                    <span data-i18n="settings.statusBar.label">状态栏</span>
+                </div>
+                <div class="status-bar-toggles">
+                    <button class="status-toggle-btn active" data-status-item="time" data-i18n="settings.statusBar.time" data-i18n-title="settings.statusBar.time">时长</button>
+                    <button class="status-toggle-btn active" data-status-item="wordCount" data-i18n="settings.statusBar.wordCount" data-i18n-title="settings.statusBar.wordCount">字数</button>
+                    <button class="status-toggle-btn active" data-status-item="progress" data-i18n="settings.statusBar.progress" data-i18n-title="settings.statusBar.progress">进度</button>
                 </div>
             </div>
         </div>

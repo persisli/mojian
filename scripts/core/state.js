@@ -78,7 +78,12 @@ Mojian.state = {
         backgroundType: 'solid',
         backgroundPattern: null,
         backgroundCSS: null,
-        bgOpacity: 100
+        bgOpacity: 100,
+        statusBarItems: {
+            time: true,
+            wordCount: true,
+            progress: true
+        }
     },
     easterEggs: {
         konamiCode: [],

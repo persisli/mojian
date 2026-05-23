@@ -184,6 +184,7 @@ function enhanceCodeBlocks() {
 
         const header = document.createElement('div');
         header.className = 'code-block-header';
+        header.contentEditable = 'false';
 
         const langLabel = document.createElement('span');
         langLabel.className = 'code-block-lang';
@@ -223,6 +224,7 @@ function enhanceCodeBlocks() {
         const lineCount = Math.max(1, lines.length);
         const lineNumbers = document.createElement('div');
         lineNumbers.className = 'line-numbers';
+        lineNumbers.contentEditable = 'false';
         lineNumbers.style.lineHeight = '22px';
         let lineNumbersHtml = '';
         for (let i = 0; i < lineCount; i++) {

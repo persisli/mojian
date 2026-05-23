@@ -86,6 +86,7 @@ function processFile(file) {
         }
 
         window.Mojian.updateReadingStats(state.wordCount);
+        window.Mojian.updateStatusBarDisplay();
         window.Mojian.showToast(i18n.t('toast.fileLoaded'));
     };
 

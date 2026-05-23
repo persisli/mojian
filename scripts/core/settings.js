@@ -34,6 +34,8 @@ function applySettings() {
     }
     window.Mojian.updateBackgroundSelection();
     window.Mojian.updateBackgroundUIState();
+    window.Mojian.applyStatusBarToggleStates();
+    window.Mojian.updateStatusBarDisplay();
 }
 
 function applyOtherSettings() {
@@ -56,8 +58,58 @@ function applyOtherSettings() {
     elements.bgOpacityValue.textContent = state.settings.bgOpacity + '%';
 }
 
+/**
+ * 根据设置状态更新状态栏切换按钮的视觉状态
+ */
+function applyStatusBarToggleStates() {
+    const { state } = window.Mojian;
+    const { statusBarItems } = state.settings;
+
+    document.querySelectorAll('.status-toggle-btn').forEach(btn => {
+        const item = btn.dataset.statusItem;
+        if (statusBarItems[item]) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+}
+
+/**
+ * 根据设置显示/隐藏状态栏的各个项目
+ */
+function updateStatusBarDisplay() {
+    const { state } = window.Mojian;
+    const { statusBarItems } = state.settings;
+    const { statusBar } = window.Mojian.elements;
+
+    const timeItem = document.querySelector('.status-item:has(#readingTime)');
+    const wordCountItem = document.querySelector('.status-item:has(#wordCount)');
+    const progressItem = document.querySelector('.status-item.progress-text');
+
+    const hasAnyVisible = statusBarItems.time || statusBarItems.wordCount || statusBarItems.progress;
+
+    if (!hasAnyVisible) {
+        statusBar.style.display = 'none';
+    } else {
+        statusBar.style.display = '';
+
+        if (timeItem) {
+            timeItem.style.display = statusBarItems.time ? '' : 'none';
+        }
+        if (wordCountItem) {
+            wordCountItem.style.display = statusBarItems.wordCount ? '' : 'none';
+        }
+        if (progressItem) {
+            progressItem.style.display = statusBarItems.progress ? '' : 'none';
+        }
+    }
+}
+
 window.Mojian = window.Mojian || {};
 Mojian.loadSettings = loadSettings;
 Mojian.saveSettings = saveSettings;
 Mojian.applySettings = applySettings;
 Mojian.applyOtherSettings = applyOtherSettings;
+Mojian.applyStatusBarToggleStates = applyStatusBarToggleStates;
+Mojian.updateStatusBarDisplay = updateStatusBarDisplay;

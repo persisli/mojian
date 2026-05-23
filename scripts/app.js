@@ -48,6 +48,11 @@ function init() {
         }
     }
 
+    // 初始化链接/图片弹窗事件
+    if (window.Mojian.initInsertModals) {
+        window.Mojian.initInsertModals();
+    }
+
     if (typeof i18n !== 'undefined') {
         i18n.updatePageTranslations();
     }
@@ -187,20 +192,38 @@ function bindEvents() {
     });
 
     document.querySelectorAll('.toolbar-btn').forEach(btn => {
+        btn.addEventListener('mousedown', (e) => {
+            // 阻止默认行为防止按钮获得焦点导致 contenteditable 失焦
+            e.preventDefault();
+            // 在 mousedown 阶段立即保存当前选区（此时选区尚未被清除）
+            const sel = window.getSelection();
+            const tag = btn.dataset.action;
+            console.log('[DEBUG mousedown] action=' + tag + ' | rangeCount=' + sel.rangeCount);
+            if (sel.rangeCount > 0) {
+                const r = sel.getRangeAt(0);
+                const inEditor = elements.markdownContent.contains(r.commonAncestorContainer);
+                const collapsed = r.collapsed;
+                const text = r.toString().substring(0, 30);
+                console.log('[DEBUG mousedown] inEditor=' + inEditor + ' | collapsed=' + collapsed + ' | text="' + text + '" | startContainer=' + r.startContainer.nodeName);
+                window.Mojian._savedRange = r.cloneRange();
+            } else {
+                console.log('[DEBUG mousedown] NO range - saving null');
+                window.Mojian._savedRange = null;
+            }
+        });
         btn.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
-            const selection = window.getSelection();
-            const range = selection.rangeCount > 0 ? selection.getRangeAt(0).cloneRange() : null;
+            const tag = btn.dataset.action;
+            const saved = window.Mojian._savedRange;
+            console.log('[DEBUG click] action=' + tag + ' | hasSavedRange=' + !!saved +
+                ' | activeEl=' + (document.activeElement ? document.activeElement.id || document.activeElement.tagName : 'null') +
+                ' | isCE=' + elements.markdownContent.isContentEditable);
+            const sel = window.getSelection();
+            console.log('[DEBUG click] currentRangeCount=' + sel.rangeCount +
+                (sel.rangeCount > 0 ? ' | collapsed=' + sel.getRangeAt(0).collapsed +
+                ' | inEditor=' + elements.markdownContent.contains(sel.getRangeAt(0).commonAncestorContainer) : ''));
             window.Mojian.handleToolbarAction(btn);
-            if (range && elements.markdownContent.contains(range.commonAncestorContainer)) {
-                elements.markdownContent.focus();
-                selection.removeAllRanges();
-                selection.addRange(range);
-            }
-            setTimeout(() => {
-                window.Mojian.updateToolbarState();
-            }, 10);
         });
     });
 
@@ -218,6 +241,20 @@ function bindEvents() {
 
     document.addEventListener('selectionchange', () => {
         if (state.isEditMode && elements.markdownContent.isContentEditable) {
+            // 每次选区变化时保存有效选区，供 toolbar 按钮点击时恢复
+            const sel = window.getSelection();
+            if (sel.rangeCount > 0) {
+                const range = sel.getRangeAt(0);
+                if (elements.markdownContent.contains(range.commonAncestorContainer)) {
+                    window.Mojian._savedRange = range.cloneRange();
+                    console.log('[DEBUG selectionchange] TRACKED range | collapsed=' + range.collapsed +
+                        ' | text="' + range.toString().substring(0, 30) + '"');
+                } else {
+                    console.log('[DEBUG selectionchange] SKIP - range NOT in editor');
+                }
+            } else {
+                console.log('[DEBUG selectionchange] SKIP - rangeCount=0');
+            }
             requestAnimationFrame(() => {
                 window.Mojian.updateToolbarState();
             });
@@ -417,6 +454,25 @@ function bindSettingsEvents() {
             }
             window.Mojian.applyBackground();
             window.Mojian.updateBackgroundSelection();
+            window.Mojian.saveSettings();
+        });
+    });
+
+    // Status Bar Toggle Buttons
+    document.querySelectorAll('.status-toggle-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const item = btn.dataset.statusItem;
+            const isActive = btn.classList.contains('active');
+
+            if (isActive) {
+                btn.classList.remove('active');
+                state.settings.statusBarItems[item] = false;
+            } else {
+                btn.classList.add('active');
+                state.settings.statusBarItems[item] = true;
+            }
+
+            window.Mojian.updateStatusBarDisplay();
             window.Mojian.saveSettings();
         });
     });

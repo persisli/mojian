@@ -16,16 +16,19 @@ function loadSavedContent(restoredState) {
     const savedFile = restoredState ? (restoredState.currentFile.name || restoredState.currentFile) : localStorage.getItem('currentFile');
     const savedContent = restoredState ? restoredState.content : localStorage.getItem('currentContent');
 
-    if (savedFile && savedContent) {
+    // Fallback to state.content if savedContent is empty but state has content
+    const contentToLoad = (savedContent || (state.content ? state.content : ''));
+
+    if (savedFile && contentToLoad) {
         state.currentFile = typeof savedFile === 'string' ? { name: savedFile } : savedFile;
-        state.content = savedContent;
+        state.content = contentToLoad;
 
         const fileExt = '.' + (state.currentFile.name || state.currentFile).split('.').pop().toLowerCase();
 
         if (fileExt === '.log') {
-            window.Mojian.renderLogContent(savedContent, !!restoredState);
+            window.Mojian.renderLogContent(contentToLoad, !!restoredState);
         } else {
-            window.Mojian.renderContent(savedContent, !!restoredState);
+            window.Mojian.renderContent(contentToLoad, !!restoredState);
         }
 
         if (!restoredState) {

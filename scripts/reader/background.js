@@ -188,14 +188,12 @@ function toggleTheme() {
     const { state } = window.Mojian;
     state.isDarkMode = !state.isDarkMode;
     localStorage.setItem('theme', state.isDarkMode ? 'dark' : 'light');
-    sessionStorage.setItem('beforeRefreshState', JSON.stringify({
-        currentFile: state.currentFile,
-        content: state.content,
-        isDarkMode: state.isDarkMode,
-        isEditMode: state.isEditMode,
-        scrollY: window.pageYOffset || document.documentElement.scrollTop
-    }));
-    location.reload();
+    document.documentElement.setAttribute('data-theme', state.isDarkMode ? 'dark' : 'light');
+    if (state.isDarkMode) {
+        window.Mojian.applyTheme();
+    } else {
+        window.Mojian.applyBackground();
+    }
 }
 
 function applyTheme() {
