@@ -148,6 +148,11 @@ function applyBackground() {
     const blendedStatusBg = blendColors(baseColor, themeBgColor, opacity);
     elements.statusBar.style.backgroundColor = blendedStatusBg;
     elements.statusBar.style.backgroundImage = 'none';
+
+    const blendedToolbarBg = blendColors(baseColor, themeBgColor, opacity);
+    if (elements.editToolbar) {
+        elements.editToolbar.style.backgroundColor = blendedToolbarBg;
+    }
 }
 
 function updateBackgroundSelection() {
@@ -212,6 +217,9 @@ function applyTheme() {
         elements.header.style.backgroundImage = 'none';
         elements.statusBar.style.backgroundColor = darkBg;
         elements.statusBar.style.backgroundImage = 'none';
+        if (elements.editToolbar) {
+            elements.editToolbar.style.backgroundColor = darkBg;
+        }
         document.documentElement.style.setProperty('--bg-page', darkBg);
         document.documentElement.style.setProperty('--bg-content', 'transparent');
         document.documentElement.style.setProperty('--bg-pattern', 'none');

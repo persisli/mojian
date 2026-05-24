@@ -807,6 +807,228 @@ function cancelInsertImage() {
 }
 
 /* ================================================================
+ * 表格
+ * ================================================================ */
+function applyTable() {
+    var modal = document.getElementById('insertTableModal');
+    var rowsInput = document.getElementById('insertTableRows');
+    var colsInput = document.getElementById('insertTableCols');
+
+    saveSelectionForInsert();
+
+    rowsInput.value = '3';
+    colsInput.value = '3';
+
+    modal.classList.add('active');
+    setTimeout(function() { rowsInput.focus(); }, 100);
+}
+
+function confirmInsertTable() {
+    var rowsInput = document.getElementById('insertTableRows');
+    var colsInput = document.getElementById('insertTableCols');
+    var rows = parseInt(rowsInput.value) || 3;
+    var cols = parseInt(colsInput.value) || 3;
+
+    // 限制范围
+    rows = Math.max(1, Math.min(20, rows));
+    cols = Math.max(1, Math.min(10, cols));
+
+    var modal = document.getElementById('insertTableModal');
+    modal.classList.remove('active');
+
+    restoreSelectionForInsert();
+
+    // 创建 table-wrapper（与阅读模式一致的表格外层容器）
+    var wrapper = document.createElement('div');
+    wrapper.className = 'table-wrapper';
+
+    // 创建 table
+    var table = document.createElement('table');
+
+    // 创建 thead
+    var thead = document.createElement('thead');
+    var headerRow = document.createElement('tr');
+    for (var c = 0; c < cols; c++) {
+        var th = document.createElement('th');
+        th.textContent = '\u200B'; // 零宽空格，保持单元格非空
+        headerRow.appendChild(th);
+    }
+    thead.appendChild(headerRow);
+    table.appendChild(thead);
+
+    // 创建 tbody
+    var tbody = document.createElement('tbody');
+    for (var r = 0; r < rows - 1; r++) {
+        var tr = document.createElement('tr');
+        for (var c2 = 0; c2 < cols; c2++) {
+            var td = document.createElement('td');
+            td.textContent = '\u200B';
+            tr.appendChild(td);
+        }
+        tbody.appendChild(tr);
+    }
+    table.appendChild(tbody);
+
+    wrapper.appendChild(table);
+
+    // 插入到光标位置
+    var sel = window.getSelection();
+    if (sel.rangeCount > 0) {
+        sel.getRangeAt(0).insertNode(wrapper);
+    } else {
+        window.Mojian.elements.markdownContent.appendChild(wrapper);
+    }
+
+    // 新建表格默认所有列均分（包括第一列）
+    table.style.tableLayout = 'fixed';
+    table.style.width = '100%';
+
+    var equalWidth = Math.floor(100 / cols);
+    var remainder = 100 - (equalWidth * cols);
+    var allCells = table.querySelectorAll('th, td');
+    allCells.forEach(function(cell, index) {
+        var colIndex = index % cols;
+        var width = equalWidth;
+        if (colIndex === cols - 1) width += remainder;
+        cell.style.width = width + '%';
+    });
+
+    // 监听第一列单元格输入事件，输入内容后重新计算列宽
+    var firstColCells = table.querySelectorAll('th:first-child, td:first-child');
+    firstColCells.forEach(function(cell) {
+        var recalculateWidth = function() {
+            // 检查第一列是否全部为空（只有零宽空格或空）
+            var allFirstColCells = table.querySelectorAll('th:first-child, td:first-child');
+            var hasContent = false;
+            allFirstColCells.forEach(function(fc) {
+                var text = (fc.textContent || '').replace(/\u200B/g, '').trim();
+                if (text) hasContent = true;
+            });
+
+            if (!hasContent) {
+                // 第一列仍为空，保持均分且宽度100%
+                table.style.width = '100%';
+                var ew = Math.floor(100 / cols);
+                var rem = 100 - (ew * cols);
+                var cells = table.querySelectorAll('th, td');
+                cells.forEach(function(c, index) {
+                    var colIdx = index % cols;
+                    var w = ew;
+                    if (colIdx === cols - 1) w += rem;
+                    c.style.width = w + '%';
+                    c.style.minWidth = '';
+                });
+                return;
+            }
+
+            // 计算第一列每行的内容宽度，取最大值
+            var maxFirstColWidth = 0;
+            allFirstColCells.forEach(function(fc) {
+                var tempSpan = document.createElement('span');
+                tempSpan.style.visibility = 'hidden';
+                tempSpan.style.position = 'absolute';
+                tempSpan.style.whiteSpace = 'nowrap';
+                tempSpan.style.font = window.getComputedStyle(fc).font;
+                tempSpan.textContent = (fc.textContent || '').replace(/\u200B/g, '') || ' ';
+                document.body.appendChild(tempSpan);
+                var w = tempSpan.offsetWidth + 40; // 40px padding补偿
+                if (w > maxFirstColWidth) maxFirstColWidth = w;
+                document.body.removeChild(tempSpan);
+            });
+
+            // 计算其余列每列的最长内容宽度
+            var otherColMaxWidths = [];
+            for (var oc = 1; oc < cols; oc++) {
+                var maxW = 0;
+                var colCells = table.querySelectorAll('th:nth-child(' + (oc + 1) + '), td:nth-child(' + (oc + 1) + ')');
+                colCells.forEach(function(cc) {
+                    var tempSpan = document.createElement('span');
+                    tempSpan.style.visibility = 'hidden';
+                    tempSpan.style.position = 'absolute';
+                    tempSpan.style.whiteSpace = 'nowrap';
+                    tempSpan.style.font = window.getComputedStyle(cc).font;
+                    tempSpan.textContent = (cc.textContent || '').replace(/\u200B/g, '') || ' ';
+                    document.body.appendChild(tempSpan);
+                    var w = tempSpan.offsetWidth + 40;
+                    if (w > maxW) maxW = w;
+                    document.body.removeChild(tempSpan);
+                });
+                otherColMaxWidths.push(maxW);
+            }
+
+            // 计算内容总宽（第一列 + 其余列最长宽度之和）
+            var contentTotalWidth = maxFirstColWidth;
+            otherColMaxWidths.forEach(function(w) { contentTotalWidth += w; });
+
+            // 获取编辑区域可用宽度
+            var containerWidth = window.Mojian.elements.markdownContent.offsetWidth;
+
+            // 如果内容总宽小于容器宽度，表格采用内容总宽并靠左对齐
+            // 否则表格采用容器宽度
+            if (contentTotalWidth < containerWidth) {
+                table.style.width = contentTotalWidth + 'px';
+            } else {
+                table.style.width = containerWidth + 'px';
+            }
+
+            // 重新获取表格实际宽度并计算其余列均分宽度
+            var actualTableWidth = table.offsetWidth;
+            var newRemainingWidth = actualTableWidth - maxFirstColWidth;
+            var newOtherColWidth = Math.floor(newRemainingWidth / (cols - 1));
+
+            // 更新所有单元格宽度
+            var cells = table.querySelectorAll('th, td');
+            cells.forEach(function(c, index) {
+                var colIdx = index % cols;
+                if (colIdx === 0) {
+                    c.style.width = maxFirstColWidth + 'px';
+                    c.style.minWidth = maxFirstColWidth + 'px';
+                } else {
+                    c.style.width = newOtherColWidth + 'px';
+                    c.style.minWidth = newOtherColWidth + 'px';
+                }
+            });
+        };
+
+        cell.addEventListener('blur', recalculateWidth);
+        cell.addEventListener('input', recalculateWidth);
+    });
+
+    // 应用表格背景样式（与阅读模式一致）
+    if (window.Mojian.applyBackground) {
+        window.Mojian.applyBackground();
+    }
+
+    // 取消任何选区，并将光标定位到第一行第一列单元格内
+    var firstCell = table.querySelector('th:first-child, td:first-child');
+    if (firstCell) {
+        var sel = window.getSelection();
+        sel.removeAllRanges();
+        var newRange = document.createRange();
+        // 定位到 firstCell 的文本节点（零宽空格）内
+        var textNode = firstCell.firstChild;
+        if (textNode && textNode.nodeType === Node.TEXT_NODE) {
+            newRange.setStart(textNode, 0);
+            newRange.setEnd(textNode, 0);
+        } else {
+            newRange.setStart(firstCell, 0);
+            newRange.collapse(true);
+        }
+        sel.addRange(newRange);
+        firstCell.focus();
+    }
+
+    _insertSavedRange = null;
+}
+
+function cancelInsertTable() {
+    var modal = document.getElementById('insertTableModal');
+    modal.classList.remove('active');
+    restoreSelectionForInsert();
+    _insertSavedRange = null;
+}
+
+/* ================================================================
  * 代码块 / 表格
  * ================================================================ */
 function applyCodeBlock() {
@@ -1056,27 +1278,6 @@ function initExistingCodeBlockSync() {
     });
 }
 
-function applyTable() {
-    var table = document.createElement('table');
-    var tbody = document.createElement('tbody');
-    for (var i = 0; i < 3; i++) {
-        var row = document.createElement('tr');
-        for (var j = 0; j < 3; j++) {
-            var cell = document.createElement('td');
-            cell.textContent = '';
-            row.appendChild(cell);
-        }
-        tbody.appendChild(row);
-    }
-    table.appendChild(tbody);
-    var selection = window.getSelection();
-    if (selection.rangeCount > 0) {
-        selection.getRangeAt(0).insertNode(table);
-    } else {
-        window.Mojian.elements.markdownContent.appendChild(table);
-    }
-}
-
 /* ================================================================
  * 工具栏状态更新
  * ================================================================ */
@@ -1202,6 +1403,33 @@ function initInsertModals() {
         });
     }
 
+    // 表格弹窗
+    var tableConfirm = document.getElementById('insertTableConfirm');
+    var tableCancel = document.getElementById('insertTableCancel');
+    var tableModal = document.getElementById('insertTableModal');
+    var tableRowsInput = document.getElementById('insertTableRows');
+    var tableColsInput = document.getElementById('insertTableCols');
+
+    if (tableConfirm) tableConfirm.addEventListener('click', confirmInsertTable);
+    if (tableCancel) tableCancel.addEventListener('click', cancelInsertTable);
+    if (tableModal) {
+        tableModal.addEventListener('click', function(e) {
+            if (e.target === tableModal) cancelInsertTable();
+        });
+    }
+    if (tableRowsInput) {
+        tableRowsInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') confirmInsertTable();
+            if (e.key === 'Escape') cancelInsertTable();
+        });
+    }
+    if (tableColsInput) {
+        tableColsInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') confirmInsertTable();
+            if (e.key === 'Escape') cancelInsertTable();
+        });
+    }
+
     // 初始化弹窗内的 lucide 图标
     if (window.lucide) lucide.createIcons();
 }
@@ -1217,8 +1445,8 @@ Mojian.applyInlineCode = applyInlineCodeWithSelection;
 Mojian.applyTaskList = applyTaskListWithSelection;
 Mojian.applyLink = applyLink;
 Mojian.applyImage = applyImage;
-Mojian.applyCodeBlock = applyCodeBlock;
 Mojian.applyTable = applyTable;
+Mojian.applyCodeBlock = applyCodeBlock;
 Mojian.updateCodeBlockLines = updateCodeBlockLines;
 Mojian.initExistingCodeBlockSync = initExistingCodeBlockSync;
 Mojian.initInsertModals = initInsertModals;

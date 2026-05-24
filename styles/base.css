@@ -1,0 +1,67 @@
+/* ========================================
+   Reset & Base Styles
+   ======================================== */
+
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    font-size: 18px;
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+    font-family: var(--font-sans);
+    background-color: var(--bg-page);
+    color: var(--color-text);
+    line-height: 1.8;
+    min-height: 100vh;
+    transition: background-color var(--transition-normal), color var(--transition-normal);
+    position: relative;
+}
+
+/* 图案背景层 - 使用伪元素实现透明度控制 */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--bg-page);
+    background-image: var(--bg-pattern);
+    opacity: var(--bg-pattern-opacity, 1);
+    pointer-events: none;
+    z-index: -1;
+    transition: background-color var(--transition-normal), background-image var(--transition-normal), opacity var(--transition-normal);
+}
+
+/* Selection */
+::selection {
+    background-color: var(--color-accent);
+    color: white;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--color-bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--color-border);
+    border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--color-text-muted);
+}

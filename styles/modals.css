@@ -1,0 +1,415 @@
+/* ========================================
+   Export Dropdown
+   ======================================== */
+.export-wrapper {
+    position: relative;
+    display: inline-flex;
+}
+
+.export-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    box-shadow: 0 4px 20px var(--color-shadow);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all var(--transition-fast);
+    z-index: 300;
+    min-width: 180px;
+}
+
+.export-dropdown.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.export-dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    width: 100%;
+    padding: var(--space-sm) var(--space-md);
+    border: none;
+    background: transparent;
+    color: var(--color-text);
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: background-color var(--transition-fast);
+}
+
+.export-dropdown-item:first-child {
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
+}
+
+.export-dropdown-item:last-child {
+    border-radius: 0 0 var(--radius-md) var(--radius-md);
+}
+
+.export-dropdown-item:hover {
+    background: var(--color-bg-secondary);
+}
+
+.export-dropdown-item svg {
+    width: 16px;
+    height: 16px;
+    color: var(--color-text-secondary);
+}
+
+/* ========================================
+   Export Confirmation Modal
+   ======================================== */
+.export-confirm-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--color-overlay);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 500;
+}
+
+.export-confirm-modal.active {
+    display: flex;
+}
+
+.export-confirm-content {
+    background: var(--color-bg);
+    border-radius: var(--radius-lg);
+    padding: var(--space-xl);
+    text-align: center;
+    max-width: 400px;
+    box-shadow: 0 8px 40px var(--color-shadow);
+    animation: modalSlideIn 0.3s ease;
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.export-confirm-icon {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto var(--space-lg);
+    background: linear-gradient(135deg, var(--color-accent), #F39C12);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.export-confirm-icon svg {
+    width: 32px;
+    height: 32px;
+    color: white;
+}
+
+.export-confirm-title {
+    font-family: var(--font-serif);
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--color-primary);
+    margin-bottom: var(--space-sm);
+}
+
+.export-confirm-desc {
+    font-size: 0.875rem;
+    color: var(--color-text-secondary);
+    margin-bottom: var(--space-lg);
+    line-height: 1.5;
+}
+
+.export-confirm-actions {
+    display: flex;
+    gap: var(--space-md);
+    justify-content: center;
+}
+
+.export-confirm-btn {
+    padding: var(--space-sm) var(--space-lg);
+    border-radius: var(--radius-md);
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    border: none;
+}
+
+.export-confirm-btn.cancel {
+    background: var(--color-bg-secondary);
+    color: var(--color-text-secondary);
+}
+
+.export-confirm-btn.cancel:hover {
+    background: var(--color-border);
+    color: var(--color-text);
+}
+
+.export-confirm-btn.confirm {
+    background: linear-gradient(135deg, var(--color-accent), #F39C12);
+    color: white;
+}
+
+.export-confirm-btn.confirm:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
+}
+
+/* ========================================
+   Insert Modal (Link / Image)
+   ======================================== */
+.insert-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--color-overlay);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 500;
+}
+
+.insert-modal.active {
+    display: flex;
+}
+
+.insert-modal-content {
+    background: var(--color-bg);
+    border-radius: var(--radius-lg);
+    padding: var(--space-xl);
+    text-align: center;
+    max-width: 420px;
+    width: 90%;
+    box-shadow: 0 8px 40px var(--color-shadow);
+    animation: modalSlideIn 0.3s ease;
+}
+
+.insert-modal-icon {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto var(--space-lg);
+    background: linear-gradient(135deg, var(--color-accent), #F39C12);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.insert-modal-icon svg {
+    width: 32px;
+    height: 32px;
+    color: white;
+}
+
+.insert-modal-title {
+    font-family: var(--font-serif);
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--color-primary);
+    margin-bottom: var(--space-sm);
+}
+
+.insert-modal-desc {
+    font-size: 0.875rem;
+    color: var(--color-text-secondary);
+    margin-bottom: var(--space-lg);
+    line-height: 1.5;
+}
+
+.insert-modal-field {
+    margin-bottom: var(--space-md);
+    text-align: left;
+}
+
+.insert-modal-label {
+    display: block;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--color-primary);
+    margin-bottom: 6px;
+}
+
+.insert-modal-input {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    font-size: 0.875rem;
+    background: var(--color-bg);
+    color: var(--color-primary);
+    transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+    outline: none;
+    box-sizing: border-box;
+}
+
+.insert-modal-input:focus {
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 3px rgba(238, 118, 0, 0.12);
+    outline: none;
+}
+
+.insert-modal-input:focus-visible {
+    outline: none;
+}
+
+.insert-modal-input::placeholder {
+    color: var(--color-text-secondary);
+    opacity: 0.6;
+}
+
+.insert-modal-actions {
+    display: flex;
+    gap: var(--space-md);
+    justify-content: center;
+    margin-top: var(--space-lg);
+}
+
+.insert-modal-btn {
+    padding: var(--space-sm) var(--space-lg);
+    border-radius: var(--radius-md);
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    border: none;
+}
+
+.insert-modal-btn.cancel {
+    background: var(--color-bg-secondary);
+    color: var(--color-text-secondary);
+}
+
+.insert-modal-btn.cancel:hover {
+    background: var(--color-border);
+    color: var(--color-text);
+}
+
+.insert-modal-btn.confirm {
+    background: linear-gradient(135deg, var(--color-accent), #F39C12);
+    color: white;
+}
+
+.insert-modal-btn.confirm:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(238, 118, 0, 0.3);
+}
+
+/* Insert Table Modal - Row Layout */
+.insert-modal-field-row {
+    display: flex;
+    gap: var(--space-md);
+}
+
+.insert-modal-field-half {
+    flex: 1;
+}
+
+/* ========================================
+   Export Modal
+   ======================================== */
+.export-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--color-overlay);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 500;
+}
+
+.export-modal.active {
+    display: flex;
+}
+
+.export-modal-content {
+    background: var(--color-bg);
+    border-radius: var(--radius-lg);
+    padding: var(--space-xl);
+    min-width: 320px;
+    max-width: 480px;
+    box-shadow: 0 8px 40px var(--color-shadow);
+}
+
+.export-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--space-lg);
+}
+
+.export-modal-header h3 {
+    font-family: var(--font-serif);
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--color-primary);
+}
+
+.export-modal-close {
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: transparent;
+    color: var(--color-text-secondary);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition-fast);
+}
+
+.export-modal-close:hover {
+    background: var(--color-bg-secondary);
+    color: var(--color-primary);
+}
+
+.export-modal-close svg {
+    width: 18px;
+    height: 18px;
+}
+
+.export-progress {
+    width: 100%;
+}
+
+.export-progress-bar {
+    width: 100%;
+    height: 8px;
+    background: var(--color-bg-secondary);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+    margin-bottom: var(--space-sm);
+}
+
+.export-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--color-accent), #F39C12);
+    width: 0%;
+    transition: width 0.3s ease;
+}
+
+.export-progress-text {
+    font-size: 0.875rem;
+    color: var(--color-text-secondary);
+    text-align: center;
+    display: block;
+}

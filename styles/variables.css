@@ -1,0 +1,98 @@
+/* ========================================
+   CSS Variables - Theme System
+   ======================================== */
+
+:root {
+    /* Light Theme */
+    --color-primary: #2C3E50;
+    --color-secondary: #34495E;
+    --color-accent: #ee7600;
+    --color-bg: #FAFAF8;
+    --color-bg-secondary: #F5F5F3;
+    --color-text: #333333;
+    --color-text-secondary: #666666;
+    --color-text-muted: #999999;
+    --color-border: #E8E8E6;
+    --color-code-bg: #F6F8FA;
+    --color-code-border: #E1E4E8;
+    --color-link: #3498DB;
+    --color-link-hover: #2980B9;
+    --color-blockquote: #6B7280;
+    --color-blockquote-bg: #F9FAFB;
+    --color-blockquote-border: #D1D5DB;
+    --color-table-header: #F3F4F6;
+    --color-table-border: #e8e8e883;
+    --color-hr: #E5E7EB;
+    --color-shadow: rgba(0, 0, 0, 0.08);
+    --color-shadow-hover: rgba(0, 0, 0, 0.12);
+    --color-overlay: rgba(0, 0, 0, 0.5);
+    
+    /* Typography */
+    --font-serif: "Noto Serif SC", "Source Han Serif CN", Georgia, serif;
+    --font-sans: "Noto Sans SC", "Source Han Sans CN", -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-mono: "JetBrains Mono", "Fira Code", "Source Code Pro", monospace;
+    
+    /* Spacing */
+    --space-xs: 4px;
+    --space-sm: 8px;
+    --space-md: 16px;
+    --space-lg: 24px;
+    --space-xl: 32px;
+    --space-2xl: 48px;
+    --space-3xl: 64px;
+    
+    /* Layout */
+    --content-max-width: 720px;
+    --header-height: 64px;
+    --status-bar-height: 48px;
+    
+    /* Transitions */
+    --transition-fast: 0.15s ease;
+    --transition-normal: 0.3s ease;
+    --transition-slow: 0.5s ease;
+    
+    /* Border Radius */
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-full: 9999px;
+    
+    /* Sidebar */
+    --sidebar-width: 320px;
+    
+    /* Background Settings */
+    --bg-page: #FAFAF8;
+    --bg-content: #FAFAF8;
+    --bg-pattern: none;
+    --bg-pattern-opacity: 1;
+}
+
+/* Dark Theme */
+[data-theme="dark"] {
+    --color-primary: #ECF0F1;
+    --color-secondary: #BDC3C7;
+    --color-accent: #ee7600;
+    --color-bg: #1A1A2E;
+    --color-bg-secondary: #16213E;
+    --color-text: #E8E8E6;
+    --color-text-secondary: #BDC3C7;
+    --color-text-muted: #7F8C8D;
+    --color-border: #2C2C54;
+    --color-code-bg: #0D0D1A;
+    --color-code-border: #2C2C54;
+    --color-link: #5DADE2;
+    --color-link-hover: #85C1E9;
+    --color-blockquote: #9CA3AF;
+    --color-blockquote-bg: #1F2937;
+    --color-blockquote-border: #374151;
+    --color-table-header: #1F2937;
+    --color-table-border: #454D5E;
+    --color-hr: #374151;
+    --color-shadow: rgba(0, 0, 0, 0.3);
+    --color-shadow-hover: rgba(0, 0, 0, 0.4);
+    --color-overlay: rgba(0, 0, 0, 0.7);
+    
+    /* Background Settings */
+    --bg-page: #1A1A2E;
+    --bg-content: #1A1A2E;
+}

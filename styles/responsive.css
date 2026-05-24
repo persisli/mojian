@@ -1,0 +1,417 @@
+/* ========================================
+   Responsive Design
+   ======================================== */
+
+@media (max-width: 1024px) {
+    html {
+        font-size: 16px;
+    }
+    
+    .header-content {
+        padding: 0 var(--space-md);
+    }
+    
+    .reading-area {
+        padding: var(--space-xl) var(--space-md);
+    }
+    
+    .status-content {
+        padding: 0 var(--space-md);
+    }
+    
+    :root {
+        --sidebar-width: 280px;
+    }
+}
+
+@media (max-width: 768px) {
+    html {
+        font-size: 16px;
+    }
+    
+    :root {
+        --header-height: 56px;
+        --status-bar-height: 40px;
+        --sidebar-width: 100%;
+    }
+    
+    /* 移动端标题栏宽度适配 */
+    .header {
+        width: 100%;
+        box-sizing: border-box;
+    }
+    
+    .header-content {
+        width: 100%;
+        max-width: 100%;
+        margin: 0;
+        padding: 0 var(--space-sm);
+        box-sizing: border-box;
+    }
+    
+    .logo-text {
+        display: none;
+    }
+    
+    /* 移动端标题栏布局修复：防止长文件名挤出右侧图标 */
+    .header-left {
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+    }
+    
+    .file-info {
+        overflow: hidden;
+        min-width: 0;
+    }
+    
+    .header-right {
+        flex-shrink: 0;
+    }
+    
+    /* 移动端文件名宽度限制，避免挤出右侧图标 */
+    .file-name {
+        max-width: 120px;
+    }
+    
+    /* 移动端底部状态栏宽度适配 */
+    .status-bar {
+        width: 100%;
+        box-sizing: border-box;
+    }
+    
+    .status-content {
+        width: 100%;
+        max-width: 100%;
+        margin: 0;
+        padding: 0 var(--space-sm);
+        box-sizing: border-box;
+        gap: var(--space-lg);
+    }
+    
+    .status-item {
+        font-size: 0.75rem;
+    }
+    
+    /* 移动端阅读区域优化 - 与 header/status-bar 视觉宽度一致 */
+    .reading-area {
+        width: 100%;
+        max-width: 100%;
+        padding: var(--space-lg) 0;
+    }
+    
+    .markdown-content {
+        padding: var(--space-md);
+        border-radius: 0;
+        margin: 0;
+    }
+    
+    .welcome-content {
+        padding: var(--space-xl);
+    }
+    
+    .welcome-icon svg {
+        width: 80px;
+        height: 80px;
+    }
+    
+    .markdown-content h1 {
+        font-size: 1.75rem;
+    }
+    
+    .markdown-content h2 {
+        font-size: 1.375rem;
+    }
+    
+    .markdown-content h3 {
+        font-size: 1.125rem;
+    }
+    
+    /* 移动端表格滚动优化 */
+    .markdown-content .table-wrapper {
+        margin: 1.25em 0;
+        /* 添加滚动提示阴影 */
+        box-shadow: inset -4px 0 8px -4px rgba(0,0,0,0.08);
+    }
+    
+    .markdown-content table {
+        font-size: 0.9rem;
+    }
+    
+    .settings-sidebar {
+        height: calc(100vh - var(--header-height));
+        top: var(--header-height);
+    }
+    
+    /* 移动端目录导航 - 显示在header下方的内容区域顶部 */
+    .floating-toc {
+        position: fixed;
+        left: 0;
+        right: 0;
+        top: var(--header-height);
+        transform: none;
+        max-height: 50vh;
+        max-width: 100%;
+        background: var(--color-bg);
+        border-bottom: 1px solid var(--color-border);
+        box-shadow: 0 4px 20px var(--color-shadow);
+        z-index: 95;
+        overflow-y: auto;
+    }
+    
+    .floating-toc-nav {
+        max-height: calc(50vh - 16px);
+        padding: var(--space-sm) var(--space-md);
+    }
+    
+    .floating-toc-nav .toc-list {
+        display: block;
+    }
+    
+    .floating-toc-nav .toc-item {
+        margin-bottom: var(--space-xs);
+    }
+    
+    .floating-toc-nav .toc-link {
+        max-width: none;
+        font-size: 0.875rem;
+        padding: var(--space-xs) var(--space-sm);
+    }
+    
+    /* 保持层级缩进 */
+    .floating-toc-nav .toc-item[data-level="1"] .toc-link {
+        padding-left: var(--space-sm);
+        font-weight: 500;
+    }
+    
+    .floating-toc-nav .toc-item[data-level="2"] .toc-link {
+        padding-left: calc(var(--space-sm) + 16px);
+        font-size: 0.8125rem;
+    }
+    
+    .floating-toc-nav .toc-item[data-level="3"] .toc-link {
+        padding-left: calc(var(--space-sm) + 32px);
+        font-size: 0.75rem;
+    }
+    
+    .floating-toc-nav .toc-link.active {
+        background: linear-gradient(90deg, var(--color-accent), #F39C12);
+        -webkit-background-clip: unset;
+        background-clip: unset;
+        -webkit-text-fill-color: unset;
+        color: white;
+    }
+
+    /* 移动端编辑工具栏适配 */
+    .edit-toolbar {
+        padding: var(--space-xs) var(--space-sm);
+        gap: 2px;
+        justify-content: flex-start;
+    }
+
+    .edit-toolbar::before {
+        display: none;
+    }
+
+    .toolbar-group {
+        gap: 2px;
+        flex-wrap: nowrap;
+    }
+
+    .toolbar-group:first-child {
+        margin-left: 0;
+    }
+
+    .toolbar-divider {
+        display: none;
+    }
+
+    .toolbar-btn {
+        width: 32px;
+        min-width: 32px;
+        height: 32px;
+        padding: 0;
+        flex-shrink: 0;
+    }
+
+    .toolbar-btn svg {
+        width: 14px;
+        height: 14px;
+    }
+
+    /* 移动端编辑容器增加顶部padding，避免被工具栏遮挡 */
+    .editor-container.visible {
+        padding-top: 0;
+    }
+
+    .editor-content {
+        padding-top: 80px;
+    }
+
+    /* 移动端编辑模式下，markdownContent 需要留出工具栏空间 */
+    .markdown-content.editing {
+        padding-top: 80px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    html {
+        font-size: 15px;
+    }
+    
+    /* 小屏幕文件名更短 */
+    .file-name {
+        max-width: 80px;
+    }
+    
+    .header-left {
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+        gap: var(--space-sm);
+    }
+    
+    .header-right {
+        flex-shrink: 0;
+    }
+    
+    /* 小屏幕状态栏优化：三个元素始终显示，居中靠拢 */
+    .status-content {
+        gap: var(--space-md);
+        justify-content: center;
+    }
+    
+    .status-item {
+        font-size: 0.7rem;
+        gap: 2px;
+    }
+    
+    .status-icon {
+        width: 12px;
+        height: 12px;
+    }
+    
+    .welcome-title {
+        font-size: 1.25rem;
+    }
+    
+    /* 小屏幕阅读区域 - 保持与 header/status-bar 宽度一致 */
+    .reading-area {
+        padding: var(--space-md) 0;
+    }
+    
+    .markdown-content {
+        padding: var(--space-sm);
+        border-radius: 0;
+    }
+    
+    .markdown-content pre {
+        padding: var(--space-sm);
+        font-size: 0.8rem;
+    }
+    
+    /* 移动端表格滚动优化 */
+    .markdown-content .table-wrapper {
+        margin: 1em 0;
+        border-radius: var(--radius-sm);
+        /* 添加滚动提示阴影 */
+        box-shadow: inset -4px 0 8px -4px rgba(0,0,0,0.1);
+    }
+    
+    .markdown-content .table-wrapper::-webkit-scrollbar {
+        height: 4px;
+    }
+    
+    .markdown-content table {
+        font-size: 0.85rem;
+    }
+    
+    .markdown-content th,
+    .markdown-content td {
+        padding: var(--space-xs) var(--space-sm);
+        white-space: nowrap;
+    }
+    
+    .bg-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+    
+    /* 移动端设置行改为单列布局 */
+    .setting-row {
+        flex-direction: column;
+        gap: var(--space-sm);
+    }
+    
+    .setting-item .setting-select {
+        padding: var(--space-xs) var(--space-sm);
+        font-size: 0.75rem;
+    }
+    
+    .setting-control-compact .size-btn {
+        width: 24px;
+        height: 24px;
+    }
+    
+    .setting-control-compact .setting-value {
+        font-size: 0.75rem;
+        min-width: 36px;
+    }
+    
+    .theme-btn {
+        padding: var(--space-xs) var(--space-md);
+        font-size: 0.8rem;
+    }
+}
+
+/* ========================================
+   Accessibility
+   ======================================== */
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Focus styles */
+::focus-visible {
+    outline: 2px solid var(--color-link);
+    outline-offset: 2px;
+}
+
+/* Hide file input - positioned off-screen but clickable via JS */
+#fileInput {
+    position: fixed;
+    left: -9999px;
+    top: -9999px;
+    opacity: 0;
+    width: 0;
+    height: 0;
+    background-color: transparent !important;
+    border: none !important;
+}
+
+/* Ensure file input has no visual impact in any theme */
+[data-theme="dark"] #fileInput,
+[data-theme="light"] #fileInput {
+    background-color: transparent !important;
+    color: transparent !important;
+}
+
+/* Disable background settings in dark mode - visual indication */
+[data-theme="dark"] .bg-tab,
+[data-theme="dark"] .bg-option {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+[data-theme="dark"] input[type="range"]:disabled,
+[data-theme="dark"] .setting-control:has(#bgOpacitySlider) {
+    opacity: 0.5;
+    pointer-events: none;
+}

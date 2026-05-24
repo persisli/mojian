@@ -181,6 +181,14 @@ const i18n = {
             'insertImage.cancel': '取消',
             'insertImage.confirm': '插入图片',
             
+            // Insert Table Modal
+            'insertTable.title': '插入表格',
+            'insertTable.desc': '输入行数和列数，将插入到当前光标位置。',
+            'insertTable.rowsLabel': '行数',
+            'insertTable.colsLabel': '列数',
+            'insertTable.cancel': '取消',
+            'insertTable.confirm': '插入表格',
+            
             // Achievements
             'achievement.novice.name': '初窥门径',
             'achievement.novice.desc': '阅读满 10,000 字',
@@ -374,6 +382,14 @@ const i18n = {
             'insertImage.altPlaceholder': 'Image description',
             'insertImage.cancel': 'Cancel',
             'insertImage.confirm': 'Insert Image',
+            
+            // Insert Table Modal
+            'insertTable.title': 'Insert Table',
+            'insertTable.desc': 'Enter the number of rows and columns to insert at the current cursor position.',
+            'insertTable.rowsLabel': 'Rows',
+            'insertTable.colsLabel': 'Columns',
+            'insertTable.cancel': 'Cancel',
+            'insertTable.confirm': 'Insert Table',
             
             // Achievements
             'achievement.novice.name': 'Novice Reader',

@@ -29,41 +29,47 @@
         .mojian-restoring #fileName { display: inline !important; }
     </style>
     
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;600;700&family=JetBrains+Mono:wght@400;500&family=LXGW+WenKai:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Google Fonts (国内镜像 loli.net + 异步非阻塞加载) -->
+    <link rel="preconnect" href="https://fonts.loli.net">
+    <link rel="preconnect" href="https://fonts.loli.net" crossorigin>
+    <link href="https://fonts.loli.net/css2?family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;600;700&family=JetBrains+Mono:wght@400;500&family=LXGW+WenKai:wght@400;500;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
     
     <!-- Prism.js Theme -->
     <link rel="stylesheet" href="libs/prism-tomorrow.min.css">
     
-    <!-- Lucide Icons -->
-    <script src="libs/lucide.min.js"></script>
+    <!-- Lucide Icons (deferred) -->
+    <script src="libs/lucide.min.js" defer></script>
     
-    <!-- Marked.js for Markdown parsing -->
-    <script src="libs/marked.min.js"></script>
+    <!-- Marked.js for Markdown parsing (deferred) -->
+    <script src="libs/marked.min.js" defer></script>
     
-    <!-- Turndown for HTML to Markdown conversion -->
-    <script src="libs/turndown.js"></script>
-    <script>
-        // Verify Turndown is loaded
-        if (typeof TurndownService !== 'undefined') {
-            console.log('✅ Turndown library loaded successfully, version:', TurndownService.version || 'unknown');
-        } else {
-            console.error('❌ Turndown library failed to load');
+    <!-- Turndown for HTML to Markdown conversion (deferred) -->
+    <script src="libs/turndown.js" defer></script>
+    
+    <!-- Tiptap Editor - Import Map + jsDelivr CDN (预打包，国内加速) -->
+    <script type="importmap">
+    {
+        "imports": {
+            "@tiptap/core": "https://cdn.jsdelivr.net/npm/@tiptap/core@2.1.0/+esm",
+            "@tiptap/starter-kit": "https://cdn.jsdelivr.net/npm/@tiptap/starter-kit@2.1.0/+esm",
+            "@tiptap/extension-link": "https://cdn.jsdelivr.net/npm/@tiptap/extension-link@2.1.0/+esm",
+            "@tiptap/extension-image": "https://cdn.jsdelivr.net/npm/@tiptap/extension-image@2.1.0/+esm",
+            "@tiptap/extension-table": "https://cdn.jsdelivr.net/npm/@tiptap/extension-table@2.1.0/+esm",
+            "@tiptap/extension-table-row": "https://cdn.jsdelivr.net/npm/@tiptap/extension-table-row@2.1.0/+esm",
+            "@tiptap/extension-table-cell": "https://cdn.jsdelivr.net/npm/@tiptap/extension-table-cell@2.1.0/+esm",
+            "@tiptap/extension-table-header": "https://cdn.jsdelivr.net/npm/@tiptap/extension-table-header@2.1.0/+esm"
         }
+    }
     </script>
-    
-    <!-- Tiptap Editor - Complete bundle with all dependencies -->
-    <script type="module">
-        import { Editor } from 'https://esm.sh/@tiptap/core@2.1.0?target=es2022';
-        import StarterKit from 'https://esm.sh/@tiptap/starter-kit@2.1.0?target=es2022';
-        import Link from 'https://esm.sh/@tiptap/extension-link@2.1.0?target=es2022';
-        import Image from 'https://esm.sh/@tiptap/extension-image@2.1.0?target=es2022';
-        import Table from 'https://esm.sh/@tiptap/extension-table@2.1.0?target=es2022';
-        import TableRow from 'https://esm.sh/@tiptap/extension-table-row@2.1.0?target=es2022';
-        import TableCell from 'https://esm.sh/@tiptap/extension-table-cell@2.1.0?target=es2022';
-        import TableHeader from 'https://esm.sh/@tiptap/extension-table-header@2.1.0?target=es2022';
+    <script type="module" async>
+        import { Editor } from '@tiptap/core';
+        import StarterKit from '@tiptap/starter-kit';
+        import Link from '@tiptap/extension-link';
+        import Image from '@tiptap/extension-image';
+        import Table from '@tiptap/extension-table';
+        import TableRow from '@tiptap/extension-table-row';
+        import TableCell from '@tiptap/extension-table-cell';
+        import TableHeader from '@tiptap/extension-table-header';
         
         // Export to global scope
         window.TiptapEditor = {
@@ -77,7 +83,7 @@
             TableHeader
         };
         
-        console.log('Tiptap modules loaded successfully');
+        console.log('Tiptap modules loaded successfully via jsDelivr');
     </script>
     
     <!-- Prism.js for code highlighting (deferred to reduce blocking) -->
@@ -176,6 +182,31 @@
             <div class="insert-modal-actions">
                 <button class="insert-modal-btn cancel" id="insertImageCancel" data-i18n="insertImage.cancel">取消</button>
                 <button class="insert-modal-btn confirm" id="insertImageConfirm" data-i18n="insertImage.confirm">插入图片</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Insert Table Modal -->
+    <div class="insert-modal" id="insertTableModal">
+        <div class="insert-modal-content">
+            <div class="insert-modal-icon">
+                <i data-lucide="table"></i>
+            </div>
+            <h3 class="insert-modal-title" data-i18n="insertTable.title">插入表格</h3>
+            <p class="insert-modal-desc" data-i18n="insertTable.desc">输入行数和列数，将插入到当前光标位置。</p>
+            <div class="insert-modal-field insert-modal-field-row">
+                <div class="insert-modal-field-half">
+                    <label class="insert-modal-label" data-i18n="insertTable.rowsLabel">行数</label>
+                    <input type="number" class="insert-modal-input" id="insertTableRows" min="1" max="20" value="3" placeholder="3">
+                </div>
+                <div class="insert-modal-field-half">
+                    <label class="insert-modal-label" data-i18n="insertTable.colsLabel">列数</label>
+                    <input type="number" class="insert-modal-input" id="insertTableCols" min="1" max="10" value="3" placeholder="3">
+                </div>
+            </div>
+            <div class="insert-modal-actions">
+                <button class="insert-modal-btn cancel" id="insertTableCancel" data-i18n="insertTable.cancel">取消</button>
+                <button class="insert-modal-btn confirm" id="insertTableConfirm" data-i18n="insertTable.confirm">插入表格</button>
             </div>
         </div>
     </div>
@@ -279,6 +310,15 @@
             </div>
             <div class="toolbar-divider"></div>
             <div class="toolbar-group">
+                <button class="toolbar-btn" data-action="codeBlock" data-i18n-title="toolbar.codeBlock" title="代码块">
+                    <i data-lucide="file-code-2"></i>
+                </button>
+                <button class="toolbar-btn" data-action="table" data-i18n-title="toolbar.table" title="插入表格">
+                    <i data-lucide="table"></i>
+                </button>
+            </div>
+            <div class="toolbar-divider"></div>
+            <div class="toolbar-group">
                 <button class="toolbar-btn" data-action="blockquote" data-i18n-title="toolbar.blockquote" title="引用">
                     <i data-lucide="quote"></i>
                 </button>
@@ -290,15 +330,6 @@
                 </button>
                 <button class="toolbar-btn" data-action="image" data-i18n-title="toolbar.image" title="插入图片">
                     <i data-lucide="image"></i>
-                </button>
-            </div>
-            <div class="toolbar-divider"></div>
-            <div class="toolbar-group">
-                <button class="toolbar-btn" data-action="codeBlock" data-i18n-title="toolbar.codeBlock" title="代码块">
-                    <i data-lucide="file-code-2"></i>
-                </button>
-                <button class="toolbar-btn" data-action="table" data-i18n-title="toolbar.table" title="插入表格">
-                    <i data-lucide="table"></i>
                 </button>
             </div>
         </div>
@@ -382,7 +413,7 @@
                     <span data-i18n="settings.lineHeight.label">行高设置</span>
                 </div>
                 <div class="setting-control">
-                    <input type="range" id="lineHeightSlider" min="1.4" max="2.4" value="1.9" step="0.1">
+                    <input type="range" id="lineHeightSlider" min="1" max="2.5" value="1.9" step="0.1">
                     <span class="setting-value" id="lineHeightValue">1.9</span>
                 </div>
             </div>
@@ -563,46 +594,46 @@
     </div>
 
     <!-- Internationalization -->
-    <script src="scripts/i18n.js"></script>
+    <script src="scripts/i18n.js" defer></script>
 
     <!-- Core -->
-    <script src="scripts/core/state.js"></script>
-    <script src="scripts/core/utils.js"></script>
-    <script src="scripts/core/settings.js"></script>
+    <script src="scripts/core/state.js" defer></script>
+    <script src="scripts/core/utils.js" defer></script>
+    <script src="scripts/core/settings.js" defer></script>
 
     <!-- UI -->
-    <script src="scripts/ui/toast.js"></script>
-    <script src="scripts/ui/sidebar.js"></script>
-    <script src="scripts/ui/file-name-edit.js"></script>
+    <script src="scripts/ui/toast.js" defer></script>
+    <script src="scripts/ui/sidebar.js" defer></script>
+    <script src="scripts/ui/file-name-edit.js" defer></script>
 
     <!-- Reader -->
-    <script src="scripts/reader/background.js"></script>
-    <script src="scripts/reader/progress.js"></script>
-    <script src="scripts/reader/toc.js"></script>
-    <script src="scripts/reader/renderer.js"></script>
+    <script src="scripts/reader/background.js" defer></script>
+    <script src="scripts/reader/progress.js" defer></script>
+    <script src="scripts/reader/toc.js" defer></script>
+    <script src="scripts/reader/renderer.js" defer></script>
 
     <!-- Editor -->
-    <script src="scripts/editor/html-to-md.js"></script>
-    <script src="scripts/editor/toolbar.js"></script>
-    <script src="scripts/editor/editor.js"></script>
+    <script src="scripts/editor/html-to-md.js" defer></script>
+    <script src="scripts/editor/toolbar.js" defer></script>
+    <script src="scripts/editor/editor.js" defer></script>
 
     <!-- Export -->
-    <script src="scripts/export/export.js"></script>
+    <script src="scripts/export/export.js" defer></script>
 
     <!-- File -->
-    <script src="scripts/file/storage.js"></script>
-    <script src="scripts/file/file-handler.js"></script>
+    <script src="scripts/file/storage.js" defer></script>
+    <script src="scripts/file/file-handler.js" defer></script>
 
     <!-- Keyboard -->
-    <script src="scripts/keyboard/shortcuts.js"></script>
+    <script src="scripts/keyboard/shortcuts.js" defer></script>
 
     <!-- Easter Eggs -->
-    <script src="scripts/easter-eggs/poetic-loader.js"></script>
-    <script src="scripts/easter-eggs/matrix-rain.js"></script>
-    <script src="scripts/easter-eggs/konami-code.js"></script>
-    <script src="scripts/easter-eggs/easter-eggs.js"></script>
+    <script src="scripts/easter-eggs/poetic-loader.js" defer></script>
+    <script src="scripts/easter-eggs/matrix-rain.js" defer></script>
+    <script src="scripts/easter-eggs/konami-code.js" defer></script>
+    <script src="scripts/easter-eggs/easter-eggs.js" defer></script>
 
     <!-- Entry -->
-    <script src="scripts/app.js?v=20260508-8"></script>
+    <script src="scripts/app.js?v=20260508-8" defer></script>
 </body>
 </html>

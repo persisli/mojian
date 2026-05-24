@@ -1,0 +1,29 @@
+/* ========================================
+   Toast Notification
+   ======================================== */
+
+.toast {
+    position: fixed;
+    bottom: calc(var(--status-bar-height) + var(--space-lg));
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: var(--color-primary);
+    color: var(--color-bg);
+    padding: var(--space-sm) var(--space-lg);
+    border-radius: var(--radius-full);
+    font-size: 0.875rem;
+    opacity: 0;
+    visibility: hidden;
+    transition: all var(--transition-normal);
+    z-index: 10002;
+}
+
+.toast.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0);
+}
+
+.toast.error {
+    background: var(--color-accent);
+}

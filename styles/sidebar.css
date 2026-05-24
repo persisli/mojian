@@ -1,0 +1,487 @@
+/* ========================================
+   Sidebar Overlay
+   ======================================== */
+
+.sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--color-overlay);
+    opacity: 0;
+    visibility: hidden;
+    transition: all var(--transition-normal);
+    z-index: 200;
+}
+
+.sidebar-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* ========================================
+   Settings Sidebar
+   ======================================== */
+
+.settings-sidebar {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: var(--sidebar-width);
+    height: 100vh;
+    background: var(--color-bg);
+    border-left: 1px solid var(--color-border);
+    transform: translateX(100%);
+    transition: transform var(--transition-normal);
+    z-index: 201;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.settings-sidebar.active {
+    transform: translateX(0);
+}
+
+.sidebar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-md) var(--space-lg);
+    border-bottom: 1px solid var(--color-border);
+    flex-shrink: 0;
+}
+
+.sidebar-title {
+    font-family: var(--font-serif);
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--color-primary);
+}
+
+.sidebar-close {
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: transparent;
+    color: var(--color-text-secondary);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition-fast);
+}
+
+.sidebar-close:hover {
+    background: var(--color-bg-secondary);
+    color: var(--color-primary);
+}
+
+.sidebar-close svg {
+    width: 18px;
+    height: 18px;
+}
+
+.sidebar-content {
+    flex: 1;
+    overflow-y: scroll; /* 始终显示滚动条，防止宽度变化 */
+    padding: var(--space-lg);
+}
+
+/* 侧边栏滚动条样式优化 */
+.sidebar-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.sidebar-content::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.sidebar-content::-webkit-scrollbar-thumb {
+    background: var(--color-border);
+    border-radius: var(--radius-full);
+}
+
+.sidebar-content::-webkit-scrollbar-thumb:hover {
+    background: var(--color-text-muted);
+}
+
+/* Setting Groups */
+.setting-group {
+    margin-bottom: 18px;
+}
+
+.setting-label {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--color-text);
+    margin-bottom: var(--space-sm);
+}
+
+.setting-icon {
+    width: 16px;
+    height: 16px;
+    color: var(--color-text-secondary);
+}
+
+.setting-control {
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+/* 字号控制：中间值居中 */
+.setting-control:has(.size-btn) .setting-value {
+    flex: 1;
+    text-align: center;
+}
+
+.setting-value {
+    font-size: 0.875rem;
+    font-family: var(--font-mono);
+    color: var(--color-text-secondary);
+    min-width: 50px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+/* Setting Row - 两列布局 */
+.setting-row {
+    display: flex;
+    gap: var(--space-lg);
+    align-items: flex-end;
+}
+
+.setting-item {
+    flex: 1;
+    min-width: 0;
+}
+
+.setting-item .setting-label {
+    margin-bottom: var(--space-xs);
+}
+
+.setting-item .setting-select {
+    width: 100%;
+}
+
+.setting-select-small {
+    padding: var(--space-xs) var(--space-sm);
+    font-size: 0.8rem;
+}
+
+.setting-control-compact {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+}
+
+.setting-control-compact .size-btn {
+    width: 28px;
+    height: 28px;
+}
+
+.setting-control-compact .setting-value {
+    min-width: 42px;
+    font-size: 0.8rem;
+}
+
+/* Theme Toggle Button */
+.theme-btn {
+    flex: 1;
+    height: 40px;
+    padding: 0 var(--space-lg);
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    color: var(--color-text);
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    text-align: center;
+}
+
+.theme-btn:hover {
+    background: var(--color-primary);
+    color: var(--color-bg);
+    border-color: var(--color-primary);
+}
+
+/* Theme label text - 使用 !important 确保优先级 */
+.theme-label-light {
+    display: inline !important;
+}
+
+.theme-label-dark {
+    display: none !important;
+}
+
+/* Dark mode theme labels */
+[data-theme="dark"] .theme-label-light {
+    display: none !important;
+}
+
+[data-theme="dark"] .theme-label-dark {
+    display: inline !important;
+}
+
+/* Theme icons in label - 使用 !important 确保优先级 */
+.theme-icon-sun,
+.setting-label .theme-icon-sun {
+    display: inline-block !important;
+    width: 16px;
+    height: 16px;
+}
+
+.theme-icon-moon,
+.setting-label .theme-icon-moon {
+    display: none !important;
+    width: 16px;
+    height: 16px;
+}
+
+/* Dark mode theme icons */
+[data-theme="dark"] .theme-icon-sun,
+[data-theme="dark"] .setting-label .theme-icon-sun {
+    display: none !important;
+}
+
+[data-theme="dark"] .theme-icon-moon,
+[data-theme="dark"] .setting-label .theme-icon-moon {
+    display: inline-block !important;
+}
+
+/* Range Slider */
+input[type="range"] {
+    flex: 10;
+    height: 4px;
+    background: var(--color-border);
+    border-radius: var(--radius-full);
+    outline: none;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+/* Range slider container with gap */
+.setting-control:has(input[type="range"]) {
+    gap: var(--space-md);
+}
+
+/* Range slider value - fixed width on the right */
+input[type="range"] + .setting-value {
+    min-width: 55px;
+    text-align: right;
+    flex-shrink: 0;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    background: var(--color-primary);
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+    box-shadow: 0 2px 8px var(--color-shadow);
+}
+
+input[type="range"]::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    background: var(--color-primary);
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+/* Select */
+.setting-select {
+    width: 100%;
+    height: 40px;
+    padding: 0 var(--space-md);
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    color: var(--color-text);
+    font-size: 0.875rem;
+    cursor: pointer;
+    outline: none;
+    transition: all var(--transition-fast);
+}
+
+.setting-select:hover {
+    border-color: var(--color-primary);
+}
+
+.setting-select:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(44, 62, 80, 0.1);
+}
+
+/* Size Buttons */
+.size-btn {
+    width: 60px;
+    height: 40px;
+    border: 1px solid var(--color-border);
+    background: var(--color-bg-secondary);
+    color: var(--color-text);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition-fast);
+}
+
+.size-btn:hover {
+    background: var(--color-primary);
+    color: var(--color-bg);
+    border-color: var(--color-primary);
+}
+
+.size-btn svg {
+    width: 14px;
+    height: 14px;
+}
+
+/* Background Tabs */
+.bg-tabs {
+    display: flex;
+    gap: var(--space-xs);
+    margin-bottom: var(--space-md);
+    background: var(--color-bg-secondary);
+    padding: var(--space-xs);
+    border-radius: var(--radius-md);
+}
+
+.bg-tab {
+    flex: 1;
+    padding: var(--space-xs) var(--space-sm);
+    border: none;
+    background: transparent;
+    color: var(--color-text-secondary);
+    font-size: 0.75rem;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.bg-tab:hover {
+    color: var(--color-text);
+}
+
+.bg-tab.active {
+    background: var(--color-bg);
+    color: var(--color-primary);
+    font-weight: 500;
+    box-shadow: 0 1px 3px var(--color-shadow);
+}
+
+/* Background Panels */
+.bg-panel {
+    display: none;
+}
+
+.bg-panel.active {
+    display: block;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Background Grid */
+.bg-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-sm);
+}
+
+.bg-option {
+    aspect-ratio: 1;
+    border: 2px solid var(--color-border);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    position: relative;
+    overflow: hidden;
+}
+
+.bg-option:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px var(--color-shadow);
+}
+
+.bg-option.selected {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 2px rgba(44, 62, 80, 0.2);
+}
+
+.bg-option.selected::after {
+    content: '';
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 12px;
+    height: 12px;
+    background: var(--color-primary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.bg-option.artistic,
+.bg-option.chinese,
+.bg-option.stationery {
+    background-size: cover;
+    background-position: center;
+}
+
+/* Status Bar Toggle Buttons */
+.status-bar-toggles {
+    display: flex;
+    gap: var(--space-sm);
+    flex-wrap: nowrap;
+}
+
+.status-toggle-btn {
+    flex: 1 1 0;
+    min-width: 0;
+    height: 40px;
+    padding: 0;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-bg);
+    color: var(--color-primary);
+    font-size: 0.8125rem;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    white-space: nowrap;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.status-toggle-btn.active {
+    background: #F5F5F3;
+    color: var(--color-primary);
+}
+
+.status-toggle-btn:not(.active) {
+    opacity: 0.5;
+}

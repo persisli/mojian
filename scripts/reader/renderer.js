@@ -36,6 +36,11 @@ function renderContent(content, isRestoring) {
     const html = marked.parse(content);
     elements.markdownContent.innerHTML = html;
 
+    // 如果内容为空，添加一个空的 p 标签以应用 margin-bottom 样式
+    if (!content || content.trim() === '') {
+        elements.markdownContent.innerHTML = '<p><br></p>';
+    }
+
     calculateStats(content);
     enhanceCodeBlocks();
     wrapTables();
@@ -49,6 +54,8 @@ function renderContent(content, isRestoring) {
         window.Mojian.applyBackground();
     }
 
+    // 确保 line-height 在 innerHTML 设置后被明确设置，解决首次进入编辑模式时行高较小的问题
+    elements.markdownContent.style.lineHeight = state.settings.lineHeight || 1.9;
     window.Mojian.applyOtherSettings();
 
     if (!isRestoring) {
@@ -110,6 +117,8 @@ function renderLogContent(content, isRestoring) {
         window.Mojian.applyBackground();
     }
 
+    // 确保 line-height 在 innerHTML 设置后被明确设置
+    elements.markdownContent.style.lineHeight = state.settings.lineHeight || 1.9;
     window.Mojian.applyOtherSettings();
 
     if (!isRestoring) {
@@ -151,6 +160,99 @@ function wrapTables() {
         wrapper.className = 'table-wrapper';
         table.parentNode.insertBefore(wrapper, table);
         wrapper.appendChild(table);
+
+        // 为导入的表格应用列宽规则：第一列自适应最长内容，其余列均分剩余宽度
+        applyTableColumnWidths(table);
+    });
+}
+
+/**
+ * 应用表格列宽规则：
+ * - 第一列宽度 = 刚好容纳该列最长内容的宽度
+ * - 其余列均分表格剩余宽度
+ * - 表格整体宽度 = min(内容总宽, 容器宽度)
+ */
+function applyTableColumnWidths(table) {
+    var rows = table.querySelectorAll('tr');
+    if (rows.length === 0) return;
+
+    // 获取列数
+    var firstRowCells = rows[0].querySelectorAll('th, td');
+    var colCount = firstRowCells.length;
+    if (colCount <= 1) return;
+
+    // 计算每一列的最长内容宽度
+    var colMaxWidths = [];
+    for (var c = 0; c < colCount; c++) {
+        var maxW = 0;
+        var colCells = table.querySelectorAll('th:nth-child(' + (c + 1) + '), td:nth-child(' + (c + 1) + ')');
+        colCells.forEach(function(cell) {
+            var text = (cell.textContent || '').trim();
+            if (!text) return;
+            var tempSpan = document.createElement('span');
+            tempSpan.style.visibility = 'hidden';
+            tempSpan.style.position = 'absolute';
+            tempSpan.style.whiteSpace = 'nowrap';
+            tempSpan.style.font = window.getComputedStyle(cell).font;
+            tempSpan.textContent = text || ' ';
+            document.body.appendChild(tempSpan);
+            var w = tempSpan.offsetWidth + 40; // 40px padding补偿
+            if (w > maxW) maxW = w;
+            document.body.removeChild(tempSpan);
+        });
+        colMaxWidths.push(maxW);
+    }
+
+    // 检查是否有任何列有内容
+    var hasAnyContent = colMaxWidths.some(function(w) { return w > 0; });
+
+    if (!hasAnyContent) {
+        // 无任何内容，所有列均分且宽度100%
+        table.style.tableLayout = 'fixed';
+        table.style.width = '100%';
+        var equalWidth = Math.floor(100 / colCount);
+        var remainder = 100 - (equalWidth * colCount);
+        var allCells = table.querySelectorAll('th, td');
+        allCells.forEach(function(cell, index) {
+            var colIndex = index % colCount;
+            var width = equalWidth;
+            if (colIndex === colCount - 1) width += remainder;
+            cell.style.width = width + '%';
+        });
+        return;
+    }
+
+    // 计算内容总宽
+    var contentTotalWidth = 0;
+    colMaxWidths.forEach(function(w) { contentTotalWidth += w; });
+
+    // 获取容器宽度（table-wrapper 或 markdownContent）
+    var containerWidth = table.parentElement.offsetWidth || window.Mojian.elements.markdownContent.offsetWidth;
+
+    // 如果内容总宽小于容器宽度，表格采用内容总宽并靠左对齐；否则采用容器宽度
+    table.style.tableLayout = 'fixed';
+    if (contentTotalWidth < containerWidth) {
+        table.style.width = contentTotalWidth + 'px';
+    } else {
+        table.style.width = containerWidth + 'px';
+    }
+
+    // 第一列固定为自适应宽度，其余列均分剩余宽度
+    var maxFirstColWidth = colMaxWidths[0];
+    var actualTableWidth = table.offsetWidth;
+    var remainingWidth = actualTableWidth - maxFirstColWidth;
+    var otherColWidth = Math.floor(remainingWidth / (colCount - 1));
+
+    var allCells = table.querySelectorAll('th, td');
+    allCells.forEach(function(cell, index) {
+        var colIndex = index % colCount;
+        if (colIndex === 0) {
+            cell.style.width = maxFirstColWidth + 'px';
+            cell.style.minWidth = maxFirstColWidth + 'px';
+        } else {
+            cell.style.width = otherColWidth + 'px';
+            cell.style.minWidth = otherColWidth + 'px';
+        }
     });
 }
 
@@ -294,6 +396,7 @@ Mojian.calculateStats = calculateStats;
 Mojian.cleanLogContent = cleanLogContent;
 Mojian.highlightShellPrompts = highlightShellPrompts;
 Mojian.wrapTables = wrapTables;
+Mojian.applyTableColumnWidths = applyTableColumnWidths;
 Mojian.wrapImages = wrapImages;
 Mojian.enhanceCodeBlocks = enhanceCodeBlocks;
 Mojian.copyCodeToClipboard = copyCodeToClipboard;
