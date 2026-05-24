@@ -19,11 +19,12 @@ function loadSavedContent(restoredState) {
     // Fallback to state.content if savedContent is empty but state has content
     const contentToLoad = (savedContent || (state.content ? state.content : ''));
 
-    if (savedFile && contentToLoad) {
-        state.currentFile = typeof savedFile === 'string' ? { name: savedFile } : savedFile;
+    if (savedFile && contentToLoad != null) {
+        state.currentFile = typeof savedFile === 'string' ? { name: savedFile } : (savedFile || {});
         state.content = contentToLoad;
 
-        const fileExt = '.' + (state.currentFile.name || state.currentFile).split('.').pop().toLowerCase();
+        var fileNameStr = state.currentFile.name || (typeof state.currentFile === 'string' ? state.currentFile : '');
+        const fileExt = '.' + fileNameStr.split('.').pop().toLowerCase();
 
         if (fileExt === '.log') {
             window.Mojian.renderLogContent(contentToLoad, !!restoredState);

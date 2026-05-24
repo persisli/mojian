@@ -18,7 +18,7 @@ function init() {
     if (savedState) {
         try {
             const parsedState = JSON.parse(savedState);
-            if (parsedState.currentFile && parsedState.content) {
+            if (parsedState.currentFile && parsedState.content != null) {
                 state.currentFile = parsedState.currentFile;
                 state.content = parsedState.content;
                 state.isDarkMode = parsedState.isDarkMode;
@@ -33,7 +33,8 @@ function init() {
 
     // 尽早恢复阅读区，避免欢迎页闪烁
     if (restoredState && state.currentFile) {
-        showReadingMode(state.currentFile.name || state.currentFile);
+        var restoredFileName = state.currentFile.name || (typeof state.currentFile === 'string' ? state.currentFile : '');
+        showReadingMode(restoredFileName);
     }
 
     if (!window.Mojian.iconsInitialized) {

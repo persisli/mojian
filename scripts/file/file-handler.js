@@ -60,7 +60,7 @@ function processFile(file) {
         console.log('FileReader onload triggered');
         let content = e.target.result;
         const { state } = window.Mojian;
-        state.currentFile = file;
+        state.currentFile = { name: file.name };
 
         if (fileExt === '.log') {
             content = window.Mojian.cleanLogContent(content);

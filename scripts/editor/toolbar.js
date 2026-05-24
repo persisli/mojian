@@ -956,37 +956,38 @@ function confirmInsertTable() {
                 otherColMaxWidths.push(maxW);
             }
 
-            // 计算内容总宽（第一列 + 其余列最长宽度之和）
+            // 规则1、2：表格宽度 = min(内容总宽, 容器宽度)，左对齐
             var contentTotalWidth = maxFirstColWidth;
             otherColMaxWidths.forEach(function(w) { contentTotalWidth += w; });
-
-            // 获取编辑区域可用宽度
             var containerWidth = window.Mojian.elements.markdownContent.offsetWidth;
 
-            // 如果内容总宽小于容器宽度，表格采用内容总宽并靠左对齐
-            // 否则表格采用容器宽度
+            table.style.tableLayout = 'fixed';
             if (contentTotalWidth < containerWidth) {
                 table.style.width = contentTotalWidth + 'px';
             } else {
                 table.style.width = containerWidth + 'px';
             }
 
-            // 重新获取表格实际宽度并计算其余列均分宽度
+            // 规则3：优先满足第一列最长格子宽度，其余列均分剩余空间
             var actualTableWidth = table.offsetWidth;
-            var newRemainingWidth = actualTableWidth - maxFirstColWidth;
-            var newOtherColWidth = Math.floor(newRemainingWidth / (cols - 1));
+            var firstColWidth = maxFirstColWidth;
+            if (cols > 1) {
+                firstColWidth = Math.min(maxFirstColWidth, actualTableWidth - (cols - 1) * 20);
+                if (firstColWidth < 20) firstColWidth = Math.min(maxFirstColWidth, actualTableWidth);
+            }
 
-            // 更新所有单元格宽度
+            var remainingWidth = actualTableWidth - firstColWidth;
+            var otherColWidth = (cols > 1) ? Math.floor(remainingWidth / (cols - 1)) : 0;
+
             var cells = table.querySelectorAll('th, td');
             cells.forEach(function(c, index) {
                 var colIdx = index % cols;
                 if (colIdx === 0) {
-                    c.style.width = maxFirstColWidth + 'px';
-                    c.style.minWidth = maxFirstColWidth + 'px';
+                    c.style.width = firstColWidth + 'px';
                 } else {
-                    c.style.width = newOtherColWidth + 'px';
-                    c.style.minWidth = newOtherColWidth + 'px';
+                    c.style.width = otherColWidth + 'px';
                 }
+                c.style.minWidth = '';
             });
         };
 

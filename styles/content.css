@@ -490,6 +490,8 @@
     transition: background-color var(--transition-normal);
     white-space: normal;
     box-sizing: border-box;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
 
 .markdown-content th {
@@ -510,42 +512,17 @@
     background: var(--color-bg-secondary);
 }
 
-/* Table wrapper for horizontal scrolling */
+/* Table wrapper */
 .markdown-content .table-wrapper {
     display: block;
     width: 100%;
     max-width: 100%;
-    overflow-x: auto;
-    overflow-y: hidden;
     border-radius: var(--radius-md);
     margin: 1.5em 0;
-    /* Custom scrollbar for webkit browsers */
-    scrollbar-width: thin;
-    scrollbar-color: var(--color-text-muted) var(--color-bg-secondary);
 }
 
-/* Webkit scrollbar styling */
-.markdown-content .table-wrapper::-webkit-scrollbar {
-    height: 6px;
-}
-
-.markdown-content .table-wrapper::-webkit-scrollbar-track {
-    background: var(--color-bg-secondary);
-    border-radius: var(--radius-sm);
-}
-
-.markdown-content .table-wrapper::-webkit-scrollbar-thumb {
-    background: var(--color-text-muted);
-    border-radius: var(--radius-sm);
-}
-
-.markdown-content .table-wrapper::-webkit-scrollbar-thumb:hover {
-    background: var(--color-text-secondary);
-}
-
-/* Ensure tables inside wrapper are min-width to show all content */
 .markdown-content .table-wrapper table {
-    min-width: 100%;
     width: 100%;
     margin: 0;
+    table-layout: fixed;
 }

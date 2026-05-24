@@ -127,11 +127,8 @@
         font-size: 1.125rem;
     }
     
-    /* 移动端表格滚动优化 */
     .markdown-content .table-wrapper {
         margin: 1.25em 0;
-        /* 添加滚动提示阴影 */
-        box-shadow: inset -4px 0 8px -4px rgba(0,0,0,0.08);
     }
     
     .markdown-content table {
@@ -310,16 +307,9 @@
         font-size: 0.8rem;
     }
     
-    /* 移动端表格滚动优化 */
     .markdown-content .table-wrapper {
         margin: 1em 0;
         border-radius: var(--radius-sm);
-        /* 添加滚动提示阴影 */
-        box-shadow: inset -4px 0 8px -4px rgba(0,0,0,0.1);
-    }
-    
-    .markdown-content .table-wrapper::-webkit-scrollbar {
-        height: 4px;
     }
     
     .markdown-content table {
