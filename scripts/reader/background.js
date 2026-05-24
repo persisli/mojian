@@ -83,6 +83,7 @@ function applyBackground() {
 
     document.body.style.backgroundColor = bgColorWithOpacity;
     document.documentElement.style.setProperty('--bg-page', bgColorWithOpacity);
+    document.documentElement.style.setProperty('--bg-page-solid', baseColor);
     document.documentElement.style.setProperty('--bg-pattern-opacity', opacity);
 
     if (state.settings.backgroundType === 'solid' || !pattern) {
@@ -221,6 +222,7 @@ function applyTheme() {
             elements.editToolbar.style.backgroundColor = darkBg;
         }
         document.documentElement.style.setProperty('--bg-page', darkBg);
+        document.documentElement.style.setProperty('--bg-page-solid', darkBg);
         document.documentElement.style.setProperty('--bg-content', 'transparent');
         document.documentElement.style.setProperty('--bg-pattern', 'none');
         document.documentElement.style.setProperty('--bg-pattern-opacity', 1);

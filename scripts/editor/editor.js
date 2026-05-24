@@ -49,7 +49,7 @@ function enterEditMode() {
     elements.markdownContent.addEventListener('dblclick', handleBlankAreaDblClick);
     document.addEventListener('mousemove', handleImageMouseMove);
 
-    window.Mojian.showToast(i18n.t('toast.enterEditMode') || '进入编辑模式');
+    window.Mojian.showToast(i18n.t('toast.enterEditMode') || '进入编辑模式', 'success', 'edit-mode');
 }
 
 function exitEditMode() {
@@ -81,7 +81,7 @@ function exitEditMode() {
     elements.editBtn.innerHTML = '<i data-lucide="pencil"></i>';
     lucide.createIcons();
 
-    window.Mojian.showToast(i18n.t('toast.exitEditMode') || '退出编辑模式');
+    window.Mojian.showToast(i18n.t('toast.exitEditMode') || '退出编辑模式', 'success', 'edit-mode');
 }
 
 function handleImageMouseDown(e) {

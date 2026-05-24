@@ -27,3 +27,9 @@
 .toast.error {
     background: var(--color-accent);
 }
+
+.toast.edit-mode {
+    background: var(--bg-page-solid, var(--color-bg-secondary));
+    color: var(--color-primary);
+    box-shadow: 0 4px 16px var(--color-shadow-hover);
+}
