@@ -70,7 +70,7 @@ Mojian.state = {
     isEditMode: false,
     editor: null,
     settings: {
-        width: 1000,
+        width: 1200,
         fontFamily: 'Noto Sans SC, Source Han Sans CN, sans-serif',
         fontSize: 18,
         lineHeight: 1.9,
@@ -80,9 +80,9 @@ Mojian.state = {
         backgroundCSS: null,
         bgOpacity: 100,
         statusBarItems: {
-            time: true,
-            wordCount: true,
-            progress: true
+            time: false,
+            wordCount: false,
+            progress: false
         }
     },
     easterEggs: {
