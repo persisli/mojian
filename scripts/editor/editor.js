@@ -31,6 +31,9 @@ function enterEditMode() {
     elements.markdownContent.setAttribute('contenteditable', 'true');
     elements.markdownContent.classList.add('editing');
 
+    // 初始进入编辑模式时，隐藏状态栏
+    elements.statusBar.style.display = 'none';
+
     setTimeout(() => {
         elements.markdownContent.focus();
         // 为页面中已存在的代码块初始化行号同步

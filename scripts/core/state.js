@@ -48,7 +48,7 @@ Mojian.elements = {
     // Settings elements
     widthSlider: document.getElementById('widthSlider'),
     widthValue: document.getElementById('widthValue'),
-    fontSelect: document.getElementById('fontSelect'),
+    fontSelect: document.querySelector('#fontSelect .custom-select-trigger'),
     fontSizeValue: document.getElementById('fontSizeValue'),
     fontSizeUp: document.getElementById('fontSizeUp'),
     fontSizeDown: document.getElementById('fontSizeDown'),
@@ -78,7 +78,7 @@ Mojian.state = {
         backgroundType: 'solid',
         backgroundPattern: null,
         backgroundCSS: null,
-        bgOpacity: 100,
+        bgOpacity: 25,
         statusBarItems: {
             time: false,
             wordCount: false,

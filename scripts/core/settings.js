@@ -38,13 +38,38 @@ function applySettings() {
     window.Mojian.updateStatusBarDisplay();
 }
 
+function setCustomSelectValue(selectId, value) {
+    const select = document.getElementById(selectId);
+    if (!select) return;
+    const trigger = select.querySelector('.custom-select-trigger');
+    const options = select.querySelectorAll('.custom-select-option');
+    if (!trigger) return;
+
+    let matched = false;
+    options.forEach(option => {
+        option.classList.remove('selected');
+        if (option.dataset.value === value) {
+            matched = true;
+            option.classList.add('selected');
+            const text = option.textContent;
+            trigger.dataset.value = value;
+            const span = trigger.querySelector('span');
+            if (span) {
+                span.textContent = text;
+            } else {
+                trigger.textContent = text;
+            }
+        }
+    });
+}
+
 function applyOtherSettings() {
     const { elements, state } = window.Mojian;
     elements.widthSlider.value = state.settings.width;
     elements.widthValue.textContent = state.settings.width + 'px';
     document.documentElement.style.setProperty('--content-max-width', state.settings.width + 'px');
 
-    elements.fontSelect.value = state.settings.fontFamily;
+    setCustomSelectValue('fontSelect', state.settings.fontFamily);
     elements.markdownContent.style.fontFamily = state.settings.fontFamily;
 
     elements.fontSizeValue.textContent = state.settings.fontSize + 'px';
@@ -113,3 +138,6 @@ Mojian.applySettings = applySettings;
 Mojian.applyOtherSettings = applyOtherSettings;
 Mojian.applyStatusBarToggleStates = applyStatusBarToggleStates;
 Mojian.updateStatusBarDisplay = updateStatusBarDisplay;
+
+// 全局暴露，供 i18n.js 使用
+window.setCustomSelectValue = setCustomSelectValue;

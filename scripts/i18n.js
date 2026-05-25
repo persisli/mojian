@@ -456,16 +456,22 @@ const i18n = {
             console.warn(`Unsupported language: ${lang}`);
             return;
         }
-        
+
         this.currentLang = lang;
         localStorage.setItem('language', lang);
-        
+
         // 更新HTML lang属性
         document.documentElement.lang = lang;
-        
+
         // 更新所有带有data-i18n属性的元素
         this.updatePageTranslations();
-        
+
+        // 同步更新自定义语言下拉组件
+        const langSelect = document.getElementById('languageSelect');
+        if (langSelect && typeof setCustomSelectValue === 'function') {
+            setCustomSelectValue('languageSelect', lang);
+        }
+
         // 触发语言切换事件
         window.dispatchEvent(new CustomEvent('languageChanged', { detail: { lang } }));
     },

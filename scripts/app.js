@@ -349,14 +349,7 @@ function bindEvents() {
     document.addEventListener('keydown', window.Mojian.handleKeydown);
 
     bindSettingsEvents();
-
-    const languageSelect = document.getElementById('languageSelect');
-    if (languageSelect) {
-        languageSelect.value = i18n.getLanguage();
-        languageSelect.addEventListener('change', (e) => {
-            i18n.setLanguage(e.target.value);
-        });
-    }
+    initCustomSelects();
 }
 
 function handleDocumentClick(e) {
@@ -378,11 +371,7 @@ function bindSettingsEvents() {
         window.Mojian.saveSettings();
     });
 
-    elements.fontSelect.addEventListener('change', (e) => {
-        state.settings.fontFamily = e.target.value;
-        elements.markdownContent.style.fontFamily = state.settings.fontFamily;
-        window.Mojian.saveSettings();
-    });
+    // fontSelect 事件在 initCustomSelects 中处理
 
     elements.fontSizeUp.addEventListener('click', () => {
         if (state.settings.fontSize < 32) {
@@ -476,6 +465,58 @@ function bindSettingsEvents() {
             window.Mojian.updateStatusBarDisplay();
             window.Mojian.saveSettings();
         });
+    });
+}
+
+function initCustomSelects() {
+    document.querySelectorAll('.custom-select').forEach(select => {
+        const trigger = select.querySelector('.custom-select-trigger');
+        const options = select.querySelectorAll('.custom-select-option');
+
+        trigger.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isOpen = select.classList.contains('open');
+            document.querySelectorAll('.custom-select').forEach(s => s.classList.remove('open'));
+            if (!isOpen) {
+                select.classList.add('open');
+            }
+        });
+
+        options.forEach(option => {
+            option.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const value = option.dataset.value;
+                const text = option.textContent;
+
+                trigger.dataset.value = value;
+                const span = trigger.querySelector('span');
+                if (span) {
+                    span.textContent = text;
+                } else {
+                    trigger.textContent = text;
+                }
+
+                options.forEach(o => o.classList.remove('selected'));
+                option.classList.add('selected');
+                select.classList.remove('open');
+
+                const selectId = select.id;
+                if (selectId === 'fontSelect') {
+                    const { state, elements } = window.Mojian;
+                    state.settings.fontFamily = value;
+                    elements.markdownContent.style.fontFamily = value;
+                    window.Mojian.saveSettings();
+                } else if (selectId === 'languageSelect') {
+                    if (typeof i18n !== 'undefined') {
+                        i18n.setLanguage(value);
+                    }
+                }
+            });
+        });
+    });
+
+    document.addEventListener('click', () => {
+        document.querySelectorAll('.custom-select').forEach(s => s.classList.remove('open'));
     });
 }
 
