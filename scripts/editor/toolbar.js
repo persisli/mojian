@@ -698,10 +698,32 @@ function applyLink() {
     // 如果有选中文本，自动填入文本框
     var sel = window.getSelection();
     var selectedText = '';
+    var existingHref = '';
     if (sel.rangeCount > 0 && !sel.getRangeAt(0).collapsed) {
         selectedText = sel.getRangeAt(0).toString();
+        // 检测选中内容是否已是链接
+        var range = sel.getRangeAt(0);
+        var commonAncestor = range.commonAncestorContainer;
+        if (commonAncestor.nodeType === Node.TEXT_NODE) {
+            commonAncestor = commonAncestor.parentElement;
+        }
+        var linkAncestor = commonAncestor.closest ? commonAncestor.closest('a') : null;
+        if (!linkAncestor && commonAncestor) {
+            // 向上查找a标签
+            var parent = commonAncestor.parentElement;
+            while (parent && parent !== window.Mojian.elements.markdownContent) {
+                if (parent.tagName === 'A') {
+                    linkAncestor = parent;
+                    break;
+                }
+                parent = parent.parentElement;
+            }
+        }
+        if (linkAncestor && linkAncestor.href) {
+            existingHref = linkAncestor.href;
+        }
     }
-    urlInput.value = '';
+    urlInput.value = existingHref;
     textInput.value = selectedText;
 
     modal.classList.add('active');

@@ -120,6 +120,9 @@ const i18n = {
             // Status Bar
             'status.readingTime': '{minutes} 分钟',
             'status.wordCount': '{count} 字',
+
+            // Default File Name
+            'file.untitled': '未命名文档.md',
             
             // Toast Messages
             'toast.fileLoaded': '文件加载成功',
@@ -169,7 +172,7 @@ const i18n = {
             'insertLink.textLabel': '显示文本（可选）',
             'insertLink.textPlaceholder': '链接文本',
             'insertLink.cancel': '取消',
-            'insertLink.confirm': '插入链接',
+            'insertLink.confirm': '保存',
             
             // Insert Image Modal
             'insertImage.title': '插入图片',
@@ -322,6 +325,9 @@ const i18n = {
             // Status Bar
             'status.readingTime': '{minutes} min',
             'status.wordCount': '{count} words',
+
+            // Default File Name
+            'file.untitled': 'Untitled.md',
             
             // Toast Messages
             'toast.fileLoaded': 'File loaded successfully',
@@ -371,7 +377,7 @@ const i18n = {
             'insertLink.textLabel': 'Display Text (optional)',
             'insertLink.textPlaceholder': 'Link text',
             'insertLink.cancel': 'Cancel',
-            'insertLink.confirm': 'Insert Link',
+            'insertLink.confirm': 'Save',
             
             // Insert Image Modal
             'insertImage.title': 'Insert Image',

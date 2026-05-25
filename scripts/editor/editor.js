@@ -21,7 +21,7 @@ function enterEditMode() {
         elements.readingArea.style.display = 'block';
         elements.readingArea.classList.add('active');
         elements.statusBar.style.display = 'block';
-        state.currentFile = { name: '未命名文档.md' };
+        state.currentFile = { name: i18n.t('file.untitled') };
         elements.fileName.textContent = state.currentFile.name;
         elements.fileName.style.display = 'inline';
         state.content = '';
@@ -307,6 +307,52 @@ function handleBlankAreaDblClick(e) {
 }
 
 function handleEditKeydown(e) {
+    // Backspace键处理：光标在标题开头时删除标题样式
+    if (e.key === 'Backspace') {
+        const selection = window.getSelection();
+        if (selection.rangeCount === 0) return;
+        const range = selection.getRangeAt(0);
+        if (!range.collapsed) return; // 有选区时不处理
+
+        // 检查光标是否在标题的最左边
+        const container = range.startContainer;
+        let offset = range.startOffset;
+
+        // 如果光标在文本节点中
+        if (container.nodeType === Node.TEXT_NODE) {
+            const text = container.textContent;
+            // 检查光标是否在文本的最左边（offset为0）
+            if (offset === 0) {
+                // 向上查找是否是标题
+                let parent = container.parentElement;
+                while (parent && parent !== window.Mojian.elements.markdownContent) {
+                    if (/^H[1-3]$/.test(parent.tagName)) {
+                        // 光标在标题的最左边，按Backspace应该将标题转换为普通段落
+                        e.preventDefault();
+                        convertHeadingToParagraph(parent);
+                        return;
+                    }
+                    parent = parent.parentElement;
+                }
+            }
+        }
+        // 如果光标直接在标题元素内且offset为0（如光标在H1的起始位置）
+        else if (container.nodeType === Node.ELEMENT_NODE) {
+            if (range.startOffset === 0) {
+                let parent = container;
+                while (parent && parent !== window.Mojian.elements.markdownContent) {
+                    if (/^H[1-3]$/.test(parent.tagName)) {
+                        e.preventDefault();
+                        convertHeadingToParagraph(parent);
+                        return;
+                    }
+                    parent = parent.parentElement;
+                }
+            }
+        }
+        return; // Backspace处理完成，不再继续
+    }
+
     if (e.key !== 'Enter') return;
     // 跳过输入法组合输入中的回车
     if (e.isComposing) return;
@@ -637,27 +683,89 @@ function handleMarkdownSyntax(e) {
     const currentLineText = getCurrentLineText(node, offset);
     if (!isAtLineStart(currentLineText, trimmedText)) return;
 
-    // 移除 markdown 标记文本
-    removeMarkdownPrefix(node, offset, matched.fullMatch || trimmedText);
-
     // 应用对应的格式
     switch (matched.action) {
         case 'heading':
-            applyHeadingSyntax(matched.level);
+            // 直接在handleMarkdownSyntax中执行标题转换，避免复杂的range协作问题
+            convertToHeading(node, offset, matched.level, matched.fullMatch);
             break;
         case 'bulletList':
+            removeMarkdownPrefix(node, offset, matched.fullMatch);
             document.execCommand('insertUnorderedList', false, null);
             break;
         case 'orderedList':
-            applyOrderedListSyntax();
+            removeMarkdownPrefix(node, offset, trimmedText);
+            document.execCommand('insertOrderedList', false, null);
             break;
         case 'blockquote':
+            removeMarkdownPrefix(node, offset, matched.fullMatch);
             document.execCommand('formatBlock', false, 'blockquote');
             break;
         case 'taskList':
+            removeMarkdownPrefix(node, offset, matched.fullMatch);
             applyTaskListSyntax();
             break;
     }
+}
+
+/**
+ * 将当前行转换为标题
+ */
+function convertToHeading(node, offset, level, prefix) {
+    if (node.nodeType !== Node.TEXT_NODE) return;
+
+    const text = node.textContent;
+    console.log('convertToHeading - text:', JSON.stringify(text), 'prefix:', JSON.stringify(prefix));
+    
+    // 处理空白字符不一致问题（将所有空白字符替换为普通空格）
+    const normalizedText = text.replace(/\s/g, ' ');
+    const normalizedPrefix = prefix.replace(/\s/g, ' ');
+    
+    let idx = normalizedText.indexOf(normalizedPrefix);
+    console.log('convertToHeading - normalizedText:', JSON.stringify(normalizedText), 'idx:', idx);
+    
+    if (idx === -1) {
+        // 如果标准化后仍未找到，尝试直接查找原始文本
+        idx = text.indexOf(prefix);
+        if (idx === -1) return;
+    }
+
+    // 获取光标所在的block级元素
+    const container = window.Mojian.elements.markdownContent;
+    let blockNode = node.parentElement;
+    while (blockNode && blockNode !== container && !['P', 'DIV', 'BLOCKQUOTE'].includes(blockNode.tagName)) {
+        blockNode = blockNode.parentElement;
+    }
+    if (!blockNode || blockNode === container) return;
+
+    // 移除prefix（#号+空格）
+    const textWithoutPrefix = text.substring(0, idx) + text.substring(idx + prefix.length);
+
+    // 创建标题元素
+    const headingTag = 'H' + level;
+    const heading = document.createElement(headingTag);
+    if (textWithoutPrefix) {
+        heading.textContent = textWithoutPrefix;
+    } else {
+        heading.innerHTML = '<br>';
+    }
+
+    // 替换原block节点
+    blockNode.parentNode.replaceChild(heading, blockNode);
+
+    // 将光标移到标题内
+    const selection = window.getSelection();
+    const newRange = document.createRange();
+    if (heading.firstChild) {
+        const textNode = heading.firstChild;
+        const newOffset = textWithoutPrefix ? textWithoutPrefix.length : 0;
+        newRange.setStart(textNode, Math.min(newOffset, textNode.textContent.length));
+    } else {
+        newRange.setStart(heading, 0);
+    }
+    newRange.collapse(true);
+    selection.removeAllRanges();
+    selection.addRange(newRange);
 }
 
 /**
@@ -702,11 +810,39 @@ function removeMarkdownPrefix(node, offset, prefix) {
 }
 
 /**
- * 通过语法触发标题
+ * 将标题元素转换为普通段落
+ * 光标在标题开头按Backspace时调用
  */
-function applyHeadingSyntax(level) {
-    const tag = 'H' + level;
-    document.execCommand('formatBlock', false, tag);
+function convertHeadingToParagraph(headingEl) {
+    const container = window.Mojian.elements.markdownContent;
+    if (!container.contains(headingEl)) return;
+
+    // 获取标题的所有子节点
+    const fragment = document.createDocumentFragment();
+    while (headingEl.firstChild) {
+        fragment.appendChild(headingEl.firstChild);
+    }
+
+    // 创建段落替换标题
+    const p = document.createElement('p');
+    p.appendChild(fragment);
+
+    // 替换标题元素
+    headingEl.parentNode.replaceChild(p, headingEl);
+
+    // 将光标移到段落开头
+    const selection = window.getSelection();
+    const newRange = document.createRange();
+    if (p.firstChild) {
+        newRange.setStart(p.firstChild, 0);
+    } else {
+        const br = document.createElement('br');
+        p.appendChild(br);
+        newRange.setStart(p, 0);
+    }
+    newRange.collapse(true);
+    selection.removeAllRanges();
+    selection.addRange(newRange);
 }
 
 /**
@@ -760,7 +896,7 @@ function initEditor() {
             element: elements.editorContent,
             extensions: [
                 StarterKit.configure({ heading: { levels: [1, 2, 3] } }),
-                Link.configure({ openOnClick: false }),
+                Link.configure({ openOnClick: true }),
                 Image,
                 Table.configure({ resizable: true }),
                 TableRow, TableHeader, TableCell

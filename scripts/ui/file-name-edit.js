@@ -48,7 +48,7 @@ function validateFileName(name) {
     if (validName.length > 100) {
         validName = validName.substring(0, 100);
     }
-    return validName || '未命名文档.md';
+    return validName || i18n.t('file.untitled');
 }
 
 function bindFileNameEvents() {
