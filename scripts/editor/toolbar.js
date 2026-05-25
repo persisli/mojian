@@ -879,18 +879,13 @@ function confirmInsertTable() {
         window.Mojian.elements.markdownContent.appendChild(wrapper);
     }
 
-    // 新建表格默认所有列均分（包括第一列）
+    // 新建表格默认每列85px
     table.style.tableLayout = 'fixed';
-    table.style.width = '100%';
+    table.style.width = (85 * cols) + 'px';
 
-    var equalWidth = Math.floor(100 / cols);
-    var remainder = 100 - (equalWidth * cols);
     var allCells = table.querySelectorAll('th, td');
-    allCells.forEach(function(cell, index) {
-        var colIndex = index % cols;
-        var width = equalWidth;
-        if (colIndex === cols - 1) width += remainder;
-        cell.style.width = width + '%';
+    allCells.forEach(function(cell) {
+        cell.style.width = '85px';
     });
 
     // 监听第一列单元格输入事件，输入内容后重新计算列宽
@@ -1436,6 +1431,218 @@ function initInsertModals() {
 }
 
 /* ================================================================
+ * 表格列宽拖动
+ * ================================================================ */
+
+var tableColResizeState = {
+    isResizing: false,
+    currentTable: null,
+    startX: 0,
+    startColWidth: 0,
+    startNextColWidth: 0,
+    startTableWidth: 0,
+    colIndex: 0,
+    isTableFullWidth: false,
+    isLastColEdge: false
+};
+
+/**
+ * 处理表格列宽拖动 - 鼠标按下
+ */
+function handleTableColMouseDown(e) {
+    var { state } = window.Mojian;
+    if (!state.isEditMode) return;
+
+    var target = e.target;
+    var cell = target.closest('th, td');
+    if (!cell) return;
+
+    var table = cell.closest('table');
+    if (!table || table.style.tableLayout !== 'fixed') return;
+
+    var colIndex = getCellColumnIndex(cell);
+    if (colIndex < 0) return;
+
+    // 计算单元格右边框到鼠标的距离
+    var cellRect = cell.getBoundingClientRect();
+    var edgeThreshold = 20;
+    var distanceToRightEdge = cellRect.right - e.clientX;
+    var distanceToLeftEdge = e.clientX - cellRect.left;
+
+    var colCount = table.querySelectorAll('th, td').length / table.rows.length;
+    var isLastCol = colIndex === colCount - 1;
+
+    // 在右边缘附近才触发拖动
+    // 非最后一列：调整当前列和下一列宽度
+    // 最后一列：调整整体表格宽度
+    if (distanceToRightEdge >= 0 && distanceToRightEdge <= edgeThreshold) {
+        e.preventDefault();
+        e.stopPropagation();
+        table.style.cursor = 'ew-resize';
+        document.body.style.userSelect = 'none';
+
+        var wrapper = table.closest('.table-wrapper');
+        var containerWidth = window.Mojian.elements.markdownContent.offsetWidth;
+        var tableWidth = table.offsetWidth;
+        var isTableFullWidth = Math.abs(tableWidth - containerWidth) < 5;
+
+        tableColResizeState.isResizing = true;
+        tableColResizeState.currentTable = table;
+        tableColResizeState.startX = e.clientX;
+        tableColResizeState.colIndex = colIndex;
+        tableColResizeState.isTableFullWidth = isTableFullWidth;
+        tableColResizeState.isLastColEdge = isLastCol;
+        tableColResizeState.startTableWidth = tableWidth;
+
+        if (!isLastCol) {
+            // 非最后一列：获取当前列和下一列的宽度
+            var currentColCells = table.querySelectorAll('th:nth-child(' + (colIndex + 1) + '), td:nth-child(' + (colIndex + 1) + ')');
+            var nextColCells = table.querySelectorAll('th:nth-child(' + (colIndex + 2) + '), td:nth-child(' + (colIndex + 2) + ')');
+
+            if (currentColCells.length > 0) {
+                tableColResizeState.startColWidth = currentColCells[0].offsetWidth;
+            }
+            if (nextColCells.length > 0) {
+                tableColResizeState.startNextColWidth = nextColCells[0].offsetWidth;
+            }
+        } else {
+            // 最后一列：记录当前表格宽度
+            tableColResizeState.startColWidth = cellRect.width;
+        }
+
+        document.addEventListener('mousemove', handleTableColMouseMove);
+        document.addEventListener('mouseup', handleTableColMouseUp);
+    }
+}
+
+/**
+ * 处理表格列宽拖动 - 鼠标移动
+ */
+function handleTableColMouseMove(e) {
+    var tcrs = tableColResizeState;
+    if (!tcrs.isResizing || !tcrs.currentTable) return;
+
+    var table = tcrs.currentTable;
+    if (!table.isConnected) {
+        handleTableColMouseUp();
+        return;
+    }
+
+    var deltaX = e.clientX - tcrs.startX;
+    var colIndex = tcrs.colIndex;
+    var containerWidth = window.Mojian.elements.markdownContent.offsetWidth;
+    var minColWidth = 30;
+    var colCount = table.querySelectorAll('th, td').length / table.rows.length;
+
+    if (!tcrs.isTableFullWidth) {
+        // 表格宽度小于容器宽度：拖动任意列边缘，只改变该列宽度和整体表格宽度，其他列不变
+        var newTableWidth = tcrs.startTableWidth + deltaX;
+        newTableWidth = Math.max(tcrs.startTableWidth - tcrs.startColWidth + minColWidth, newTableWidth);
+        newTableWidth = Math.min(containerWidth, newTableWidth);
+
+        var actualDelta = newTableWidth - tcrs.startTableWidth;
+
+        // 计算被拖动列的新宽度
+        var newColWidth = tcrs.startColWidth + actualDelta;
+        newColWidth = Math.max(minColWidth, newColWidth);
+
+        // 计算其他列的总宽度
+        var otherColsWidth = 0;
+        for (var i = 0; i < colCount; i++) {
+            if (i === colIndex) continue;
+            var cells = table.querySelectorAll('th:nth-child(' + (i + 1) + '), td:nth-child(' + (i + 1) + ')');
+            if (cells.length > 0) {
+                otherColsWidth += cells[0].offsetWidth;
+            }
+        }
+
+        // 调整以确保总和正确
+        if (newColWidth + otherColsWidth > newTableWidth) {
+            newColWidth = Math.max(minColWidth, newTableWidth - otherColsWidth);
+        }
+
+        // 应用新宽度
+        table.style.width = newTableWidth + 'px';
+        var targetColCells = table.querySelectorAll('th:nth-child(' + (colIndex + 1) + '), td:nth-child(' + (colIndex + 1) + ')');
+        targetColCells.forEach(function(c) { c.style.width = newColWidth + 'px'; });
+    }
+}
+
+/**
+ * 处理表格列宽拖动 - 鼠标释放
+ */
+function handleTableColMouseUp() {
+    var tcrs = tableColResizeState;
+
+    tcrs.isResizing = false;
+    tcrs.currentTable = null;
+    tcrs.startX = 0;
+    tcrs.startColWidth = 0;
+    tcrs.startNextColWidth = 0;
+    tcrs.startTableWidth = 0;
+    tcrs.colIndex = 0;
+    tcrs.isTableFullWidth = false;
+    tcrs.isLastColEdge = false;
+
+    document.body.style.userSelect = '';
+
+    var tables = document.querySelectorAll('.markdown-content table');
+    tables.forEach(function(t) { t.style.cursor = ''; });
+
+    document.removeEventListener('mousemove', handleTableColMouseMove);
+    document.removeEventListener('mouseup', handleTableColMouseUp);
+}
+
+/**
+ * 获取单元格所在的列索引
+ */
+function getCellColumnIndex(cell) {
+    var table = cell.closest('table');
+    if (!table) return -1;
+
+    var row = cell.parentElement;
+    var cells = Array.from(row.children);
+    return cells.indexOf(cell);
+}
+
+/**
+ * 鼠标移动时检测是否在表格列边缘附近，显示可拖动光标
+ */
+function handleTableColMouseMoveCheck(e) {
+    var { state } = window.Mojian;
+    if (!state.isEditMode) return;
+    if (tableColResizeState.isResizing) return;
+
+    var cell = e.target.closest('th, td');
+    if (!cell) {
+        var tables = document.querySelectorAll('.markdown-content table');
+        tables.forEach(function(t) { t.style.cursor = ''; });
+        return;
+    }
+
+    var table = cell.closest('table');
+    if (!table || table.style.tableLayout !== 'fixed') {
+        var tables = document.querySelectorAll('.markdown-content table');
+        tables.forEach(function(t) { t.style.cursor = ''; });
+        return;
+    }
+
+    var cellRect = cell.getBoundingClientRect();
+    var edgeThreshold = 20;
+    var distanceToRightEdge = cellRect.right - e.clientX;
+
+    var colIndex = getCellColumnIndex(cell);
+    var colCount = table.querySelectorAll('th, td').length / table.rows.length;
+
+    // 在右边缘附近（任何列的右边缘）显示 ew-resize 光标
+    if (distanceToRightEdge >= 0 && distanceToRightEdge <= edgeThreshold) {
+        table.style.cursor = 'ew-resize';
+    } else {
+        table.style.cursor = '';
+    }
+}
+
+/* ================================================================
 * 导出
 * ================================================================ */
 window.Mojian = window.Mojian || {};
@@ -1451,3 +1658,5 @@ Mojian.applyCodeBlock = applyCodeBlock;
 Mojian.updateCodeBlockLines = updateCodeBlockLines;
 Mojian.initExistingCodeBlockSync = initExistingCodeBlockSync;
 Mojian.initInsertModals = initInsertModals;
+Mojian.handleTableColMouseDown = handleTableColMouseDown;
+Mojian.handleTableColMouseMoveCheck = handleTableColMouseMoveCheck;

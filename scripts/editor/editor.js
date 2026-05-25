@@ -48,6 +48,9 @@ function enterEditMode() {
     elements.markdownContent.addEventListener('mousedown', handleImageMouseDown);
     elements.markdownContent.addEventListener('dblclick', handleBlankAreaDblClick);
     document.addEventListener('mousemove', handleImageMouseMove);
+    // 表格列宽拖动
+    document.addEventListener('mousemove', handleTableColMouseMoveCheck);
+    document.addEventListener('mousedown', handleTableColMouseDown);
 
     window.Mojian.showToast(i18n.t('toast.enterEditMode') || '进入编辑模式', 'success', 'edit-mode');
 }
@@ -74,6 +77,11 @@ function exitEditMode() {
     elements.markdownContent.removeEventListener('dblclick', handleBlankAreaDblClick);
     document.removeEventListener('mousemove', handleImageMouseMove);
     document.removeEventListener('mouseup', handleImageMouseUp);
+    // 表格列宽拖动
+    document.removeEventListener('mousemove', handleTableColMouseMoveCheck);
+    document.removeEventListener('mousedown', handleTableColMouseDown);
+    document.removeEventListener('mousemove', handleTableColMouseMove);
+    document.removeEventListener('mouseup', handleTableColMouseUp);
 
     const htmlContent = elements.markdownContent.innerHTML;
     state.content = window.Mojian.htmlToMarkdown(htmlContent);
