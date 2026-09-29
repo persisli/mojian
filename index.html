@@ -289,11 +289,30 @@
                 <button class="toolbar-btn" data-action="italic" data-i18n-title="toolbar.italic" title="斜体">
                     <i data-lucide="italic"></i>
                 </button>
+                <button class="toolbar-btn" data-action="underline" data-i18n-title="toolbar.underline" title="下划线">
+                    <i data-lucide="underline"></i>
+                </button>
                 <button class="toolbar-btn" data-action="strike" data-i18n-title="toolbar.strike" title="删除线">
                     <i data-lucide="strikethrough"></i>
                 </button>
                 <button class="toolbar-btn" data-action="code" data-i18n-title="toolbar.code" title="行内代码">
                     <i data-lucide="code"></i>
+                </button>
+                <button class="toolbar-btn" data-action="superscript" data-i18n-title="toolbar.superscript" title="上标 (^{内容})">
+                    <!-- 大 X + 角标 1（两个按钮的 X 位置完全一致） -->
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M4 5 13.6 19.4"/>
+                        <path d="M13.6 5 4 19.4"/>
+                        <path d="M17 4.6 18.6 3.7V9.5"/>
+                    </svg>
+                </button>
+                <button class="toolbar-btn" data-action="subscript" data-i18n-title="toolbar.subscript" title="下标 (_{内容})">
+                    <!-- 大 X + 角标 1（两个按钮的 X 位置完全一致） -->
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M4 5 13.6 19.4"/>
+                        <path d="M13.6 5 4 19.4"/>
+                        <path d="M17 15.3 18.6 14.4V20"/>
+                    </svg>
                 </button>
             </div>
             <div class="toolbar-divider"></div>
@@ -331,6 +350,17 @@
                 <button class="toolbar-btn" data-action="image" data-i18n-title="toolbar.image" title="插入图片">
                     <i data-lucide="image"></i>
                 </button>
+                <button class="toolbar-btn" data-action="clearFormat" data-i18n-title="toolbar.clearFormat" title="清除格式">
+                    <i data-lucide="eraser"></i>
+                </button>
+            </div>
+            <div class="toolbar-group toolbar-group-right">
+                <button class="toolbar-btn" data-action="undo" data-i18n-title="toolbar.undo" title="撤回 (Ctrl+Z)" disabled>
+                    <i data-lucide="undo-2"></i>
+                </button>
+                <button class="toolbar-btn" data-action="redo" data-i18n-title="toolbar.redo" title="应用 (Ctrl+Y)" disabled>
+                    <i data-lucide="redo-2"></i>
+                </button>
             </div>
         </div>
     </header>
@@ -367,10 +397,10 @@
 
             <!-- Font Family Setting -->
             <div class="setting-group">
-                <label class="setting-label" for="fontSelect">
+                <div class="setting-label" id="fontSelectLabel">
                     <i data-lucide="type" class="setting-icon"></i>
                     <span data-i18n="settings.fontFamily.label">正文字体</span>
-                </label>
+                </div>
                 <div class="custom-select" id="fontSelect">
                     <div class="custom-select-trigger" data-value="Noto Sans SC, Source Han Sans CN, sans-serif">
                         <span data-i18n="settings.fontFamily.notoSans">思源黑体</span>
@@ -437,10 +467,10 @@
 
             <!-- Language Setting -->
             <div class="setting-group">
-                <label class="setting-label" for="languageSelect">
+                <div class="setting-label" id="languageSelectLabel">
                     <i data-lucide="globe" class="setting-icon"></i>
                     <span data-i18n="settings.language.label">语言</span>
-                </label>
+                </div>
                 <div class="custom-select" id="languageSelect">
                     <div class="custom-select-trigger" data-value="zh-CN">
                         <span>中文</span>
@@ -623,6 +653,7 @@
     <!-- Editor -->
     <script src="scripts/editor/html-to-md.js" defer></script>
     <script src="scripts/editor/toolbar.js" defer></script>
+    <script src="scripts/editor/history.js" defer></script>
     <script src="scripts/editor/editor.js" defer></script>
 
     <!-- Export -->

@@ -43,8 +43,32 @@ function getTurndownService() {
                         clone.querySelectorAll('.code-block-header, .code-block-actions, .code-block-btn, .code-block-lang').forEach(el => el.remove());
                         codeContent = clone.textContent;
                     }
+                    // 零宽空格仅用于编辑态下的光标/空行占位，导出时剔除
+                    codeContent = codeContent.replace(/\u200B/g, '');
                     codeContent = codeContent.replace(/^\n+/, '').replace(/\n+$/, '');
                     return '\n\n```' + lang + '\n' + codeContent + '\n```\n\n';
+                }
+            });
+
+            // 下划线 / 上标 / 下标：Markdown 无原生语法，保留为内联 HTML 以便再次渲染
+            turndownService.addRule('underline', {
+                filter: ['u'],
+                replacement: function(content) {
+                    return '<u>' + content + '</u>';
+                }
+            });
+
+            turndownService.addRule('superscript', {
+                filter: ['sup'],
+                replacement: function(content) {
+                    return '<sup>' + content + '</sup>';
+                }
+            });
+
+            turndownService.addRule('subscript', {
+                filter: ['sub'],
+                replacement: function(content) {
+                    return '<sub>' + content + '</sub>';
                 }
             });
 
@@ -132,6 +156,8 @@ function htmlToMarkdown(html) {
         const service = getTurndownService();
         if (service) {
             let markdown = service.turndown(html);
+            // 零宽空格仅用于编辑态下的光标 / 空行占位，导出时统一剔除
+            markdown = markdown.replace(/\u200B/g, '');
             markdown = markdown.replace(/\n{3,}/g, '\n\n').trim();
             if (!markdown || markdown.length === 0) {
                 return fallbackHtmlToMarkdown(html);
@@ -179,6 +205,7 @@ function fallbackHtmlToMarkdown(html) {
         }) + '\n';
     });
     md = md.replace(/<[^>]+>/g, '');
+    md = md.replace(/\u200B/g, '');
     md = md.replace(/\n{3,}/g, '\n\n');
     md = md.trim();
     return md;

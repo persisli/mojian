@@ -152,8 +152,12 @@ const i18n = {
             'toolbar.heading3': '标题3 (H3)',
             'toolbar.bold': '加粗',
             'toolbar.italic': '斜体',
+            'toolbar.underline': '下划线',
             'toolbar.strike': '删除线',
             'toolbar.code': '行内代码',
+            'toolbar.superscript': '上标 (^{内容})',
+            'toolbar.subscript': '下标 (_{内容})',
+            'toolbar.clearFormat': '清除格式',
             'toolbar.bulletList': '无序列表',
             'toolbar.orderedList': '有序列表',
             'toolbar.taskList': '任务列表',
@@ -163,6 +167,8 @@ const i18n = {
             'toolbar.image': '插入图片',
             'toolbar.codeBlock': '代码块',
             'toolbar.table': '插入表格',
+            'toolbar.undo': '撤回 (Ctrl+Z)',
+            'toolbar.redo': '应用 (Ctrl+Y)',
             
             // Insert Link Modal
             'insertLink.title': '插入链接',
@@ -357,8 +363,12 @@ const i18n = {
             'toolbar.heading3': 'Heading 3 (H3)',
             'toolbar.bold': 'Bold',
             'toolbar.italic': 'Italic',
+            'toolbar.underline': 'Underline',
             'toolbar.strike': 'Strikethrough',
             'toolbar.code': 'Inline Code',
+            'toolbar.superscript': 'Superscript (^{text})',
+            'toolbar.subscript': 'Subscript (_{text})',
+            'toolbar.clearFormat': 'Clear Formatting',
             'toolbar.bulletList': 'Bullet List',
             'toolbar.orderedList': 'Numbered List',
             'toolbar.taskList': 'Task List',
@@ -368,6 +378,8 @@ const i18n = {
             'toolbar.image': 'Insert Image',
             'toolbar.codeBlock': 'Code Block',
             'toolbar.table': 'Insert Table',
+            'toolbar.undo': 'Undo (Ctrl+Z)',
+            'toolbar.redo': 'Redo (Ctrl+Y)',
             
             // Insert Link Modal
             'insertLink.title': 'Insert Link',

@@ -14,7 +14,10 @@
 var INLINE_FORMATS = {
     bold: { tag: 'STRONG', testTags: ['STRONG', 'B'] },
     italic: { tag: 'EM', testTags: ['EM', 'I'] },
-    strike: { tag: 'DEL', testTags: ['DEL', 'S', 'STRIKE'] }
+    underline: { tag: 'U', testTags: ['U'] },
+    strike: { tag: 'DEL', testTags: ['DEL', 'S', 'STRIKE'] },
+    superscript: { tag: 'SUP', testTags: ['SUP'] },
+    subscript: { tag: 'SUB', testTags: ['SUB'] }
 };
 
 function handleToolbarAction(btn) {
@@ -26,6 +29,18 @@ function handleToolbarAction(btn) {
 
     var action = btn.dataset.action;
     var level = btn.dataset.level;
+
+    // ===== 撤回 / 重做：直接操作历史栈，不做选区处理 =====
+    if (action === 'undo' || action === 'redo') {
+        if (action === 'undo') {
+            if (window.Mojian.undo) window.Mojian.undo();
+        } else {
+            if (window.Mojian.redo) window.Mojian.redo();
+        }
+        window.Mojian._savedRange = null;
+        setTimeout(function() { updateToolbarState(); }, 10);
+        return;
+    }
 
     // 先确保 contenteditable 有焦点
     if (document.activeElement !== elements.markdownContent) {
@@ -46,7 +61,7 @@ function handleToolbarAction(btn) {
     var hasSelection = selection.rangeCount > 0 && !selection.getRangeAt(0).collapsed;
 
     // 始终为瞬时按钮的 actions
-    var instantOnlyActions = ['horizontalRule', 'link', 'image', 'codeBlock', 'table'];
+    var instantOnlyActions = ['horizontalRule', 'link', 'image', 'codeBlock', 'table', 'clearFormat'];
 
     try {
         if (hasSelection && !instantOnlyActions.includes(action)) {
@@ -55,8 +70,14 @@ function handleToolbarAction(btn) {
             switch(action) {
                 case 'bold':
                 case 'italic':
+                case 'underline':
                 case 'strike':
+                case 'superscript':
+                case 'subscript':
                     toggleInlineFormat(action);
+                    break;
+                case 'clearFormat':
+                    clearTextFormat();
                     break;
                 case 'code':
                     toggleInlineCode();
@@ -99,6 +120,10 @@ function handleToolbarAction(btn) {
     }
 
     window.Mojian._savedRange = null;
+
+    // 记录一步历史（格式修改也能被撤回）
+    if (window.Mojian.recordHistoryNow) window.Mojian.recordHistoryNow();
+
     setTimeout(function() { updateToolbarState(); }, 10);
 }
 
@@ -109,7 +134,10 @@ function applyFormatWithSelection(action, level) {
     switch(action) {
         case 'bold':
         case 'italic':
+        case 'underline':
         case 'strike':
+        case 'superscript':
+        case 'subscript':
             applyInlineFormatSelection(action);
             break;
         case 'code':
@@ -283,42 +311,159 @@ function toggleInlineCode() {
     if (selection.rangeCount === 0) return;
     var range = selection.getRangeAt(0);
 
+    if (!range.collapsed) {
+        applyInlineCodeWithSelection();
+        return;
+    }
+
+    // 光标已在行内代码内（或紧跟在行内代码之后）→ 清除样式，而不是再叠加一层
+    var existingCode = findInlineCodeAtCaret(range);
+    if (existingCode) {
+        exitInlineCode(existingCode);
+        return;
+    }
+
+    // ===== ENTER: 进入行内代码 =====
+    var emptyCode = document.createElement('code');
+    emptyCode.textContent = '\u200B';
+    range.insertNode(emptyCode);
+    var newRange = document.createRange();
+    newRange.selectNodeContents(emptyCode);
+    newRange.collapse(false);
+    selection.removeAllRanges();
+    selection.addRange(newRange);
+}
+
+/**
+ * 获取光标位置对应的行内代码元素（非代码块内的 code）
+ * 1) 光标位于 <code> 内部
+ * 2) 光标紧跟在行内代码之后（如加了行内代码后插入的零宽断点处）
+ */
+function findInlineCodeAtCaret(range) {
     var node = range.commonAncestorContainer;
-    if (node.nodeType === Node.TEXT_NODE) node = node.parentElement;
-    var codeEl = node.closest('code');
+    var el = (node.nodeType === Node.TEXT_NODE) ? node.parentElement : node;
 
-    if (codeEl && !codeEl.closest('pre')) {
-        // ===== EXIT: 退出行内代码 =====
-        // 在 codeEl 后面插入零宽空格断点，防止惯性进入 code 上下文
-        var parent = codeEl.parentNode;
-        var breakNode = document.createTextNode('\u200B');
-        if (codeEl.nextSibling) {
-            parent.insertBefore(breakNode, codeEl.nextSibling);
-        } else {
-            parent.appendChild(breakNode);
+    var codeEl = (el && el.closest) ? el.closest('code') : null;
+    if (codeEl && !codeEl.closest('pre')) return codeEl;
+
+    var prev = null;
+    if (node.nodeType === Node.TEXT_NODE) {
+        if (range.startOffset !== 0) return null;
+        prev = node.previousSibling;
+    } else if (node.nodeType === Node.ELEMENT_NODE) {
+        if (range.startOffset <= 0) return null;
+        prev = node.childNodes[range.startOffset - 1];
+    }
+
+    // 跳过加行内代码时插入的零宽断点，识别紧邻的行内代码
+    var guard = 0;
+    while (prev && prev.nodeType === Node.TEXT_NODE &&
+           prev.textContent === '\u200B' && guard < 5) {
+        prev = prev.previousSibling;
+        guard++;
+    }
+
+    if (prev && prev.nodeType === Node.ELEMENT_NODE &&
+        prev.tagName === 'CODE' && !prev.closest('pre')) {
+        return prev;
+    }
+    return null;
+}
+
+/**
+ * 清除行内代码样式：把 code 的子节点移回父节点，并删除 code 空壳
+ */
+function exitInlineCode(codeEl) {
+    var selection = window.getSelection();
+    var parent = codeEl.parentNode;
+    if (!parent) return;
+
+    var text = codeEl.textContent || '';
+
+    // 空的行内代码（仅零宽空格）→ 直接删除，顺手清理断点字符
+    if (text === '\u200B' || text.trim() === '') {
+        var prevSib = codeEl.previousSibling;
+        var nextSib = codeEl.nextSibling;
+        parent.removeChild(codeEl);
+        if (nextSib && nextSib.nodeType === Node.TEXT_NODE && nextSib.textContent === '\u200B') {
+            parent.removeChild(nextSib);
         }
-
-        var newRange = document.createRange();
-        newRange.setStartAfter(breakNode);
-        newRange.collapse(true);
+        var emptyRange = document.createRange();
+        if (prevSib) {
+            if (prevSib.nodeType === Node.TEXT_NODE) {
+                emptyRange.setStart(prevSib, prevSib.textContent.length);
+            } else {
+                emptyRange.setStartAfter(prevSib);
+            }
+        } else {
+            emptyRange.setStart(parent, 0);
+        }
+        emptyRange.collapse(true);
         selection.removeAllRanges();
-        selection.addRange(newRange);
+        selection.addRange(emptyRange);
+        return;
+    }
 
-        // 空 code 元素则删除
-        var text = codeEl.textContent || '';
-        if (text === '\u200B' || text.trim() === '') {
-            parent.removeChild(codeEl);
+    // 将子节点逐个移出，保留原有文本/格式
+    var lastMoved = null;
+    while (codeEl.firstChild) {
+        lastMoved = codeEl.firstChild;
+        parent.insertBefore(lastMoved, codeEl);
+    }
+    parent.removeChild(codeEl);
+
+    var newRange = document.createRange();
+    if (lastMoved) {
+        if (lastMoved.nodeType === Node.TEXT_NODE) {
+            newRange.setStart(lastMoved, lastMoved.textContent.length);
+        } else {
+            newRange.setStartAfter(lastMoved);
         }
     } else {
-        // ===== ENTER: 进入行内代码 =====
-        var emptyCode = document.createElement('code');
-        emptyCode.textContent = '\u200B';
-        range.insertNode(emptyCode);
-        var newRange = document.createRange();
-        newRange.selectNodeContents(emptyCode);
-        newRange.collapse(false);
-        selection.removeAllRanges();
-        selection.addRange(newRange);
+        newRange.setStart(parent, 0);
+    }
+    newRange.collapse(true);
+    selection.removeAllRanges();
+    selection.addRange(newRange);
+}
+
+/**
+ * 判断选区是否落在某个已存在的行内代码上
+ */
+function findInlineCodeInSelection(range) {
+    var node = range.commonAncestorContainer;
+    var el = (node.nodeType === Node.TEXT_NODE) ? node.parentElement : node;
+
+    var codeEl = (el && el.closest) ? el.closest('code') : null;
+    if (codeEl && !codeEl.closest('pre')) return codeEl;
+
+    if (!el || !el.querySelectorAll) return null;
+    var normalize = function (s) {
+        return (s || '').replace(/\u200B/g, '').trim();
+    };
+    var selText = range.toString();
+    var candidates = el.querySelectorAll('code');
+    for (var i = 0; i < candidates.length; i++) {
+        var c = candidates[i];
+        if (c.closest('pre')) continue;
+        if (!rangeContainsNode(range, c)) continue;
+        // 仅当选区恰好就是该行内代码的文本时才视为「已加样式」
+        // （避免选中「普通文本 + 行内代码」时误删代码样式）
+        if (normalize(selText) === normalize(c.textContent)) {
+            return c;
+        }
+    }
+    return null;
+}
+
+function rangeContainsNode(range, node) {
+    try {
+        var r = document.createRange();
+        r.selectNode(node);
+        return range.compareBoundaryPoints(Range.START_TO_START, r) <= 0 &&
+               range.compareBoundaryPoints(Range.END_TO_END, r) >= 0;
+    } catch (e) {
+        return false;
     }
 }
 
@@ -328,6 +473,13 @@ function applyInlineCodeWithSelection() {
     var range = selection.getRangeAt(0);
     var text = range.toString();
     if (!text) return;
+
+    // 选区已带行内代码样式 → 清除样式（而不是再叠加一层）
+    var existingCode = findInlineCodeInSelection(range);
+    if (existingCode) {
+        exitInlineCode(existingCode);
+        return;
+    }
 
     var codeEl = document.createElement('code');
     codeEl.textContent = text;
@@ -348,6 +500,267 @@ function applyInlineCodeWithSelection() {
     newRange.collapse(true);
     selection.removeAllRanges();
     selection.addRange(newRange);
+}
+
+/* ================================================================
+ * 上标 / 下标 语法触发（^{内容} 、 _{内容}）
+ * ================================================================ */
+/**
+ * 将已输入的 ^{content} / _{content} 转换为 <sup> / <sub>
+ * @param {Range}  range   光标（已折叠）
+ * @param {string} tag     'SUP' 或 'SUB'
+ * @param {string} prefix  形如 '^{xxx}' 的完整标记文本
+ * @param {string} content 括号内的内容
+ */
+function replaceSupSubSyntax(range, tag, prefix, content) {
+    var node = range.startContainer;
+    if (node.nodeType !== Node.TEXT_NODE) return;
+
+    var markerStart = range.startOffset - prefix.length;
+    if (markerStart < 0) return;
+
+    // 删除已输入的 ^{xxx}
+    var delRange = document.createRange();
+    delRange.setStart(node, markerStart);
+    delRange.setEnd(node, range.startOffset);
+    delRange.deleteContents();
+
+    // 在原位置插入格式元素
+    var el = document.createElement(tag);
+    el.textContent = content;
+    delRange.insertNode(el);
+
+    // 光标移到元素后面
+    var selection = window.getSelection();
+    var newRange = document.createRange();
+    newRange.setStartAfter(el);
+    newRange.collapse(true);
+    selection.removeAllRanges();
+    selection.addRange(newRange);
+}
+
+/**
+ * 取元素之后的第一个「真实内容」兄弟节点
+ * 空文本 / 零宽占位 / 换行占位都视为「后面没有内容」
+ */
+function firstContentSibling(el) {
+    var s = el.nextSibling;
+    while (s && s.nodeType === Node.TEXT_NODE &&
+           (s.textContent === '' || s.textContent === '\u200B')) {
+        s = s.nextSibling;
+    }
+    if (s && s.nodeType === Node.ELEMENT_NODE && s.tagName === 'BR') return null;
+    return s;
+}
+
+/**
+ * 取元素之后已有的零宽占位文本节点（没有则返回 null）
+ */
+function findPlaceholderSibling(el) {
+    var s = el.nextSibling;
+    while (s && s.nodeType === Node.TEXT_NODE) {
+        if (s.textContent === '\u200B') return s;
+        if (s.textContent !== '') return null;
+        s = s.nextSibling;
+    }
+    return null;
+}
+
+/**
+ * 判断光标是否停在上标 / 下标元素的末尾
+ * 覆盖两种实际形态：
+ *   1) 光标位于 <sup>/<sub> 内部内容的末尾
+ *   2) 光标位于父节点上、紧跟在 <sup>/<sub> 之后（触发语法后 setStartAfter 留下的边界位置）
+ * @returns {Element|null}
+ */
+function getSupSubAtCaretEnd(range) {
+    var node = range.startContainer;
+    var offset = range.startOffset;
+
+    if (node.nodeType === Node.TEXT_NODE) {
+        var el = node.parentElement;
+        if (!el || !el.closest) return null;
+
+        var fmt = el.closest('sup, sub');
+        if (!fmt) return null;
+
+        // 光标之后在该格式元素内不能再有内容
+        try {
+            var tail = document.createRange();
+            tail.selectNodeContents(fmt);
+            tail.setStart(node, offset);
+            if (tail.toString() !== '') return null;
+        } catch (e) {
+            return null;
+        }
+
+        // 该格式元素之后也不能再有真实内容
+        if (firstContentSibling(fmt)) return null;
+
+        return fmt;
+    }
+
+    if (node.nodeType === Node.ELEMENT_NODE && offset > 0) {
+        // 光标紧跟在某个 sup/sub 之后（跳过零宽 / 空文本节点）
+        var prev = node.childNodes[offset - 1];
+        while (prev && prev.nodeType === Node.TEXT_NODE &&
+               (prev.textContent === '' || prev.textContent === '\u200B')) {
+            prev = prev.previousSibling;
+        }
+        if (prev && prev.nodeType === Node.ELEMENT_NODE &&
+            (prev.tagName === 'SUP' || prev.tagName === 'SUB') &&
+            !firstContentSibling(prev)) {
+            return prev;
+        }
+    }
+
+    return null;
+}
+
+/**
+ * 把停在上标 / 下标末尾的光标移到格式元素右侧的常规状态
+ * @returns {boolean} 是否发生了移动
+ */
+function escapeSupSubAtCaret() {
+    var selection = window.getSelection();
+    if (selection.rangeCount === 0) return false;
+
+    var range = selection.getRangeAt(0);
+    if (!range.collapsed) return false;
+
+    var fmt = getSupSubAtCaretEnd(range);
+    if (!fmt) return false;
+
+    var parent = fmt.parentNode;
+    if (!parent) return false;
+
+    // 复用已有的零宽占位，否则就地插入一个（仅作为光标落点）
+    var ref = findPlaceholderSibling(fmt);
+    if (!ref) {
+        ref = document.createTextNode('\u200B');
+        parent.insertBefore(ref, fmt.nextSibling);
+        // 不算内容修改，避免多出一步撤回记录（兜底复位，防止误吞后续修改）
+        window.Mojian.skipNextHistoryCommit = true;
+        setTimeout(function() { window.Mojian.skipNextHistoryCommit = false; }, 0);
+    }
+
+    // 光标必须落在断点文本节点「内部」的末尾位置：
+    // 若停在节点起点，浏览器会把光标归位到前面的角标元素里，导致继续输入仍是角标样式
+    var newRange = document.createRange();
+    newRange.setStart(ref, (ref.textContent || '').length);
+    newRange.collapse(true);
+    selection.removeAllRanges();
+    selection.addRange(newRange);
+    return true;
+}
+
+/* ================================================================
+ * 清除文本格式
+ * ================================================================ */
+
+// 清除格式时会被拆掉的行内格式标签
+var CLEAR_FORMAT_TAGS = ['STRONG', 'B', 'EM', 'I', 'U', 'S', 'DEL', 'STRIKE', 'SUP', 'SUB', 'CODE'];
+
+/**
+ * 拆掉一个行内格式元素：把子节点移到父节点，保留原文本
+ * @returns {Node|null} 第一个被移出的子节点（供光标兜底定位）
+ */
+function unwrapInlineElement(el) {
+    var parent = el && el.parentNode;
+    if (!parent) return null;
+
+    var firstMoved = null;
+    while (el.firstChild) {
+        if (!firstMoved) firstMoved = el.firstChild;
+        parent.insertBefore(el.firstChild, el);
+    }
+    parent.removeChild(el);
+    return firstMoved;
+}
+
+/**
+ * 清除光标所处（或选区内）的文本格式
+ */
+function clearTextFormat() {
+    var container = window.Mojian.elements.markdownContent;
+    var selection = window.getSelection();
+    if (!container || selection.rangeCount === 0) return;
+
+    var range = selection.getRangeAt(0);
+    var startNode = range.startContainer;
+    var startOffset = range.startOffset;
+    var endNode = range.endContainer;
+    var endOffset = range.endOffset;
+
+    var targets = [];
+    if (range.collapsed) {
+        // 光标所在位置的所有行内格式（由内到外）
+        var cur = startNode;
+        var el = (cur.nodeType === Node.TEXT_NODE) ? cur.parentElement : cur;
+        while (el && el !== container) {
+            if (CLEAR_FORMAT_TAGS.indexOf(el.tagName) > -1 && !el.closest('pre')) {
+                targets.push(el);
+            }
+            el = el.parentElement;
+        }
+    } else {
+        // 选区内所有行内格式
+        var all = container.querySelectorAll(CLEAR_FORMAT_TAGS.join(','));
+        for (var i = 0; i < all.length; i++) {
+            if (all[i].closest('pre')) continue;
+            if (range.intersectsNode(all[i])) targets.push(all[i]);
+        }
+    }
+
+    if (!targets.length) return;
+
+    // 记录光标所在格式元素被拆解后的落脚节点，用于光标兜底
+    var anchorFallback = null;
+    for (var k = 0; k < targets.length; k++) {
+        if (targets[k].contains(startNode)) {
+            anchorFallback = targets[k].firstChild;
+            break;
+        }
+    }
+
+    targets.forEach(function(t) {
+        unwrapInlineElement(t);
+    });
+
+    // 锚点节点被移除时（如光标停在格式元素本身）重新定位
+    if (startNode && !startNode.isConnected) {
+        var newRange = document.createRange();
+        if (anchorFallback && anchorFallback.parentNode) {
+            newRange.setStartBefore(anchorFallback);
+            newRange.collapse(true);
+        } else {
+            newRange.setStart(container, 0);
+            newRange.collapse(true);
+        }
+        selection.removeAllRanges();
+        selection.addRange(newRange);
+        return;
+    }
+
+    // 文本节点只是被搬移，选区引用仍然有效，仅做一次范围修正
+    try {
+        var fixed = document.createRange();
+        fixed.setStart(startNode, Math.min(startOffset, nodeLength(startNode)));
+        if (endNode && endNode.isConnected) {
+            fixed.setEnd(endNode, Math.min(endOffset, nodeLength(endNode)));
+        }
+        selection.removeAllRanges();
+        selection.addRange(fixed);
+    } catch (e) {
+        /* 忽略，保持浏览器默认选区 */
+    }
+}
+
+function nodeLength(node) {
+    if (!node) return 0;
+    return (node.nodeType === Node.TEXT_NODE)
+        ? (node.textContent || '').length
+        : node.childNodes.length;
 }
 
 /* ================================================================
@@ -1047,8 +1460,129 @@ function cancelInsertTable() {
 }
 
 /* ================================================================
- * 代码块 / 表格
+ * 代码块
  * ================================================================ */
+
+// 代码块按钮图标
+var CODE_BLOCK_ICONS = {
+    download: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>',
+    copy: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>'
+};
+
+/**
+ * 构建增强代码块（与阅读模式结构一致）
+ *
+ * @param {string}  lang       语言标识，如 "bash"（用于 <code class="language-xxx">
+ *                             以及标题栏左上角显示），空字符串表示无语言
+ * @param {string}  content    初始代码内容
+ * @param {boolean} showHeader 是否显示标题栏；无语言标识的代码块不显示标题栏
+ * @returns {{pre: HTMLElement, code: HTMLElement, lineNumbers: HTMLElement}}
+ */
+function createCodeBlockElement(lang, content, showHeader) {
+    var pre = document.createElement('pre');
+    pre.className = 'code-block-enhanced';
+
+    // 空代码块用零宽空格占位：既渲染出 1 行、与行号数量一致，
+    // 又能保证光标 / 点击稳定落在 code 元素内
+    if (!content || content === '\n') content = '\u200B';
+
+    // ---- 主体：行号 + 代码 ----
+    var lines = content.split('\n');
+    if (lines[lines.length - 1] === '') lines.pop();
+    var lineCount = Math.max(1, lines.length);
+    pre.dataset.lineCount = lineCount;
+
+    var codeWrapper = document.createElement('div');
+    codeWrapper.className = 'code-wrapper';
+
+    var lineNumbers = document.createElement('div');
+    lineNumbers.className = 'line-numbers';
+    lineNumbers.contentEditable = 'false';
+    var lineHtml = '';
+    for (var i = 0; i < lineCount; i++) {
+        lineHtml += '<span>' + (i + 1) + '</span>';
+    }
+    lineNumbers.innerHTML = lineHtml;
+    codeWrapper.appendChild(lineNumbers);
+
+    var codeContainer = document.createElement('div');
+    codeContainer.className = 'code-container';
+
+    var code = document.createElement('code');
+    if (lang) code.className = 'language-' + lang;
+    code.textContent = content;
+    codeContainer.appendChild(code);
+    codeWrapper.appendChild(codeContainer);
+    pre.appendChild(codeWrapper);
+
+    // ---- 标题栏：左上角语言标识，右上角复制（含下载）按钮 ----
+    if (showHeader) {
+        var header = document.createElement('div');
+        header.className = 'code-block-header';
+        header.contentEditable = 'false';
+
+        var langLabel = document.createElement('span');
+        langLabel.className = 'code-block-lang';
+        // 有语言时显示语言（大写），否则回退为 CODE
+        langLabel.textContent = lang ? lang.toUpperCase() : 'CODE';
+        header.appendChild(langLabel);
+
+        var actions = document.createElement('div');
+        actions.className = 'code-block-actions';
+
+        var downloadBtn = document.createElement('button');
+        downloadBtn.className = 'code-block-btn';
+        downloadBtn.innerHTML = CODE_BLOCK_ICONS.download;
+        downloadBtn.title = '下载';
+        downloadBtn.onclick = function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (window.Mojian.downloadCode) {
+                window.Mojian.downloadCode(code.textContent || '', lang || '');
+            }
+        };
+        actions.appendChild(downloadBtn);
+
+        var copyBtn = document.createElement('button');
+        copyBtn.className = 'code-block-btn';
+        copyBtn.innerHTML = CODE_BLOCK_ICONS.copy;
+        copyBtn.title = '复制';
+        copyBtn.onclick = function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (window.Mojian.copyCodeToClipboard) {
+                window.Mojian.copyCodeToClipboard(code.textContent || '');
+            }
+        };
+        actions.appendChild(copyBtn);
+
+        header.appendChild(actions);
+        pre.insertBefore(header, pre.firstChild);
+    }
+
+    // 监听 code 内容变化，动态同步行号
+    setupCodeBlockSync(pre, code, lineNumbers);
+
+    return { pre: pre, code: code, lineNumbers: lineNumbers };
+}
+
+/**
+ * 将光标放入代码块的 code 元素内
+ */
+function focusCodeBlockCode(code) {
+    var sel = window.getSelection();
+    var newRange = document.createRange();
+    if (code.firstChild) {
+        newRange.setStart(code.firstChild, 0);
+        newRange.collapse(true);
+    } else {
+        newRange.selectNodeContents(code);
+        newRange.collapse(true);
+    }
+    sel.removeAllRanges();
+    sel.addRange(newRange);
+}
+
 function applyCodeBlock() {
     // 检测是否在代码块内，如果在则插入新段落代替
     var selection = window.getSelection();
@@ -1089,107 +1623,60 @@ function applyCodeBlock() {
     }
     if (!content) content = '\n';
 
-    // 构建与导入模式一致的增强代码块结构
-    var pre = document.createElement('pre');
-    pre.className = 'code-block-enhanced';
-
-    // Header 栏（设 contentEditable=false 防止编辑模式下误改）
-    var header = document.createElement('div');
-    header.className = 'code-block-header';
-    header.contentEditable = 'false';
-
-    var langLabel = document.createElement('span');
-    langLabel.className = 'code-block-lang';
-    langLabel.textContent = 'CODE';
-    header.appendChild(langLabel);
-
-    // 下载 + 复制按钮
-    var actions = document.createElement('div');
-    actions.className = 'code-block-actions';
-
-    var downloadBtn = document.createElement('button');
-    downloadBtn.className = 'code-block-btn';
-    downloadBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>';
-    downloadBtn.title = '下载';
-    actions.appendChild(downloadBtn);
-
-    var copyBtn = document.createElement('button');
-    copyBtn.className = 'code-block-btn';
-    copyBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>';
-    copyBtn.title = '复制';
-    actions.appendChild(copyBtn);
-
-    header.appendChild(actions);
-    pre.appendChild(header);
-
-    // 计算行数
-    var lines = content.split('\n');
-    if (lines[lines.length - 1] === '') lines.pop();
-    var lineCount = Math.max(1, lines.length);
-    pre.dataset.lineCount = lineCount;
-
-    // Code wrapper + 行号 + 代码容器
-    var codeWrapper = document.createElement('div');
-    codeWrapper.className = 'code-wrapper';
-
-    var lineNumbers = document.createElement('div');
-    lineNumbers.className = 'line-numbers';
-    lineNumbers.contentEditable = 'false';
-    var lineHtml = '';
-    for (var i = 0; i < lineCount; i++) {
-        lineHtml += '<span>' + (i + 1) + '</span>';
-    }
-    lineNumbers.innerHTML = lineHtml;
-    codeWrapper.appendChild(lineNumbers);
-
-    var codeContainer = document.createElement('div');
-    codeContainer.className = 'code-container';
-
-    var code = document.createElement('code');
-    code.textContent = content;
-    codeContainer.appendChild(code);
-    codeWrapper.appendChild(codeContainer);
-    pre.appendChild(codeWrapper);
+    // 构建与导入模式一致的增强代码块结构（工具栏按钮无语言标识，保留 CODE 标题栏）
+    var built = createCodeBlockElement('', content, true);
+    var preEl = built.pre;
 
     // 插入
     if (insertRange) {
-        insertRange.insertNode(pre);
+        insertRange.insertNode(preEl);
     } else if (selection.rangeCount > 0) {
-        selection.getRangeAt(0).insertNode(pre);
+        selection.getRangeAt(0).insertNode(preEl);
     } else {
-        window.Mojian.elements.markdownContent.appendChild(pre);
+        window.Mojian.elements.markdownContent.appendChild(preEl);
     }
 
     // 光标放入 code 元素内（避免意外选中 header 或行号）
-    var sel = window.getSelection();
-    var newRange = document.createRange();
-    var codeFirstChild = code.firstChild;
-    if (codeFirstChild) {
-        newRange.setStart(codeFirstChild, 0);
-        newRange.collapse(true);
-    } else {
-        newRange.selectNodeContents(code);
-        newRange.collapse(true);
+    focusCodeBlockCode(built.code);
+}
+
+/**
+ * Markdown 围栏语法触发代码块
+ *
+ * 输入 ```lang + 空格 → 生成带标题栏的代码块，标题栏左上角显示该语言
+ * 输入 ``` + 空格      → 生成无标题栏的代码块（不显示语言）
+ *
+ * @param {Node}   node 触发时的光标所在节点
+ * @param {string} lang 语言标识（小写），空字符串表示无语言标识
+ */
+function insertCodeBlockFromFence(node, lang) {
+    var container = window.Mojian.elements.markdownContent;
+
+    var el = node;
+    if (el && el.nodeType === Node.TEXT_NODE) el = el.parentElement;
+
+    // 定位光标所在的块级元素（通常是段落）
+    var block = el;
+    while (block && block !== container &&
+           !/^(P|DIV|LI|H[1-6]|BLOCKQUOTE)$/i.test(block.tagName)) {
+        block = block.parentElement;
     }
-    sel.removeAllRanges();
-    sel.addRange(newRange);
 
-    // 绑定按钮事件
-    downloadBtn.onclick = function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        var rawCode = code.textContent || '';
-        if (window.Mojian.downloadCode) window.Mojian.downloadCode(rawCode, '');
-    };
-    copyBtn.onclick = function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        var rawCode = code.textContent || '';
-        if (window.Mojian.copyCodeToClipboard) window.Mojian.copyCodeToClipboard(rawCode);
-    };
+    // 无语言标识时不显示标题栏
+    var built = createCodeBlockElement(lang || '', '\n', !!lang);
 
-    // 监听 code 内容变化，动态同步行号
-    setupCodeBlockSync(pre, code, lineNumbers);
+    if (block && block !== container && block.parentNode) {
+        block.parentNode.replaceChild(built.pre, block);
+    } else if (el && el.parentNode) {
+        el.parentNode.replaceChild(built.pre, el);
+    } else {
+        container.appendChild(built.pre);
+    }
+
+    focusCodeBlockCode(built.code);
+    built.pre.scrollIntoView({ block: 'center' });
+
+    if (window.Mojian.recordHistoryNow) window.Mojian.recordHistoryNow();
 }
 
 /**
@@ -1301,6 +1788,10 @@ function initExistingCodeBlockSync() {
  * ================================================================ */
 function updateToolbarState() {
     var elements = window.Mojian.elements;
+
+    // 撤回 / 重做按钮可用性（与选区无关）
+    if (window.Mojian.updateUndoRedoButtons) window.Mojian.updateUndoRedoButtons();
+
     if (!elements.markdownContent.isContentEditable) return;
 
     var selection = window.getSelection();
@@ -1329,8 +1820,17 @@ function updateToolbarState() {
                 case 'italic':
                     if (el.tagName === 'EM' || el.tagName === 'I') isActive = true;
                     break;
+                case 'underline':
+                    if (el.tagName === 'U') isActive = true;
+                    break;
                 case 'strike':
                     if (el.tagName === 'DEL' || el.tagName === 'S' || el.tagName === 'STRIKE') isActive = true;
+                    break;
+                case 'superscript':
+                    if (el.tagName === 'SUP') isActive = true;
+                    break;
+                case 'subscript':
+                    if (el.tagName === 'SUB') isActive = true;
                     break;
                 case 'code':
                     if (el.tagName === 'CODE' && !el.closest('pre')) isActive = true;
@@ -1677,6 +2177,11 @@ Mojian.applyLink = applyLink;
 Mojian.applyImage = applyImage;
 Mojian.applyTable = applyTable;
 Mojian.applyCodeBlock = applyCodeBlock;
+Mojian.createCodeBlockElement = createCodeBlockElement;
+Mojian.insertCodeBlockFromFence = insertCodeBlockFromFence;
+Mojian.replaceSupSubSyntax = replaceSupSubSyntax;
+Mojian.escapeSupSubAtCaret = escapeSupSubAtCaret;
+Mojian.clearTextFormat = clearTextFormat;
 Mojian.updateCodeBlockLines = updateCodeBlockLines;
 Mojian.initExistingCodeBlockSync = initExistingCodeBlockSync;
 Mojian.initInsertModals = initInsertModals;

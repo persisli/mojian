@@ -77,6 +77,32 @@
     height: 16px;
 }
 
+/* 工具栏右侧的撤回 / 应用按钮 */
+.toolbar-group-right {
+    margin-left: auto;
+    padding-left: var(--space-sm);
+}
+
+/* 头部内容区为 max-width:1200px 居中 + 左右 24px 内边距，
+   工具栏左右内边距同为 24px，因此补上居中留白即可让
+   应用按钮右边缘与头部「阅读设置」按钮右边缘对齐。
+   （100% 为工具栏内容宽度，+24px 抵消自身内边距） */
+@media (min-width: 1200px) {
+    .toolbar-group-right {
+        margin-right: calc((100% - 1200px) / 2 + var(--space-lg));
+    }
+}
+
+.toolbar-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
+.toolbar-btn:disabled:hover {
+    background: transparent;
+    border-color: transparent;
+}
+
 /* Editor Container */
 .editor-container {
     display: none;

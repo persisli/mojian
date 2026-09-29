@@ -40,6 +40,10 @@ function enterEditMode() {
         if (window.Mojian.initExistingCodeBlockSync) {
             window.Mojian.initExistingCodeBlockSync();
         }
+        // 初始化撤回 / 重做历史（基线 = 进入编辑模式时的内容）
+        if (window.Mojian.initHistory) {
+            window.Mojian.initHistory();
+        }
     }, 100);
 
     elements.editToolbar.classList.add('visible');
@@ -50,6 +54,7 @@ function enterEditMode() {
     elements.markdownContent.addEventListener('keyup', handleMarkdownSyntax);
     elements.markdownContent.addEventListener('mousedown', handleImageMouseDown);
     elements.markdownContent.addEventListener('dblclick', handleBlankAreaDblClick);
+    elements.markdownContent.addEventListener('mouseup', handleEditorMouseUp);
     document.addEventListener('mousemove', handleImageMouseMove);
     // 表格列宽拖动
     document.addEventListener('mousemove', handleTableColMouseMoveCheck);
@@ -61,6 +66,11 @@ function enterEditMode() {
 function exitEditMode() {
     const { elements, state } = window.Mojian;
     state.isEditMode = false;
+
+    // 销毁撤回 / 重做历史（下次进入编辑模式时重新建立基线）
+    if (window.Mojian.destroyHistory) {
+        window.Mojian.destroyHistory();
+    }
 
     if (window.Mojian.autoSaveTimer) {
         clearTimeout(window.Mojian.autoSaveTimer);
@@ -78,6 +88,7 @@ function exitEditMode() {
     elements.markdownContent.removeEventListener('keyup', handleMarkdownSyntax);
     elements.markdownContent.removeEventListener('mousedown', handleImageMouseDown);
     elements.markdownContent.removeEventListener('dblclick', handleBlankAreaDblClick);
+    elements.markdownContent.removeEventListener('mouseup', handleEditorMouseUp);
     document.removeEventListener('mousemove', handleImageMouseMove);
     document.removeEventListener('mouseup', handleImageMouseUp);
     // 表格列宽拖动
@@ -309,7 +320,52 @@ function handleBlankAreaDblClick(e) {
     newP.scrollIntoView({ block: 'center' });
 }
 
+/**
+ * 点击到上标 / 下标右侧空白处时，把光标从格式内部移到右侧的常规状态
+ */
+function handleEditorMouseUp(e) {
+    const { state } = window.Mojian;
+    if (!state.isEditMode) return;
+
+    // 直接点在上标 / 下标文字上时不处理（用户可能是想编辑它）
+    const target = e.target;
+    if (target && target.closest && target.closest('sup, sub')) return;
+
+    if (window.Mojian.escapeSupSubAtCaret) {
+        window.Mojian.escapeSupSubAtCaret();
+        // 浏览器可能在本轮事件后才最终确定光标，再兜一次（已逃逸时为空操作）
+        setTimeout(function() {
+            if (window.Mojian.escapeSupSubAtCaret) window.Mojian.escapeSupSubAtCaret();
+        }, 0);
+    }
+}
+
 function handleEditKeydown(e) {
+    // ===== 撤回 / 重做快捷键（拦截浏览器原生行为，使用自建历史）=====
+    if ((e.ctrlKey || e.metaKey) && !e.isComposing) {
+        const key = (e.key || '').toLowerCase();
+        if (key === 'z' && !e.shiftKey) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (window.Mojian.undo) window.Mojian.undo();
+            return;
+        }
+        if (key === 'y' || (key === 'z' && e.shiftKey)) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (window.Mojian.redo) window.Mojian.redo();
+            return;
+        }
+    }
+
+    // ===== 光标停在上标 / 下标末尾时按右方向键：移到格式右侧的常规状态 =====
+    if (e.key === 'ArrowRight' && !e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && !e.isComposing) {
+        if (window.Mojian.escapeSupSubAtCaret && window.Mojian.escapeSupSubAtCaret()) {
+            e.preventDefault();
+            return;
+        }
+    }
+
     // Backspace键处理：光标在标题开头时删除标题样式
     if (e.key === 'Backspace') {
         const selection = window.getSelection();
@@ -614,6 +670,12 @@ function handleEditKeydown(e) {
  *   "[] "   → 任务列表
  */
 function handleMarkdownSyntax(e) {
+    // ===== 上标 ^{内容} / 下标 _{内容}：输入右花括号时触发 =====
+    if (e.key === '}' && !e.isComposing) {
+        applySupSubSyntax();
+        return;
+    }
+
     // 仅在按下空格或回车时触发
     if (e.key !== ' ' && e.key !== 'Enter') return;
 
@@ -669,6 +731,8 @@ function handleMarkdownSyntax(e) {
         { regex: /^\d+[.)]\s$/, action: 'orderedList', level: null, fullMatch: null }, // 需要保留数字prefix
         { regex: /^>\s$/, action: 'blockquote', level: null, fullMatch: '> ' },
         { regex: /^\[\]\s$/, action: 'taskList', level: null, fullMatch: '[] ' },
+        // 代码块围栏：```bash + 空格 / ``` + 空格（语言可省略）
+        { regex: /^```([a-zA-Z0-9_+#.-]*)\s$/, action: 'codeFence', level: null, fullMatch: null },
     ];
 
     let matched = null;
@@ -707,6 +771,16 @@ function handleMarkdownSyntax(e) {
         case 'taskList':
             removeMarkdownPrefix(node, offset, matched.fullMatch);
             applyTaskListSyntax();
+            break;
+        case 'codeFence':
+            // 仅由空格触发
+            if (!isSpace) break;
+            const fenceMatch = trimmedText.match(/^```([a-zA-Z0-9_+#.-]*)\s$/);
+            const fenceLang = fenceMatch ? fenceMatch[1].toLowerCase() : '';
+            removeMarkdownPrefix(node, offset, trimmedText);
+            if (window.Mojian.insertCodeBlockFromFence) {
+                window.Mojian.insertCodeBlockFromFence(node, fenceLang);
+            }
             break;
     }
 }
@@ -856,6 +930,35 @@ function applyOrderedListSyntax() {
 }
 
 /**
+ * 上标 / 下标 语法触发
+ * 输入 ^{内容} → 上标，输入 _{内容} → 下标
+ */
+function applySupSubSyntax() {
+    const container = window.Mojian.elements.markdownContent;
+    if (!container || !container.isContentEditable) return;
+
+    const selection = window.getSelection();
+    if (selection.rangeCount === 0) return;
+    const range = selection.getRangeAt(0);
+    if (!range.collapsed) return;
+
+    const node = range.startContainer;
+    if (node.nodeType !== Node.TEXT_NODE) return;
+
+    // 代码块 / 行内代码内不触发
+    if (node.parentElement && node.parentElement.closest('code, pre')) return;
+
+    const textBefore = node.textContent.substring(0, range.startOffset);
+    const match = textBefore.match(/([\^_])\{([^}\n]+)\}$/);
+    if (!match) return;
+
+    const tag = match[1] === '^' ? 'SUP' : 'SUB';
+    if (window.Mojian.replaceSupSubSyntax) {
+        window.Mojian.replaceSupSubSyntax(range, tag, match[0], match[2]);
+    }
+}
+
+/**
  * 通过语法触发任务列表
  */
 function applyTaskListSyntax() {
@@ -952,6 +1055,7 @@ Mojian.handleImageMouseMove = handleImageMouseMove;
 Mojian.handleImageMouseUp = handleImageMouseUp;
 Mojian.handleEditKeydown = handleEditKeydown;
 Mojian.handleMarkdownSyntax = handleMarkdownSyntax;
+Mojian.applySupSubSyntax = applySupSubSyntax;
 Mojian.initEditor = initEditor;
 Mojian.autoSaveContent = autoSaveContent;
 Mojian.loadSavedDraft = loadSavedDraft;
