@@ -972,6 +972,15 @@
                             };
                             return Promise.reject(new Error(fatal.code));
                         }
+                        if (err && err.status === 403) {
+                            // 同源校验拒绝：多见于「反代改写了 Host」或跨站页面调用代理，
+                            // 不是内容问题，继续试公共代理仍可能成功，所以只提示不中断
+                            console.warn('[url-import] 通道「' + attempt.name + '」被同源校验拒绝（403）:',
+                                (err && err.message) || err,
+                                '\n  proxy.php 只接受本站页面发起的抓取；若你用了反向代理，' +
+                                '请把站点域名填进 proxy.php 顶部的 $EXTRA_ALLOWED_HOSTS。');
+                            return Promise.reject(err);
+                        }
                         console.warn('[url-import] 通道「' + attempt.name + '」失败:', (err && err.message) || err);
                         return Promise.reject(err);
                     });

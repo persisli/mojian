@@ -77,7 +77,7 @@
 - 段落: 舒适的行高和间距
 - 列表: 有序、无序、嵌套列表
 - 代码块: 语法高亮 (Prism.js，本地 libs/) + 行号 + 语言标签 + 下载/复制按钮
-- Mermaid 图: 代码块内是 Mermaid 语法时直接渲染成图（未指定配色的节点自动使用多种浅色；解析失败或编辑模式自动切回源码代码块）
+- Mermaid 图: 代码块内是 Mermaid 语法时直接渲染成图（未指定配色的节点自动使用多种浅色；解析失败或编辑模式自动切回源码代码块，源码块与普通代码块同构：MERMAID 标题栏 + 行号 + 下载/复制）
 - 行内代码: 柔和的背景色
 - 引用块: 左侧边框装饰 + 缩进
 - 链接: 优雅的下划线 + hover效果
@@ -190,16 +190,18 @@
 ### 9. 代码块 (CodeBlock)
 - **默认**: 跟随主题的代码底色 + 语法高亮 + 行号
 - **标题栏**: 常驻「语言标签 + 下载 / 复制」按钮
-- **复制成功**: 提示已复制
+- **Mermaid 源码块**: 编辑模式下与普通代码块完全同构（MERMAID 标题栏 + 行号 + 下载/复制）；阅读模式下隐藏，只显示渲染后的图
+- **编辑**: 块内粘贴按纯文本插入并自动同步行号
 
 ## 5. 技术方案
 
 ### 技术栈
-- **框架**: 纯HTML + CSS + JavaScript（无框架、无构建步骤，全部依赖放在本地 `libs/`）
+- **框架**: 纯HTML + CSS + JavaScript（无框架、无构建步骤，第三方库以本地 `libs/` 为主）
 - **Markdown解析**: marked.js
 - **HTML → Markdown**: Turndown（编辑模式保存、URL 导入结果存档）
 - **语法高亮**: Prism.js + 本地 tomorrow 主题
 - **图表渲染**: Mermaid（文档出现 Mermaid 代码块时才动态加载）
+- **编辑器**: 阅读/编辑复用同一份 contenteditable DOM（Tiptap 走 CDN 引入，当前未启用）
 - **图标**: Lucide
 - **字体**: Google Fonts（fonts.loli.net 镜像异步加载，离线自动回退系统字体）
 - **抓取代理（可选，仅 URL 导入用）**: `proxy.php`（PHP，令牌校验 + 10 次/分钟限速）
@@ -224,7 +226,7 @@
 - Mermaid（约 2MB）只在文档里出现 Mermaid 代码块时才动态加载
 - 滚动 / resize 用 requestAnimationFrame 与防抖处理，避免频繁重排
 - 背景图案与装饰全部用 CSS / 内联 SVG 实现，无额外网络请求
-- 所有库均为本地文件，除 Google Fonts 外无任何外部请求，可完全离线运行
+- 渲染 / 高亮 / 图表 / 转换所需的库都在本地 `libs/`：除字体（Google Fonts）与 Tiptap 的 CDN 引入外无其它外部请求，其余功能可完全离线使用
 
 ## 6. 彩蛋与隐藏功能 🥚
 
@@ -268,17 +270,37 @@ PHP_CLI_SERVER_WORKERS=4 php -S localhost:8081
 然后访问 http://localhost:8081/index.html ，在主页按 `Ctrl+V` 粘贴链接即可。
 
 ### 代理配置（部署到公网前必看）
-`proxy.php` 顶部的配置项（令牌 / 限速 / 计数目录 / 反代 IP）：
+`proxy.php` 顶部的配置项：
 
 | 配置 | 默认 | 说明 |
 |---|---|---|
-| `$PROXY_TOKEN` | `mojian-reader-proxy-token` | 访问令牌，**必须与 `scripts/reader/url-importer.js` 的 `PROXY_TOKEN` 一致**；不一致会提示「代理令牌校验失败」 |
+| `$PROXY_TOKEN` | 代码里的占位符（**请自行改成随机串**） | 访问令牌，**必须与 `scripts/reader/url-importer.js` 的 `PROXY_TOKEN` 一致**；不一致会提示「代理令牌校验失败」。生成随机串：`php -r "echo bin2hex(random_bytes(16));"` |
 | `$RATE_MAX` / `$RATE_WINDOW` | 10 / 60 | 同一 IP 每 60 秒最多 10 次抓取，超出返回 429，前端提示还需等待多少秒 |
 | `$REPEAT_TTL` | 600 | 同一链接在该秒数内再次抓取**不占用**上面的次数额度（响应头带 `X-RateLimit-Repeated: 1`）；重复抓取本身另有 3×额度的宽松上限 |
+| `$MAX_FETCH_BYTES` | 8388608（8MB） | 单次响应体积上限（与前端 `MAX_HTML_BYTES` 对齐）。超出会**立刻断开上游连接**并返回 502，不会把大文件读进内存再转发 |
+| `$ALLOW_NO_ORIGIN` | `true` | 同源校验的宽松档：为 `true` 时放行「没有 Origin/Referer/Sec-Fetch-Site」的请求（curl、脚本直连）；置 `false` 后这类请求也拒绝 |
+| `$EXTRA_ALLOWED_HOSTS` | `[]` | 反向代理改写了 Host、导致本站 Origin 对不上时，把本站域名填进来（可只写域名，如 `['mojian.example.com']`） |
 | `$RATE_DIR` | 系统临时目录 | 限速计数文件位置；目录不可写时会自动放行限速（不影响功能） |
-| `$TRUST_PROXY_HEADER` | `false` | 跑在 Cloudflare / Nginx 反代后面时置 `true`，改用真实访客 IP 分桶 |
+| `$TRUST_PROXY_HEADER` | `false` | 跑在 Cloudflare / Nginx 反代后面时置 `true`，改用真实访客 IP 分桶（同时用 `X-Forwarded-Proto` 判断默认端口） |
 
-部署后自检：直接打开 `https://你的域名/proxy.php?ping=1`，应返回 `{"ok":true,...,"token":true,"rate":"10/60s"}`。
+部署后自检：直接打开 `https://你的域名/proxy.php?ping=1`，应返回类似
+`{"ok":true,...,"token":true,"rate":"10/60s","repeat":"reuse 600s","max":8388608,"origin":"allow-no-origin"}`。
+其中 `curl` / `fopen` 两个字段告诉你抓取实际走的是哪条分支：
+
+- **装了 `curl` 扩展** → 用 curl（首选）；
+- **没装但 `allow_url_fopen=On`** → 退回 `file_get_contents`（PHP 内置 HTTP 流封装，同样是真正的 GET）。
+
+两条分支的**请求形状与行为边界已对齐**：同一套 UA / `Accept` / `Accept-Language` / 跳转上限 / 12s 总耗时上限 / 8MB 体积上限（上游声明 `Content-Length` 超限时连正文都不下载）。仍存在两点无法对齐的客观差异：流封装最高只到 **HTTP/1.1**（curl 在 https 下通常协商 h2），且**不支持 gzip/br 协商**（所以它会显式声明 `Accept-Encoding: identity`，宁可多传字节也不收到压缩字节）。
+
+#### 同源校验挡得住什么
+`url=` 抓取默认只接受**本站页面**发起的请求（`ping` 不受影响）：
+
+- 浏览器会强制带上 `Sec-Fetch-Site`，第三方网页伪造不了：`cross-site` / `same-site` 一律 403。这挡住了「别的网站把你的代理当免费代理、甚至当肉鸡用」，并且校验放在限速之前，跨站请求不占你的额度；
+- 浏览器没给 `Sec-Fetch-*` 时，退化为比对 `Origin` / `Referer` 的 host 与本站 host（含端口），不一致即 403；
+- 地址栏直接打开 `proxy.php?url=...`（`Sec-Fetch-Site: none`）、本站前端调用、`curl` 自检（默认档）都正常通过；
+- 响应里的 `Access-Control-Allow-Origin` 也只在来源为本站时才回发（不再是无条件 `*`）。
+
+需要说清楚的是：**令牌写在页面里，用户一打开开发者工具就能看到**（Network 面板的查询串、`scripts/reader/url-importer.js` 源码、控制台里的 `Mojian.urlImporterDebug`），`Sec-Fetch-Site` 之类的头也能被脚本伪造。所以这一层挡的是「扫到 `/proxy.php` 就白用」的盲扫与跨站滥用，不是有心人。真要限死访问，请给整站加一层认证（HTTP Basic / Cloudflare Access）、或给代理加域名白名单，并保持令牌为随机串、限速开启。
 
 ### 部署形态对照
 
@@ -311,6 +333,8 @@ scripts/
   easter-eggs/          彩蛋（Konami、数字雨、诗意加载语、成就徽章）
   app.js / i18n.js      入口与中英文案
 ```
+
+> **改了 `scripts/` / `styles/` 之后**：请同步改掉 `index.html` 里各资源链接的 `?v=20261001` 以及 `styles/main.css` 中所有 `@import` 的版本号（两处必须一致），否则浏览器可能继续使用旧脚本 / 旧样式，出现「代码块样式错乱」这类假故障。
 
 ---
 
