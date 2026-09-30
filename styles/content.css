@@ -205,9 +205,11 @@
     color: var(--color-text-secondary);
 }
 
-/* Paragraph */
+/* Paragraph
+   段落间距由阅读设置控制（--paragraph-spacing，默认 1.9）：
+   1.0 → 0，1.9 ≈ 8px（约等于原来的 7px），2.5 ≈ 13.5px */
 .markdown-content p {
-    margin-bottom: 7px;
+    margin-bottom: calc((var(--paragraph-spacing, 1.9) - 1) * 0.5em);
 }
 
 /* Links */
@@ -367,6 +369,46 @@
     color: var(--color-text);
 }
 
+/* 图片说明（图注 / 来源）：灰色小字，右对齐到图片右边缘
+   （max-width / margin-left 由 alignImageCaptions() 按图片实际渲染宽度写入，
+     使右对齐基准落在图片右边缘而不是正文容器右边缘） */
+.markdown-content .img-caption {
+    margin: -6px 0 14px;
+    color: var(--color-text-muted);
+    font-size: 0.8rem;
+    line-height: 1.6;
+    text-align: right;
+}
+
+/* 编辑 / 来源署名行（如「【编辑:曹子健】」）：整行右对齐 */
+.markdown-content .article-editor {
+    text-align: right;
+}
+
+/* 原文居中的正文图片（解析时按原文对齐方式标记）：保持居中 */
+.markdown-content .img-center {
+    text-align: center;
+}
+
+/* 标题下的「作者 · 时间」署名行（如 36氪「腾讯研究院·2026年09月30日 17:42」）：
+   小字右对齐；超链接保留但颜色变浅（悬停恢复） */
+.markdown-content .article-meta {
+    text-align: right;
+    font-size: 0.8rem;
+    line-height: 1.6;
+    color: var(--color-text-muted);
+}
+
+.markdown-content .article-meta a {
+    color: var(--color-link);
+    opacity: 0.6;
+}
+
+.markdown-content .article-meta a:hover {
+    opacity: 1;
+    color: var(--color-link-hover);
+}
+
 /* Code wrapper with line numbers */
 .code-wrapper {
     display: flex;
@@ -394,6 +436,68 @@
     flex: 1;
     overflow-x: auto;
     min-width: 0;
+}
+
+/* ===== Mermaid 图 ===== */
+.markdown-content .mermaid-block {
+    margin: 1.5em 0;
+    padding: 16px 12px;
+    background-color: rgba(0, 0, 0, 0.02);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    text-align: center;
+    transition: background-color var(--transition-normal);
+}
+
+[data-theme="dark"] .markdown-content .mermaid-block {
+    background-color: rgba(255, 255, 255, 0.03);
+}
+
+.markdown-content .mermaid-diagram {
+    display: block;
+    margin: 0 auto;
+    overflow-x: auto;
+}
+
+.markdown-content .mermaid-diagram svg {
+    display: block;
+    margin: 0 auto;
+    max-width: 100%;
+    height: auto;
+}
+
+/* 源码块常驻 DOM（导出 / 编辑模式用），阅读模式下隐藏 */
+.markdown-content .mermaid-block > pre.mermaid-source {
+    display: none;
+    margin: 0;
+    text-align: left;
+}
+
+/* 渲染中：先按代码块展示源码，避免闪烁成空白 */
+.markdown-content .mermaid-block.is-pending .mermaid-diagram {
+    display: none;
+}
+
+.markdown-content .mermaid-block.is-pending > pre.mermaid-source {
+    display: block;
+}
+
+/* 编辑模式：切回源码，方便直接修改 */
+.markdown-content.editing .mermaid-block .mermaid-diagram {
+    display: none;
+}
+
+.markdown-content.editing .mermaid-block > pre.mermaid-source {
+    display: block;
+}
+
+/* 编辑模式下源码块本身就是标准代码块（MERMAID 标题栏 + 行号），
+   所以去掉外层的卡片外观，避免"双层框"看起来像坏掉的代码块 */
+.markdown-content.editing .mermaid-block {
+    padding: 0;
+    background: transparent;
+    border: none;
+    text-align: left;
 }
 
 .markdown-content pre code {

@@ -42,9 +42,14 @@ function renderContent(content, isRestoring) {
     }
 
     calculateStats(content);
+    // Mermaid 代码块先转成图（同步包装 + 异步渲染），后续代码块增强会跳过它们
+    if (window.Mojian.renderMermaidBlocks) {
+        window.Mojian.renderMermaidBlocks(elements.markdownContent);
+    }
     enhanceCodeBlocks();
     wrapTables();
     wrapImages();
+    alignImageCaptions();
 
     Prism.highlightAllUnder(elements.markdownContent);
 
@@ -276,18 +281,83 @@ function wrapImages() {
     });
 }
 
+/**
+ * 找到图注对应的图片：就近向前查找（图注通常紧跟图片所在块）
+ * @param {Element} cap .img-caption 元素
+ * @returns {HTMLImageElement|null}
+ */
+function findCaptionImage(cap) {
+    let node = cap.previousElementSibling;
+    let guard = 0;
+    while (node && guard++ < 3) {
+        // 中间夹着另一条图注 → 说明本条没有对应图片
+        if (node.classList && node.classList.contains('img-caption')) return null;
+
+        const img = node.querySelector ? node.querySelector('img') : null;
+        if (img) return img;
+
+        // 中间夹着正文文本 → 不再继续向前找，避免错认成更早的图片
+        if ((node.textContent || '').trim().length > 15) return null;
+
+        node = node.previousElementSibling;
+    }
+    return null;
+}
+
+/**
+ * 图片说明（图注 / 来源小字）右对齐到图片右边缘
+ *
+ * 图注是独立的块级元素（<p class="img-caption">），默认右对齐到的是正文容器右边缘；
+ * 这里按图片实际渲染宽度限制图注盒宽、并把左侧起点对齐到图片左边缘，
+ * 从而让图注文字右边缘与图片右边缘严格重合。图片居中/左侧对齐都能正确适配。
+ */
+function alignImageCaptions() {
+    const { elements } = window.Mojian;
+    const container = elements.markdownContent;
+    if (!container) return;
+
+    const caps = container.querySelectorAll('.img-caption');
+    if (!caps.length) return;
+
+    const containerStyle = window.getComputedStyle(container);
+    const contentLeft = container.getBoundingClientRect().left +
+        (parseFloat(containerStyle.paddingLeft) || 0) +
+        (parseFloat(containerStyle.borderLeftWidth) || 0);
+
+    caps.forEach((cap) => {
+        const img = findCaptionImage(cap);
+        if (!img) return;
+
+        const rect = img.getBoundingClientRect();
+        if (!rect.width) {
+            // 图片尚未加载完成（宽度为 0），加载后再对齐一次
+            if (!img._captionLoadHooked) {
+                img._captionLoadHooked = true;
+                img.addEventListener('load', () => alignImageCaptions(), { once: true });
+            }
+            return;
+        }
+
+        cap.style.maxWidth = Math.round(rect.width) + 'px';
+        cap.style.marginLeft = Math.max(0, Math.round(rect.left - contentLeft)) + 'px';
+        cap.style.marginRight = '0';
+    });
+}
+
 function enhanceCodeBlocks() {
     const { elements } = window.Mojian;
     const codeBlocks = elements.markdownContent.querySelectorAll('pre code');
     codeBlocks.forEach((codeBlock) => {
         const pre = codeBlock.parentElement;
         if (pre.classList.contains('code-block-enhanced')) return;
+        // Mermaid 源码块（藏在 .mermaid-block 里，编辑模式下才显示）不做代码块增强
+        if (codeBlock.closest('.mermaid-block')) return;
 
         const langClass = Array.from(codeBlock.classList).find(cls => cls.startsWith('language-'));
         const lang = langClass ? langClass.replace('language-', '') : '';
 
         pre.classList.add('code-block-enhanced');
-        const rawCode = codeBlock.textContent;
+        const rawCode = window.Mojian.getCodeText ? window.Mojian.getCodeText(codeBlock) : codeBlock.textContent;
         const lines = rawCode.split('\n');
         if (lines[lines.length - 1] === '') lines.pop();
 
@@ -405,6 +475,7 @@ Mojian.highlightShellPrompts = highlightShellPrompts;
 Mojian.wrapTables = wrapTables;
 Mojian.applyTableColumnWidths = applyTableColumnWidths;
 Mojian.wrapImages = wrapImages;
+Mojian.alignImageCaptions = alignImageCaptions;
 Mojian.enhanceCodeBlocks = enhanceCodeBlocks;
 Mojian.copyCodeToClipboard = copyCodeToClipboard;
 Mojian.downloadCode = downloadCode;

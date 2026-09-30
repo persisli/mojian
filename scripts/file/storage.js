@@ -23,6 +23,11 @@ function loadSavedContent(restoredState) {
         state.currentFile = typeof savedFile === 'string' ? { name: savedFile } : (savedFile || {});
         state.content = contentToLoad;
 
+        // 让「段前缩进」设置项与文档实际段首空格保持一致
+        if (window.Mojian.syncIndentFromContent) {
+            window.Mojian.syncIndentFromContent(contentToLoad);
+        }
+
         var fileNameStr = state.currentFile.name || (typeof state.currentFile === 'string' ? state.currentFile : '');
         const fileExt = '.' + fileNameStr.split('.').pop().toLowerCase();
 

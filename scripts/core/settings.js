@@ -79,6 +79,23 @@ function applyOtherSettings() {
     elements.lineHeightValue.textContent = state.settings.lineHeight;
     elements.markdownContent.style.lineHeight = state.settings.lineHeight;
 
+    // 段落间距：滑块值 1.9（默认）≈ 原来的 7px，区间 1.0→0 / 2.5≈13.5px
+    const spacing = state.settings.paragraphSpacing || 1.9;
+    if (elements.paragraphSpacingSlider) elements.paragraphSpacingSlider.value = spacing;
+    if (elements.paragraphSpacingValue) elements.paragraphSpacingValue.textContent = Number(spacing).toFixed(1);
+    elements.markdownContent.style.setProperty('--paragraph-spacing', spacing);
+
+    // 段前缩进（用段首空格实现，只同步设置项 UI，不在这里改正文）
+    const indent = window.Mojian.clampIndentValue
+        ? window.Mojian.clampIndentValue(state.settings.paragraphIndent)
+        : state.settings.paragraphIndent;
+    if (elements.paragraphIndentSlider) elements.paragraphIndentSlider.value = indent;
+    if (elements.paragraphIndentValue) {
+        elements.paragraphIndentValue.textContent = window.Mojian.formatParagraphIndentValue
+            ? window.Mojian.formatParagraphIndentValue(indent)
+            : String(indent);
+    }
+
     elements.bgOpacitySlider.value = state.settings.bgOpacity;
     elements.bgOpacityValue.textContent = state.settings.bgOpacity + '%';
 }

@@ -31,6 +31,11 @@ function enterEditMode() {
     elements.markdownContent.setAttribute('contenteditable', 'true');
     elements.markdownContent.classList.add('editing');
 
+    // Mermaid 图在编辑模式下切回源码，允许直接修改
+    if (window.Mojian.setMermaidEditable) {
+        window.Mojian.setMermaidEditable(true);
+    }
+
     // 初始进入编辑模式时，隐藏状态栏
     elements.statusBar.style.display = 'none';
 
@@ -52,6 +57,7 @@ function enterEditMode() {
 
     elements.markdownContent.addEventListener('keydown', handleEditKeydown);
     elements.markdownContent.addEventListener('keyup', handleMarkdownSyntax);
+    elements.markdownContent.addEventListener('paste', handleCodeBlockPaste);
     elements.markdownContent.addEventListener('mousedown', handleImageMouseDown);
     elements.markdownContent.addEventListener('dblclick', handleBlankAreaDblClick);
     elements.markdownContent.addEventListener('mouseup', handleEditorMouseUp);
@@ -86,6 +92,7 @@ function exitEditMode() {
     elements.markdownContent.classList.remove('editing');
     elements.markdownContent.removeEventListener('keydown', handleEditKeydown);
     elements.markdownContent.removeEventListener('keyup', handleMarkdownSyntax);
+    elements.markdownContent.removeEventListener('paste', handleCodeBlockPaste);
     elements.markdownContent.removeEventListener('mousedown', handleImageMouseDown);
     elements.markdownContent.removeEventListener('dblclick', handleBlankAreaDblClick);
     elements.markdownContent.removeEventListener('mouseup', handleEditorMouseUp);
@@ -99,6 +106,19 @@ function exitEditMode() {
 
     const htmlContent = elements.markdownContent.innerHTML;
     state.content = window.Mojian.htmlToMarkdown(htmlContent);
+
+    // 按当前「段前缩进」设置统一一次段落段首空格（新敲的段落也符合设置）
+    if (window.Mojian.normalizeParagraphIndent) {
+        state.content = window.Mojian.normalizeParagraphIndent(state.content);
+    }
+
+    // Mermaid 图恢复为阅读态展示；源码可能被改过，按最新内容重画
+    if (window.Mojian.setMermaidEditable) {
+        window.Mojian.setMermaidEditable(false);
+    }
+    if (window.Mojian.renderMermaidBlocks) {
+        window.Mojian.renderMermaidBlocks(elements.markdownContent, { force: true });
+    }
 
     elements.editBtn.innerHTML = '<i data-lucide="pencil"></i>';
     lucide.createIcons();
@@ -275,6 +295,8 @@ function handleImageMouseUp() {
     irs.currentImage = null;
     irs.originalImg = null;
     window.Mojian.elements.markdownContent.style.pointerEvents = 'auto';
+    // 图片尺寸变了，图注需要重新对齐图片右边缘
+    if (window.Mojian.alignImageCaptions) window.Mojian.alignImageCaptions();
     document.removeEventListener('mousemove', handleImageMouseMove);
     document.removeEventListener('mouseup', handleImageMouseUp);
 }
@@ -656,6 +678,76 @@ function handleEditKeydown(e) {
             window.Mojian.elements.markdownContent.focus();
         }
     }
+}
+
+/**
+ * 代码块内粘贴：按纯文本插入，换行统一用 "\n" 文本节点
+ *
+ * 浏览器默认粘贴会把换行写成 <br> / 拆成 <div>（粘贴自网页时还会带上原页面的 HTML），
+ * 结果：行号只显示一个、首行错位、导出后各行挤成一行、Mermaid 源码解析失败。
+ * 这里只取剪贴板纯文本按行重建，保证代码块结构始终是「文本 + \n」。
+ */
+function handleCodeBlockPaste(e) {
+    const { state } = window.Mojian;
+    if (!state.isEditMode) return;
+
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) return;
+
+    const range = selection.getRangeAt(0);
+    let node = range.commonAncestorContainer;
+    if (node.nodeType === Node.TEXT_NODE) node = node.parentElement;
+    const codeEl = node && node.closest ? node.closest('pre code') : null;
+    if (!codeEl) return;
+
+    const clipboard = e.clipboardData || window.clipboardData;
+    if (!clipboard) return;
+    const text = clipboard.getData('text/plain');
+    if (!text) return;                              // 粘贴图片等：交给浏览器默认处理
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    // 空代码块里只有零宽占位符：先整体替换掉，避免占位符残留在粘贴内容前面
+    if (range.collapsed && !String(codeEl.textContent || '').replace(/\u200B/g, '').trim()) {
+        const all = document.createRange();
+        all.selectNodeContents(codeEl);
+        all.deleteContents();
+    } else if (!range.collapsed) {
+        range.deleteContents();
+    }
+
+    const lines = String(text).replace(/\r\n?/g, '\n').split('\n');
+    const fragment = document.createDocumentFragment();
+    let lastNode = null;
+    for (let i = 0; i < lines.length; i++) {
+        if (i > 0) {
+            lastNode = document.createTextNode('\n');
+            fragment.appendChild(lastNode);
+        }
+        if (lines[i]) {
+            lastNode = document.createTextNode(lines[i]);
+            fragment.appendChild(lastNode);
+        }
+    }
+    if (!lastNode) return;                          // 粘贴内容为空：不插入
+
+    range.insertNode(fragment);
+
+    // 光标停在插入内容之后
+    const caret = document.createRange();
+    caret.setStartAfter(lastNode);
+    caret.collapse(true);
+    selection.removeAllRanges();
+    selection.addRange(caret);
+
+    // 同步行号（仅增强代码块有行号）
+    const pre = codeEl.closest('pre');
+    const lineNumbers = pre ? pre.querySelector('.line-numbers') : null;
+    if (pre && lineNumbers && window.Mojian.updateCodeBlockLines) {
+        window.Mojian.updateCodeBlockLines(pre, codeEl, lineNumbers);
+    }
+    if (window.Mojian.recordHistoryNow) window.Mojian.recordHistoryNow();
 }
 
 /**
@@ -1054,6 +1146,7 @@ Mojian.handleImageMouseDown = handleImageMouseDown;
 Mojian.handleImageMouseMove = handleImageMouseMove;
 Mojian.handleImageMouseUp = handleImageMouseUp;
 Mojian.handleEditKeydown = handleEditKeydown;
+Mojian.handleCodeBlockPaste = handleCodeBlockPaste;
 Mojian.handleMarkdownSyntax = handleMarkdownSyntax;
 Mojian.applySupSubSyntax = applySupSubSyntax;
 Mojian.initEditor = initEditor;

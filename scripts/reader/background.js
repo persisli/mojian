@@ -200,6 +200,10 @@ function toggleTheme() {
     } else {
         window.Mojian.applyBackground();
     }
+    // Mermaid 图按新主题重画（暗色/亮色的图内配色不同）
+    if (window.Mojian.refreshMermaidTheme) {
+        window.Mojian.refreshMermaidTheme();
+    }
 }
 
 function applyTheme() {

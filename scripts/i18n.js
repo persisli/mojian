@@ -66,6 +66,13 @@ const i18n = {
             // Line Height
             'settings.lineHeight.label': '行高设置',
             
+            // Paragraph Spacing
+            'settings.paragraphSpacing.label': '段落间距',
+            
+            // Paragraph Indent
+            'settings.paragraphIndent.label': '段前缩进',
+            'settings.paragraphIndent.value': '{n} 字',
+            
             // Background Opacity
             'settings.bgOpacity.label': '背景不透明度',
             
@@ -141,6 +148,14 @@ const i18n = {
             'toast.exitEditMode': '退出编辑模式',
             'toast.saveSuccess': '保存成功',
             'toast.fileNameUpdated': '文件名已更新',
+            'toast.urlImporting': '正在抓取并解析链接内容…',
+            'toast.urlImportSuccess': '链接内容已导入',
+            'toast.urlImportFailed': '链接解析失败，请稍后重试',
+            'toast.urlImportBlocked': '无法抓取该链接（站点跨域限制），请稍后重试',
+            'toast.urlImportRateLimited': '抓取过于频繁，请等待 {seconds} 秒后再试',
+            'toast.urlImportUnauthorized': '代理令牌校验失败，请检查同源代理的令牌配置',
+            'toast.urlImportSame': '当前已是该链接的内容，无需重复导入',
+            'toast.urlImportFromCache': '已从本地缓存载入（未重新抓取）',
             
             // Code Block Actions
             'code.download': '下载',
@@ -277,6 +292,13 @@ const i18n = {
             // Line Height
             'settings.lineHeight.label': 'Line Height',
             
+            // Paragraph Spacing
+            'settings.paragraphSpacing.label': 'Paragraph Spacing',
+            
+            // Paragraph Indent
+            'settings.paragraphIndent.label': 'Paragraph Indent',
+            'settings.paragraphIndent.value': '{n}',
+            
             // Background Opacity
             'settings.bgOpacity.label': 'Background Opacity',
             
@@ -352,6 +374,14 @@ const i18n = {
             'toast.exitEditMode': 'Exit edit mode',
             'toast.saveSuccess': 'Saved successfully',
             'toast.fileNameUpdated': 'File name updated',
+            'toast.urlImporting': 'Fetching and parsing the link…',
+            'toast.urlImportSuccess': 'Link content imported',
+            'toast.urlImportFailed': 'Failed to parse the link, please try again later',
+            'toast.urlImportBlocked': 'Unable to fetch this link (cross-origin restricted), please try again later',
+            'toast.urlImportRateLimited': 'Too many requests, please wait {seconds}s and try again',
+            'toast.urlImportUnauthorized': 'Proxy token rejected, please check the proxy token config',
+            'toast.urlImportSame': 'This link is already open, no need to import again',
+            'toast.urlImportFromCache': 'Loaded from local cache (not re-fetched)',
             
             // Code Block Actions
             'code.download': 'Download',

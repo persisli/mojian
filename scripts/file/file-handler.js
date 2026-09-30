@@ -64,6 +64,9 @@ function processFile(file) {
 
         if (fileExt === '.log') {
             content = window.Mojian.cleanLogContent(content);
+        } else if (window.Mojian.applyDetectedParagraphIndent) {
+            // 自动识别原文段前缩进（有则保留、无则保持无），并写回设置项
+            content = window.Mojian.applyDetectedParagraphIndent(content);
         }
         state.content = content;
         console.log('File loaded:', file.name, 'Size:', content.length);

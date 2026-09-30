@@ -21,6 +21,8 @@ function handleResize() {
     if (window.Mojian.resizeTimer) clearTimeout(window.Mojian.resizeTimer);
     window.Mojian.resizeTimer = setTimeout(() => {
         handleScroll();
+        // 图片宽度随窗口变化，图注需要重新对齐图片右边缘
+        if (window.Mojian.alignImageCaptions) window.Mojian.alignImageCaptions();
     }, 100);
 }
 

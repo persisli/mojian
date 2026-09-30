@@ -399,6 +399,39 @@ function bindSettingsEvents() {
         window.Mojian.saveSettings();
     });
 
+    elements.paragraphSpacingSlider.addEventListener('input', (e) => {
+        const value = parseFloat(e.target.value);
+        state.settings.paragraphSpacing = value;
+        elements.paragraphSpacingValue.textContent = value.toFixed(1);
+        elements.markdownContent.style.setProperty('--paragraph-spacing', value);
+        window.Mojian.saveSettings();
+    });
+
+    // 段前缩进：拖动时即时改段落段首空格（rAF 合并，避免长文拖动卡顿），松手后同步回正文存档
+    let indentRaf = null;
+    elements.paragraphIndentSlider.addEventListener('input', (e) => {
+        const value = parseInt(e.target.value, 10);
+        state.settings.paragraphIndent = value;
+        elements.paragraphIndentValue.textContent = window.Mojian.formatParagraphIndentValue(value);
+        window.Mojian.saveSettings();
+
+        if (indentRaf) cancelAnimationFrame(indentRaf);
+        indentRaf = requestAnimationFrame(() => {
+            indentRaf = null;
+            window.Mojian.applyParagraphIndentToDom(state.settings.paragraphIndent);
+        });
+    });
+
+    elements.paragraphIndentSlider.addEventListener('change', () => {
+        window.Mojian.persistParagraphIndent();
+    });
+
+    // 语言切换后刷新「2 字」这类带单位的显示
+    window.addEventListener('languageChanged', () => {
+        elements.paragraphIndentValue.textContent =
+            window.Mojian.formatParagraphIndentValue(state.settings.paragraphIndent);
+    });
+
     elements.bgOpacitySlider.addEventListener('input', (e) => {
         if (state.isDarkMode) {
             window.Mojian.showToast('黑暗模式下无法更改背景设置', 'error');

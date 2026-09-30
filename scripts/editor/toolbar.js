@@ -1683,7 +1683,7 @@ function insertCodeBlockFromFence(node, lang) {
  * 全局行号更新函数（供 editor.js 的 handleEditKeydown 调用）
  */
 function updateCodeBlockLines(pre, code, lineNumbers) {
-    var rawText = code.textContent || '';
+    var rawText = window.Mojian.getCodeText ? window.Mojian.getCodeText(code) : (code.textContent || '');
     // 零宽空格(\u200B)标记用户按回车创建的空行，需要据此判断是否弹出末尾空行
     var hasUserNewline = rawText.indexOf('\u200B') !== -1 && rawText.replace(/\u200B/g, '').endsWith('\n');
     var text = rawText.replace(/\u200B/g, '');
@@ -1727,7 +1727,7 @@ function setupCodeBlockSync(pre, code, lineNumbers) {
     var lastLineCount = parseInt(pre.dataset.lineCount) || lineNumbers.children.length || 0;
 
     var updateLines = function() {
-        var rawText = code.textContent || '';
+        var rawText = window.Mojian.getCodeText ? window.Mojian.getCodeText(code) : (code.textContent || '');
         var hasUserNewline = rawText.indexOf('\u200B') !== -1 && rawText.replace(/\u200B/g, '').endsWith('\n');
         var text = rawText.replace(/\u200B/g, '');
         var lines = text.split('\n');
