@@ -282,6 +282,8 @@ PHP_CLI_SERVER_WORKERS=4 php -S localhost:8081
 | `$EXTRA_ALLOWED_HOSTS` | `[]` | 反向代理改写了 Host、导致本站 Origin 对不上时，把本站域名填进来（可只写域名，如 `['mojian.example.com']`） |
 | `$RATE_DIR` | 系统临时目录 | 限速计数文件位置；目录不可写时会自动放行限速（不影响功能） |
 | `$TRUST_PROXY_HEADER` | `false` | 跑在 Cloudflare / Nginx 反代后面时置 `true`，改用真实访客 IP 分桶（同时用 `X-Forwarded-Proto` 判断默认端口） |
+| `$FALLBACK_FETCH` | `''`（关闭） | 备用抓取端点，用 `{url}` 占位目标地址。**直连拿到目标站的 WAF 挑战页时自动改走它**，把「要干净出口 IP」的那一层检查转出去，例如 `https://my-worker.example.workers.dev/?url={url}`、`https://api.scraperapi.com/?api_key=xxx&url={url}`；命中时响应头带 `X-Proxy-Via: fallback` |
+| `$FALLBACK_TIMEOUT` | 20 | 备用端点的总超时（秒） |
 
 部署后自检：直接打开 `https://你的域名/proxy.php?ping=1`，应返回类似
 `{"ok":true,...,"token":true,"rate":"10/60s","repeat":"reuse 600s","max":8388608,"origin":"allow-no-origin"}`。
@@ -312,6 +314,12 @@ PHP_CLI_SERVER_WORKERS=4 php -S localhost:8081
 | `file://` 直接打开 | ❌ | 除 URL 导入外功能齐全 |
 
 > 内置的公共 CORS 代理（allorigins / codetabs / corsproxy）只是兜底通道，实测不稳定，且会把目标 URL 交给第三方，不建议依赖。
+
+> **免费虚拟主机的一个坑（一）——本站自己的反爬**：iFastNet / InfinityFree 系（如 iceiy.com 等）会给**没有 `__test` Cookie** 的请求返回一段 `aes.js` 反爬挑战页（HTTP 200 + HTML，内容约 1KB），而不是真正的响应。前端抓取按 `credentials: 'same-origin'` 带上本站 Cookie，所以：**必须先在浏览器里正常打开过本站页面（跑完挑战、拿到 `__test` Cookie）**，粘贴导入才可用；若控制台出现「拿到的是本站主机的反爬挑战页」，刷新页面通过挑战后再试即可（Cookie 有效期 6 小时）。
+
+> **免费虚拟主机的一个坑（二）——目标站自己的 WAF**：有些站点（最典型的是掘金，字节系）会给「可疑来源」——机房/共享 IP、非浏览器 TLS 指纹——返回一个约 2KB 的 **JS 挑战页**（`waf-jschallenge` / `out-sha256.js`）。浏览器能解、PHP 的 curl 解不了，所以**这类站点在虚拟主机上抓不到正文，而本地 `php -S`（家宽 IP）通常正常**——这属于目标站的限制，不是 `proxy.php` 的问题。典型现象：主机侧 `proxy.php?url=<掘金链接>` 只返回 2KB HTML，而同样的链接本机抓取正常。实测：iFastNet 免费主机出口 IP 为英国机房 IP（`185.27.134.x`，AS34119），掘金一律返回挑战页；同一时刻本机（家宽）直连掘金可拿到 126KB 真实页面。前端会识别这种响应并提示「该站点启用了反爬（WAF）」，不再报含糊的「正文为空」。
+
+需要在虚拟主机上支持这类站点，只有一条路：**把这一层检查交给出口 IP 干净的一方**，即配置 `proxy.php` 顶部的 `$FALLBACK_FETCH`（自建 VPS / 家宽 + Cloudflare Tunnel / 带 JS 渲染的抓取 API，都用 `{url}` 占位目标地址）。配好后：直连撞到 WAF 挑战页 → 自动改走备用端点，命中的响应会带 `X-Proxy-Via: fallback`，前端控制台也会写明「已改走备用端点」。注意免费公共中转（allorigins / codetabs / corsproxy / r.jina.ai）实测同样过不了掘金的 WAF —— allorigins 拿到的也是那张挑战页，所以别指望用它们顶替。
 
 ## 8. 目录结构
 

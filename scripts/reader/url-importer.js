@@ -871,12 +871,18 @@
         var ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
         var ms = timeout || REMOTE_TIMEOUT;
         var timer = setTimeout(function () { if (ctrl) ctrl.abort(); }, ms);
-        var opts = { credentials: 'omit', redirect: 'follow', referrerPolicy: 'no-referrer', cache: 'no-store' };
+        // credentials 必须带本站 Cookie：免费虚拟主机（iFastNet / InfinityFree 系，如 iceiy.com）
+        // 会给「没有 __test Cookie」的请求返回一段 aes.js 挑战页（HTTP 200 + text/html），
+        // 用 'omit' 时浏览器连本站请求也不带 Cookie，探活拿到的就是挑战页、JSON 解析失败，
+        // 于是同源 proxy.php 被误判为「不存在」而整个通道被跳过。'same-origin' 只对本站请求
+        // 带 Cookie，跨域的公共代理仍然不带（等同于原来的 'omit'）。
+        var opts = { credentials: 'same-origin', redirect: 'follow', referrerPolicy: 'no-referrer', cache: 'no-store' };
         if (ctrl) opts.signal = ctrl.signal;
 
         return fetch(target, opts).then(function (res) {
             var ct = res.headers.get('content-type') || '';
             var viaElapsed = res.headers.get('x-proxy-elapsed');
+            var proxyVia = res.headers.get('x-proxy-via') || '';
             if (!res.ok) {
                 // 代理失败时会带上原因（如 curl 错误），一并抛出来便于排查；
                 // 429（限速）/ 401（令牌不对）要把状态码带给调用方，走专门的提示
@@ -891,7 +897,12 @@
             return res.arrayBuffer().then(function (buf) {
                 clearTimeout(timer);
                 if (buf.byteLength > MAX_HTML_BYTES) throw new Error('TOO_LARGE');
-                return { text: decodeBuffer(buf, ct), contentType: ct, proxyElapsed: viaElapsed };
+                return {
+                    text: decodeBuffer(buf, ct),
+                    contentType: ct,
+                    proxyElapsed: viaElapsed,
+                    proxyVia: proxyVia
+                };
             });
         }).catch(function (err) {
             clearTimeout(timer);
@@ -908,6 +919,34 @@
             /<html[\s>]|<body[\s>]|<!doctype\s+html/i.test(t.slice(0, 4000));
     }
 
+    /**
+     * 是否是免费虚拟主机的「反爬挑战页」
+     *
+     * iFastNet / InfinityFree 系（iceiy.com 等）会给没有 __test Cookie 的请求返回一个
+     * 约 1KB 的页面：加载 /aes.js 解密出 __test 写进 Cookie 再跳回 ?i=1。
+     * 这种页面同样是 <html>，会被 looksLikeHtml 判为「正常网页」，
+     * 于是解析器把挑战页当正文，最后报「未识别到正文」——需要提前识别出来。
+     */
+    function looksLikeChallenge(t) {
+        return typeof t === 'string' && t.length < 8192 &&
+            /__test=/.test(t) && /(aes\.js|slowAES)/i.test(t);
+    }
+
+    /**
+     * 是否是「目标站自己的 WAF 挑战页」
+     *
+     * 和上面那条不同：这条说的是**目标网站**在刁难我们这一侧的服务端。
+     * 例如掘金（字节系）会给可疑来源（机房 IP、非浏览器 TLS 指纹）返回一个约 2KB 的
+     * JS 挑战页（waf-jschallenge / out-sha256.js），浏览器能解、PHP 的 curl 不能解，
+     * 所以服务端永远抓不到正文。这类页面同样是 text/html，不识别出来就会走到
+     * 「正文为空」那条更含糊的报错上。
+     * 判定依据：页面很小 + 含挑战特征（字节系 waf / Cloudflare 盾页）。
+     */
+    function looksLikeWafChallenge(t) {
+        if (typeof t !== 'string' || !t || t.length > 12000) return false;
+        return /(waf-jschallenge|out-sha256\.js|waf_js|__cf_chl_|cdn-cgi\/challenge|Just a moment\.\.\.)/i.test(t);
+    }
+
     /** 抓到的正文容器是否可用（短稿只要有段落或图片也算） */
     function isUsableBody(c) {
         if (!c) return false;
@@ -916,9 +955,9 @@
         return pTextOf(c) >= 40 || c.getElementsByTagName('img').length > 0;
     }
 
-    /** 探活同源 proxy.php（3s 内无响应即视为不可用） */
+    /** 探活同源 proxy.php（5s 内无响应即视为不可用；免费虚拟主机首次编译 PHP 可能偏慢） */
     function probeLocalProxy() {
-        return requestText(LOCAL_PROXY_PING, 3000).then(function (res) {
+        return requestText(LOCAL_PROXY_PING, 5000).then(function (res) {
             var info = null;
             try { info = JSON.parse(res.text); } catch (e) {}
             if (info && info.ok) {
@@ -926,6 +965,12 @@
                     '，curl=' + (info.curl ? 'on' : 'off') + '，allow_url_fopen=' + (info.fopen ? 'on' : 'off') + '）');
                 return true;
             }
+            if (looksLikeChallenge(res.text)) {
+                console.warn('[url-import] 探活拿到的是主机反爬挑战页（缺少 __test Cookie），' +
+                    '本次跳过同源 proxy.php；请刷新页面、通过主机挑战后再试。');
+                return false;
+            }
+            console.info('[url-import] 同源 proxy.php 探活返回的不是预期 JSON，本次跳过该通道。');
             return false;
         }).catch(function (err) {
             console.info('[url-import] 未检测到同源代理 proxy.php：' + ((err && err.message) || err));
@@ -946,6 +991,7 @@
             var attempts = channels.map(function (ch) {
                 return {
                     name: ch.name,
+                    local: !!ch.local,
                     timeout: ch.timeout,
                     target: ch.template ? ch.template.replace('{url}', encodeURIComponent(url)) : url
                 };
@@ -954,25 +1000,43 @@
             // 限速 / 令牌错误属于「本渠道被拒」，要继续试公共代理没有意义，
             // 记下来后立刻放弃剩余通道，让上层给出明确提示
             var fatal = null;
+            // 目标站 WAF 挑战：所有通道都可能撞上，单独记一笔好在全失败时给出准确原因
+            var wafBlocked = false;
 
             return attempts.reduce(function (chain, attempt) {
                 return chain.catch(function () {
                     if (fatal) return Promise.reject(new Error(fatal.code));
                     return requestText(attempt.target, attempt.timeout).then(function (res) {
+                        // 挑战页长得像网页，但不是内容：先拦掉，避免把挑战页当正文解析
+                        if (looksLikeChallenge(res.text)) {
+                            throw new Error('拿到的是本站主机的反爬挑战页（刷新页面通过挑战后再试）');
+                        }
+                        if (looksLikeWafChallenge(res.text)) {
+                            wafBlocked = true;
+                            throw new Error('目标站返回 WAF 挑战页（服务端无 JS 执行能力，无法通过）');
+                        }
                         if (!check(res.text)) throw new Error('返回内容格式不符');
                         res.via = attempt.name;
+                        var viaNote = res.proxyVia === 'waf-solved'
+                            ? '（服务端解了目标站的 WAF 挑战）'
+                            : (res.proxyVia === 'fallback'
+                                ? '（直连被目标站 WAF 挡住，已改走 proxy.php 的备用端点）'
+                                : '');
                         console.info('[url-import] 通过「' + attempt.name + '」抓取成功' +
+                            (viaNote ? viaNote : '') +
                             (res.proxyElapsed ? '（服务端耗时 ' + res.proxyElapsed + 'ms）' : ''));
                         return res;
                     }).catch(function (err) {
-                        if (err && (err.status === 429 || err.status === 401)) {
+                        // 429 / 401 / 403 的「专用提示」只对同源 proxy.php 成立；
+                        // 公共代理返回 429/401/403 时若也走这里，会误报成限速或令牌问题
+                        if (attempt.local && err && (err.status === 429 || err.status === 401)) {
                             fatal = {
                                 code: err.status === 429 ? 'RATE_LIMITED' : 'UNAUTHORIZED',
                                 retryAfter: err.retryAfter || 0
                             };
                             return Promise.reject(new Error(fatal.code));
                         }
-                        if (err && err.status === 403) {
+                        if (attempt.local && err && err.status === 403) {
                             // 同源校验拒绝：多见于「反代改写了 Host」或跨站页面调用代理，
                             // 不是内容问题，继续试公共代理仍可能成功，所以只提示不中断
                             console.warn('[url-import] 通道「' + attempt.name + '」被同源校验拒绝（403）:',
@@ -991,11 +1055,26 @@
                     denied.retryAfter = fatal.retryAfter;
                     throw denied;
                 }
+                if (wafBlocked) {
+                    // 目标站有 WAF（掘金等字节系站点最常见）：服务端 curl 解不了 JS 挑战，
+                    // 换通道也没用，直接给出准确原因，别再报「正文为空」
+                    console.warn('[url-import] 目标站启用了 WAF 反爬，服务端抓不到正文：' + url + '\n' +
+                        '  本站抓取走的是服务器出口 IP（机房/共享 IP 常被 WAF 挑战），' +
+                        '浏览器直连又受跨域限制，因此这类站点在虚拟主机上抓不到；\n' +
+                        '  出路是把「这一层检查」交给出口 IP 干净的一方：' +
+                        '在 proxy.php 顶部配置 $FALLBACK_FETCH（自建 VPS / 家宽隧道 / 支持 JS 渲染的抓取 API），' +
+                        '直连撞到 WAF 挑战页时会自动改走它；\n' +
+                        '  本地 php -S（家宽 IP）通常可以直接抓，可作为替代方案。');
+                    throw new Error('WAF_BLOCKED');
+                }
                 if (!hasLocal) {
-                    console.warn('[url-import] 未检测到同源 proxy.php。请在项目目录执行：\n' +
-                        '  PowerShell:  $env:PHP_CLI_SERVER_WORKERS=4; php -S localhost:8081\n' +
-                        '然后访问 http://localhost:8081/index.html，即可通过同源代理抓取，彻底绕开 CORS。\n' +
-                        '（PHP 内置服务器默认单线程，加 WORKERS 可避免抓取期间阻塞页面其它请求）');
+                    console.warn('[url-import] 未检测到可用的同源 proxy.php（本次未尝试该通道）。\n' +
+                        '  · 线上 PHP 虚拟主机：地址栏直接打开 <站点>/proxy.php?ping=1 应返回 JSON；\n' +
+                        '    若返回 HTML（免费主机的反爬挑战页），先刷新页面通过挑战再重试；\n' +
+                        '  · 本地无 PHP 服务：在项目目录执行\n' +
+                        '      PowerShell:  $env:PHP_CLI_SERVER_WORKERS=4; php -S localhost:8081\n' +
+                        '    然后访问 http://localhost:8081/index.html，即可通过同源代理抓取，彻底绕开 CORS。\n' +
+                        '    （PHP 内置服务器默认单线程，加 WORKERS 可避免抓取期间阻塞页面其它请求）');
                 } else {
                     console.warn('[url-import] 同源代理与公共代理均未成功。可先在地址栏直接打开 ' +
                         '"proxy.php?url=<目标地址>" 查看服务端返回的具体原因（服务端耗时见响应头 X-Proxy-Elapsed）。');
@@ -1272,6 +1351,10 @@
                 console.error('[url-import] 代理令牌校验失败:', err);
                 msg = t('toast.urlImportUnauthorized') ||
                     '代理令牌校验失败：请确认 proxy.php 与 url-importer.js 的令牌一致';
+            } else if (err && err.message === 'WAF_BLOCKED') {
+                // 目标站有 WAF（如掘金）：不是网络抖动，重试也没用，直接说清原因
+                msg = t('toast.urlImportWafBlocked') ||
+                    '该站点启用了反爬（WAF）：服务器出口 IP 被挑战，服务端抓不到正文。可换个链接，或改用本地 php -S 服务解析';
             } else {
                 console.error('[url-import] 解析失败:', err);
                 msg = t('toast.urlImportFailed') || '链接解析失败，请检查网络或稍后重试';

@@ -154,6 +154,7 @@ const i18n = {
             'toast.urlImportBlocked': '无法抓取该链接（站点跨域限制），请稍后重试',
             'toast.urlImportRateLimited': '抓取过于频繁，请等待 {seconds} 秒后再试',
             'toast.urlImportUnauthorized': '代理令牌校验失败，请检查同源代理的令牌配置',
+            'toast.urlImportWafBlocked': '该站点启用了反爬（WAF）：服务器出口 IP 被挑战，服务端抓不到正文。可换个链接，或改用本地 php -S 服务解析',
             'toast.urlImportSame': '当前已是该链接的内容，无需重复导入',
             'toast.urlImportFromCache': '已从本地缓存载入（未重新抓取）',
             
@@ -380,6 +381,7 @@ const i18n = {
             'toast.urlImportBlocked': 'Unable to fetch this link (cross-origin restricted), please try again later',
             'toast.urlImportRateLimited': 'Too many requests, please wait {seconds}s and try again',
             'toast.urlImportUnauthorized': 'Proxy token rejected, please check the proxy token config',
+            'toast.urlImportWafBlocked': 'This site is protected by a WAF: the server IP is challenged and the article cannot be fetched server-side. Try another link, or run the local php -S server instead',
             'toast.urlImportSame': 'This link is already open, no need to import again',
             'toast.urlImportFromCache': 'Loaded from local cache (not re-fetched)',
             
