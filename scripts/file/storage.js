@@ -43,7 +43,7 @@ function loadSavedContent(restoredState) {
         window.Mojian.updateReadingStats(state.wordCount);
 
         if (restoredState && restoredState.isEditMode) {
-            window.Mojian.enterEditMode();
+            enterEditModeWhenReady();
         }
 
         if (restoredState && typeof restoredState.scrollY === 'number') {
@@ -51,6 +51,22 @@ function loadSavedContent(restoredState) {
                 window.scrollTo(0, restoredState.scrollY);
             }, 150);
         }
+    }
+}
+
+/**
+ * 恢复「刷新前处于编辑模式」的状态。
+ * editor.js 是延后加载脚本，首屏此刻可能还没就绪 → 等脚本到位后再切编辑模式。
+ */
+function enterEditModeWhenReady() {
+    if (window.Mojian.enterEditMode) {
+        window.Mojian.enterEditMode();
+        return;
+    }
+    if (window.Mojian.ensureFeature) {
+        window.Mojian.ensureFeature('editor').then(function () {
+            if (window.Mojian.enterEditMode) window.Mojian.enterEditMode();
+        });
     }
 }
 

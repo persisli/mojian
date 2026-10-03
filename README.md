@@ -342,7 +342,9 @@ scripts/
   app.js / i18n.js      入口与中英文案
 ```
 
-> **改了 `scripts/` / `styles/` 之后**：请同步改掉 `index.html` 里各资源链接的 `?v=20261001` 以及 `styles/main.css` 中所有 `@import` 的版本号（两处必须一致），否则浏览器可能继续使用旧脚本 / 旧样式，出现「代码块样式错乱」这类假故障。
+> **改了 `scripts/` / `styles/` 之后**：请同步改掉 `index.html` 里各资源链接的 `?v=` 版本号；若改的是 `styles/` 目录下的样式，也要改 `index.html` 中对应的 `<link rel="stylesheet" ... ?v=>`（样式已改为在 HTML 中直接并行声明，`styles/main.css` 不再是入口，只作为样式清单索引），否则浏览器可能继续使用旧脚本 / 旧样式，出现「代码块样式错乱」这类假故障。
+>
+> **首屏加载策略**：`libs/turndown.js`、`scripts/editor/*`、`scripts/export/export.js`、`scripts/reader/url-importer.js`、`scripts/easter-eggs/matrix-rain.js`、`libs/prism*.js` 已移出首屏关键路径，由 `scripts/core/lazy-loader.js` 在首屏绘制后的空闲时段注入，并在「编辑 / 导出 / 矩阵雨」等交互触发时提前加载。若新增首屏用不到的脚本，请登记到 `lazy-loader.js` 的 `DEFERRED_FILES`，并确认所有调用处都做了「未就绪」守卫。
 
 ---
 

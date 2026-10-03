@@ -305,6 +305,31 @@
         if (window.Mojian.enhanceCodeBlocks) window.Mojian.enhanceCodeBlocks();
     }
 
+    /**
+     * 升级「降级渲染」的 Mermaid 源码块
+     *
+     * 首次渲染时 editor/toolbar.js（提供 createCodeBlockElement）可能还没加载，
+     * 此时源码块只能退化成裸 <pre>；等延后脚本就绪后补一次完整增强，
+     * 让它和普通代码块一样带标题栏与行号。
+     */
+    function upgradeFallbackSourceBlocks() {
+        if (!window.Mojian.createCodeBlockElement) return;
+        var blocks = document.querySelectorAll('.mermaid-block');
+        for (var i = 0; i < blocks.length; i++) {
+            var block = blocks[i];
+            var pre = block.querySelector('pre.mermaid-source');
+            // 降级渲染出来的 pre 也带 code-block-enhanced 类，只能靠「有没有标题栏」判断是否已完整增强
+            if (!pre || pre.querySelector('.code-block-header')) continue;
+            var code = pre.querySelector('code') || pre;
+            var raw = rawCodeOf(code);
+            if (!raw) continue;
+            var enhanced = window.Mojian.createCodeBlockElement('mermaid', raw, true).pre;
+            if (!enhanced) continue;
+            enhanced.classList.add('mermaid-source');
+            pre.parentNode.replaceChild(enhanced, pre);
+        }
+    }
+
     /* ================================================================
      * 配色：未显式指定样式的节点轮转多种浅色 + 明暗对比修正
      * ================================================================ */
@@ -531,4 +556,10 @@
     MJ.setMermaidEditable = setMermaidEditable;
     MJ.mermaidIsSource = isMermaidSource;
     MJ.ensureMermaid = ensureMermaid;
+    MJ.upgradeFallbackSourceBlocks = upgradeFallbackSourceBlocks;
+
+    // 延后脚本（toolbar.js）就绪后，把降级渲染的源码块补成完整代码块
+    if (typeof MJ.onDeferredReady === 'function') {
+        MJ.onDeferredReady(upgradeFallbackSourceBlocks);
+    }
 })();

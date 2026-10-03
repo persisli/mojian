@@ -1,40 +1,26 @@
 /* ========================================
    墨笈 · 优雅Markdown阅读器 - 样式表
-   模块化入口文件：按功能拆分，按依赖顺序加载
+   ========================================
+
+   注意：样式已改为在 index.html 的 <head> 中以多个 <link rel="stylesheet">
+   并行声明（原先由本文件用 @import 串行拉取，会多出一轮往返并阻塞首屏渲染）。
+
+   本文件仅保留为「样式清单索引」，请勿再引入，否则会与 index.html 中的
+   link 重复下载同一批样式。新增样式时，请同步更新 index.html 中的
+   <link> 标签（含 ?v= 版本号）。
    ======================================== */
 
-/* 1. 变量与主题（必须最先加载） */
-@import url('variables.css?v=20261005');
-
-/* 2. 重置与基础样式 */
-@import url('base.css?v=20261005');
-
-/* 3. 顶部导航栏 */
-@import url('header.css?v=20261005');
-
-/* 4. 编辑工具栏 */
-@import url('editor.css?v=20261005');
-
-/* 5. 设置侧边栏 */
-@import url('sidebar.css?v=20261005');
-
-/* 6. 主内容区（欢迎页 / 阅读区 / Markdown渲染） */
-@import url('content.css?v=20261005');
-
-/* 7. 底部状态栏 */
-@import url('status-bar.css?v=20261005');
-
-/* 8. 弹窗 & 下拉菜单 */
-@import url('modals.css?v=20261005');
-
-/* 9. 目录导航 */
-@import url('toc.css?v=20261005');
-
-/* 10. 通知提示 */
-@import url('toast.css?v=20261005');
-
-/* 11. Prism.js 代码高亮覆盖 */
-@import url('prism-overrides.css?v=20261005');
-
-/* 12. 响应式 & 无障碍（必须最后加载） */
-@import url('responsive.css?v=20261005');
+/* 加载顺序（与 index.html 中的声明顺序一致）：
+   1. 变量与主题（必须最先加载）      styles/variables.css
+   2. 重置与基础样式                  styles/base.css
+   3. 顶部导航栏                      styles/header.css
+   4. 编辑工具栏                      styles/editor.css
+   5. 设置侧边栏                      styles/sidebar.css
+   6. 主内容区（欢迎页 / 阅读区）      styles/content.css
+   7. 底部状态栏                      styles/status-bar.css
+   8. 弹窗 & 下拉菜单                 styles/modals.css
+   9. 目录导航                        styles/toc.css
+   10. 通知提示                       styles/toast.css
+   11. Prism.js 代码高亮覆盖          styles/prism-overrides.css
+   12. 响应式 & 无障碍（必须最后加载）  styles/responsive.css
+*/

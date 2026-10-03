@@ -1080,14 +1080,75 @@ function applyTaskListSyntax() {
     selection.addRange(newRange);
 }
 
-function initEditor() {
-    try {
-        if (!window.TiptapEditor) {
-            console.warn('Tiptap not loaded yet, retrying...');
-            setTimeout(initEditor, 500);
-            return;
+/**
+ * 按需从 jsDelivr 拉取 Tiptap（Import Map + ESM）
+ *
+ * 之前这 8 个 ESM 模块写死在 index.html 的 <head> 里，主页一打开就会并发请求 CDN，
+ * 但编辑模式实际走 contenteditable，Tiptap 从未被启用 → 纯粹的首屏开销。
+ * 现在改为真正要用编辑器时再加载。
+ */
+var TIPTAP_VERSION = '2.1.0';
+var tiptapLoading = null;
+
+function loadTiptap() {
+    if (window.TiptapEditor) return Promise.resolve(window.TiptapEditor);
+    if (tiptapLoading) return tiptapLoading;
+
+    tiptapLoading = new Promise(function (resolve, reject) {
+        var specs = [
+            ['@tiptap/core', 'Editor'],
+            ['@tiptap/starter-kit', 'StarterKit'],
+            ['@tiptap/extension-link', 'Link'],
+            ['@tiptap/extension-image', 'Image'],
+            ['@tiptap/extension-table', 'Table'],
+            ['@tiptap/extension-table-row', 'TableRow'],
+            ['@tiptap/extension-table-cell', 'TableCell'],
+            ['@tiptap/extension-table-header', 'TableHeader']
+        ];
+
+        var imports = {};
+        var names = [];
+        specs.forEach(function (spec) {
+            imports[spec[0]] = 'https://cdn.jsdelivr.net/npm/' + spec[0] + '@' + TIPTAP_VERSION + '/+esm';
+            names.push(spec[1]);
+        });
+
+        // importmap 必须在任何模块脚本之前出现
+        var importMap = document.createElement('script');
+        importMap.type = 'importmap';
+        importMap.textContent = JSON.stringify({ imports: imports });
+        document.head.appendChild(importMap);
+
+        var moduleScript = document.createElement('script');
+        moduleScript.type = 'module';
+        moduleScript.textContent =
+            'import { ' + names.join(', ') + ' } from ' + JSON.stringify(imports['@tiptap/core']) + ';\n' +
+            'window.TiptapEditor = { ' + names.join(', ') + ' };\n' +
+            'window.dispatchEvent(new CustomEvent("tiptap-ready"));\n';
+        moduleScript.onerror = function () {
+            tiptapLoading = null;
+            reject(new Error('Tiptap modules failed to load'));
+        };
+        document.head.appendChild(moduleScript);
+
+        function onReady() {
+            window.removeEventListener('tiptap-ready', onReady);
+            if (window.TiptapEditor) {
+                resolve(window.TiptapEditor);
+            } else {
+                tiptapLoading = null;
+                reject(new Error('Tiptap modules loaded but not exported'));
+            }
         }
-        const { Editor, StarterKit, Link, Image, Table, TableRow, TableCell, TableHeader } = window.TiptapEditor;
+        window.addEventListener('tiptap-ready', onReady);
+    });
+
+    return tiptapLoading;
+}
+
+async function initEditor() {
+    try {
+        const { Editor, StarterKit, Link, Image, Table, TableRow, TableCell, TableHeader } = await loadTiptap();
         const { state, elements } = window.Mojian;
 
         state.editor = new Editor({
@@ -1150,5 +1211,6 @@ Mojian.handleCodeBlockPaste = handleCodeBlockPaste;
 Mojian.handleMarkdownSyntax = handleMarkdownSyntax;
 Mojian.applySupSubSyntax = applySupSubSyntax;
 Mojian.initEditor = initEditor;
+Mojian.loadTiptap = loadTiptap;
 Mojian.autoSaveContent = autoSaveContent;
 Mojian.loadSavedDraft = loadSavedDraft;

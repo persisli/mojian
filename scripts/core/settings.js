@@ -71,6 +71,10 @@ function applyOtherSettings() {
 
     setCustomSelectValue('fontSelect', state.settings.fontFamily);
     elements.markdownContent.style.fontFamily = state.settings.fontFamily;
+    // 非默认字体家族（思源宋体 / 霞鹜文楷等）首次使用时才注入对应的 webfont
+    if (window.Mojian.ensureFontLoaded) {
+        window.Mojian.ensureFontLoaded(state.settings.fontFamily);
+    }
 
     elements.fontSizeValue.textContent = state.settings.fontSize + 'px';
     elements.markdownContent.style.fontSize = state.settings.fontSize + 'px';

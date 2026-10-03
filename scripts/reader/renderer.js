@@ -51,7 +51,10 @@ function renderContent(content, isRestoring) {
     wrapImages();
     alignImageCaptions();
 
-    Prism.highlightAllUnder(elements.markdownContent);
+    // Prism 为延后加载脚本，未就绪时跳过（延后加载完成后会补一次高亮）
+    if (typeof Prism !== 'undefined' && Prism.highlightAllUnder) {
+        Prism.highlightAllUnder(elements.markdownContent);
+    }
 
     if (state.isDarkMode) {
         window.Mojian.applyTheme();

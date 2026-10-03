@@ -29,10 +29,27 @@
         .mojian-restoring #fileName { display: inline !important; }
     </style>
     
-    <!-- Google Fonts (国内镜像 loli.net + 异步非阻塞加载) -->
-    <link rel="preconnect" href="https://fonts.loli.net">
+    <!-- 样式：原先由 styles/main.css 内的 @import 串行拉取（多一轮往返、阻塞渲染），
+         现改为在 HTML 中直接并行声明；顺序与原 main.css 的 @import 顺序一致 -->
+    <link rel="stylesheet" href="styles/variables.css?v=20261005">
+    <link rel="stylesheet" href="styles/base.css?v=20261005">
+    <link rel="stylesheet" href="styles/header.css?v=20261005">
+    <link rel="stylesheet" href="styles/editor.css?v=20261005">
+    <link rel="stylesheet" href="styles/sidebar.css?v=20261005">
+    <link rel="stylesheet" href="styles/content.css?v=20261005">
+    <link rel="stylesheet" href="styles/status-bar.css?v=20261005">
+    <link rel="stylesheet" href="styles/modals.css?v=20261005">
+    <link rel="stylesheet" href="styles/toc.css?v=20261005">
+    <link rel="stylesheet" href="styles/toast.css?v=20261005">
+    <link rel="stylesheet" href="styles/prism-overrides.css?v=20261005">
+    <!-- 响应式 & 无障碍（必须最后加载） -->
+    <link rel="stylesheet" href="styles/responsive.css?v=20261005">
+
+    <!-- Google Fonts (国内镜像 loli.net + 异步非阻塞加载)
+         首屏只拉取默认正文字体家族；思源宋体 / 霞鹜文楷 / JetBrains Mono
+         在用户真正切换到该字体时，由 scripts/core/lazy-loader.js 动态注入 -->
     <link rel="preconnect" href="https://fonts.loli.net" crossorigin>
-    <link href="https://fonts.loli.net/css2?family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;600;700&family=JetBrains+Mono:wght@400;500&family=LXGW+WenKai:wght@400;500;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <link href="https://fonts.loli.net/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
     
     <!-- Prism.js Theme -->
     <link rel="stylesheet" href="libs/prism-tomorrow.min.css?v=20261005">
@@ -43,69 +60,14 @@
     <!-- Marked.js for Markdown parsing (deferred) -->
     <script src="libs/marked.min.js?v=20261005" defer></script>
     
-    <!-- Turndown for HTML to Markdown conversion (deferred) -->
-    <script src="libs/turndown.js?v=20261005" defer></script>
+    <!-- Turndown / Prism / 编辑器 / 导出 等非首屏必需脚本，统一由
+         scripts/core/lazy-loader.js 在首屏绘制后的空闲时段（或首次交互时）按需注入 -->
+
+    <!-- 说明：Tiptap（@tiptap/*）原先在此处通过 importmap + type="module" 从 jsDelivr
+         一次性拉取 8 个 ESM 模块，但编辑模式实际走 contenteditable、Tiptap 从未启用，
+         属于纯粹的首屏网络与解析开销。现改为按需加载：见 scripts/editor/editor.js 的 loadTiptap() -->
     
-    <!-- Tiptap Editor - Import Map + jsDelivr CDN (预打包，国内加速) -->
-    <script type="importmap">
-    {
-        "imports": {
-            "@tiptap/core": "https://cdn.jsdelivr.net/npm/@tiptap/core@2.1.0/+esm",
-            "@tiptap/starter-kit": "https://cdn.jsdelivr.net/npm/@tiptap/starter-kit@2.1.0/+esm",
-            "@tiptap/extension-link": "https://cdn.jsdelivr.net/npm/@tiptap/extension-link@2.1.0/+esm",
-            "@tiptap/extension-image": "https://cdn.jsdelivr.net/npm/@tiptap/extension-image@2.1.0/+esm",
-            "@tiptap/extension-table": "https://cdn.jsdelivr.net/npm/@tiptap/extension-table@2.1.0/+esm",
-            "@tiptap/extension-table-row": "https://cdn.jsdelivr.net/npm/@tiptap/extension-table-row@2.1.0/+esm",
-            "@tiptap/extension-table-cell": "https://cdn.jsdelivr.net/npm/@tiptap/extension-table-cell@2.1.0/+esm",
-            "@tiptap/extension-table-header": "https://cdn.jsdelivr.net/npm/@tiptap/extension-table-header@2.1.0/+esm"
-        }
-    }
-    </script>
-    <script type="module" async>
-        import { Editor } from '@tiptap/core';
-        import StarterKit from '@tiptap/starter-kit';
-        import Link from '@tiptap/extension-link';
-        import Image from '@tiptap/extension-image';
-        import Table from '@tiptap/extension-table';
-        import TableRow from '@tiptap/extension-table-row';
-        import TableCell from '@tiptap/extension-table-cell';
-        import TableHeader from '@tiptap/extension-table-header';
-        
-        // Export to global scope
-        window.TiptapEditor = {
-            Editor,
-            StarterKit,
-            Link,
-            Image,
-            Table,
-            TableRow,
-            TableCell,
-            TableHeader
-        };
-        
-        console.log('Tiptap modules loaded successfully via jsDelivr');
-    </script>
-    
-    <!-- Prism.js for code highlighting (deferred to reduce blocking) -->
-    <script src="libs/prism.js?v=20261005" defer></script>
-    <script src="libs/prism-javascript.min.js?v=20261005" defer></script>
-    <script src="libs/prism-python.min.js?v=20261005" defer></script>
-    <script src="libs/prism-css.min.js?v=20261005" defer></script>
-    <script src="libs/prism-bash.min.js?v=20261005" defer></script>
-    <script src="libs/prism-json.min.js?v=20261005" defer></script>
-    <script src="libs/prism-markdown.min.js?v=20261005" defer></script>
-    <script src="libs/prism-yaml.min.js?v=20261005" defer></script>
-    <script src="libs/prism-sql.min.js?v=20261005" defer></script>
-    <script src="libs/prism-java.min.js?v=20261005" defer></script>
-    <script src="libs/prism-c.min.js?v=20261005" defer></script>
-    <script src="libs/prism-cpp.min.js?v=20261005" defer></script>
-    <script src="libs/prism-go.min.js?v=20261005" defer></script>
-    <script src="libs/prism-rust.min.js?v=20261005" defer></script>
-    <script src="libs/prism-typescript.min.js?v=20261005" defer></script>
-    <script src="libs/prism-jsx.min.js?v=20261005" defer></script>
-    <script src="libs/prism-tsx.min.js?v=20261005" defer></script>
-    
-    <link rel="stylesheet" href="styles/main.css?v=20261005">
+    <!-- 样式入口（原 styles/main.css 的 @import 链已上移到 head 顶部并行声明） -->
 </head>
 <body>
     <!-- Export Confirmation Modal -->
@@ -669,6 +631,7 @@
     <script src="scripts/core/utils.js?v=20261005" defer></script>
     <script src="scripts/core/settings.js?v=20261005" defer></script>
     <script src="scripts/core/paragraph-indent.js?v=20261005" defer></script>
+    <script src="scripts/core/lazy-loader.js?v=20261005" defer></script>
 
     <!-- UI -->
     <script src="scripts/ui/toast.js?v=20261005" defer></script>
@@ -681,16 +644,6 @@
     <script src="scripts/reader/toc.js?v=20261005" defer></script>
     <script src="scripts/reader/mermaid.js?v=20261005" defer></script>
     <script src="scripts/reader/renderer.js?v=20261005" defer></script>
-    <script src="scripts/reader/url-importer.js?v=20261005" defer></script>
-
-    <!-- Editor -->
-    <script src="scripts/editor/html-to-md.js?v=20261005" defer></script>
-    <script src="scripts/editor/toolbar.js?v=20261005" defer></script>
-    <script src="scripts/editor/history.js?v=20261005" defer></script>
-    <script src="scripts/editor/editor.js?v=20261005" defer></script>
-
-    <!-- Export -->
-    <script src="scripts/export/export.js?v=20261005" defer></script>
 
     <!-- File -->
     <script src="scripts/file/storage.js?v=20261005" defer></script>
@@ -701,11 +654,16 @@
 
     <!-- Easter Eggs -->
     <script src="scripts/easter-eggs/poetic-loader.js?v=20261005" defer></script>
-    <script src="scripts/easter-eggs/matrix-rain.js?v=20261005" defer></script>
     <script src="scripts/easter-eggs/konami-code.js?v=20261005" defer></script>
     <script src="scripts/easter-eggs/easter-eggs.js?v=20261005" defer></script>
 
     <!-- Entry -->
     <script src="scripts/app.js?v=20261005" defer></script>
+
+    <!-- 延后加载（首屏绘制后的空闲时段注入，顺序与原先的 defer 批次一致）：
+         libs/turndown.js → editor/html-to-md.js → editor/toolbar.js → editor/history.js
+         → editor/editor.js → export/export.js → reader/url-importer.js
+         → easter-eggs/matrix-rain.js → libs/prism*.js
+         清单与版本号统一维护在 scripts/core/lazy-loader.js 中 -->
 </body>
 </html>

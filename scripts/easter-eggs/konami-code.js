@@ -16,9 +16,22 @@ function handleKonamiCode(e) {
         });
         if (isMatch) {
             console.log('Konami Code activated!');
-            window.Mojian.triggerMatrixRain();
+            triggerMatrixRain();
             state.easterEggs.konamiCode = [];
         }
+    }
+}
+
+// matrix-rain.js 是延后加载脚本，未就绪时先加载再触发
+function triggerMatrixRain() {
+    if (window.Mojian.triggerMatrixRain) {
+        window.Mojian.triggerMatrixRain();
+        return;
+    }
+    if (window.Mojian.ensureFeature) {
+        window.Mojian.ensureFeature('matrixRain').then(function () {
+            if (window.Mojian.triggerMatrixRain) window.Mojian.triggerMatrixRain();
+        });
     }
 }
 

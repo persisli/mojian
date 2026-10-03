@@ -49,7 +49,7 @@ function init() {
         }
     }
 
-    // 初始化链接/图片弹窗事件
+    // 初始化链接/图片弹窗事件（编辑相关脚本已延后加载，可能尚不存在）
     if (window.Mojian.initInsertModals) {
         window.Mojian.initInsertModals();
     }
@@ -66,6 +66,9 @@ function init() {
     window.Mojian.bindFileNameEvents();
     window.Mojian.initEasterEggs();
     window.Mojian.loadSavedContent(restoredState);
+
+    // 首屏绘制完成后，在空闲时段补齐编辑 / 导出 / Prism 等延后脚本
+    window.Mojian.scheduleDeferredScripts();
 
     if (!state.currentFile) {
         showWelcomeMode();
@@ -184,49 +187,56 @@ function showWelcomeMode() {
 window.Mojian.showReadingMode = showReadingMode;
 window.Mojian.showWelcomeMode = showWelcomeMode;
 
-function bindEvents() {
-    const { elements } = window.Mojian;
-    const state = window.Mojian.state;
+/** 工具栏状态同步（toolbar.js 为延后加载脚本，未就绪时静默跳过） */
+function syncToolbarState() {
+    if (window.Mojian.updateToolbarState) {
+        window.Mojian.updateToolbarState();
+    }
+}
 
-    elements.editBtn.addEventListener('click', () => {
-        window.Mojian.toggleEditMode();
-    });
+/**
+ * 绑定编辑工具栏按钮（toolbar.js 为延后加载脚本，故做成幂等函数：
+ * 首屏若尚未就绪则跳过，延后脚本到位后由 onDeferredReady / 编辑按钮点击补绑）
+ */
+function bindToolbarEvents() {
+    if (!window.Mojian.handleToolbarAction) return;
 
     document.querySelectorAll('.toolbar-btn').forEach(btn => {
+        if (btn.dataset.eventsBound === '1') return;
+        btn.dataset.eventsBound = '1';
+
         btn.addEventListener('mousedown', (e) => {
             // 阻止默认行为防止按钮获得焦点导致 contenteditable 失焦
             e.preventDefault();
             // 在 mousedown 阶段立即保存当前选区（此时选区尚未被清除）
             const sel = window.getSelection();
-            const tag = btn.dataset.action;
-            console.log('[DEBUG mousedown] action=' + tag + ' | rangeCount=' + sel.rangeCount);
             if (sel.rangeCount > 0) {
-                const r = sel.getRangeAt(0);
-                const inEditor = elements.markdownContent.contains(r.commonAncestorContainer);
-                const collapsed = r.collapsed;
-                const text = r.toString().substring(0, 30);
-                console.log('[DEBUG mousedown] inEditor=' + inEditor + ' | collapsed=' + collapsed + ' | text="' + text + '" | startContainer=' + r.startContainer.nodeName);
-                window.Mojian._savedRange = r.cloneRange();
+                window.Mojian._savedRange = sel.getRangeAt(0).cloneRange();
             } else {
-                console.log('[DEBUG mousedown] NO range - saving null');
                 window.Mojian._savedRange = null;
             }
         });
         btn.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
-            const tag = btn.dataset.action;
-            const saved = window.Mojian._savedRange;
-            console.log('[DEBUG click] action=' + tag + ' | hasSavedRange=' + !!saved +
-                ' | activeEl=' + (document.activeElement ? document.activeElement.id || document.activeElement.tagName : 'null') +
-                ' | isCE=' + elements.markdownContent.isContentEditable);
-            const sel = window.getSelection();
-            console.log('[DEBUG click] currentRangeCount=' + sel.rangeCount +
-                (sel.rangeCount > 0 ? ' | collapsed=' + sel.getRangeAt(0).collapsed +
-                ' | inEditor=' + elements.markdownContent.contains(sel.getRangeAt(0).commonAncestorContainer) : ''));
             window.Mojian.handleToolbarAction(btn);
         });
     });
+}
+
+function bindEvents() {
+    const { elements } = window.Mojian;
+    const state = window.Mojian.state;
+
+    // 编辑器相关脚本为延后加载，点击时先确保就绪（首次点击也不失效）
+    elements.editBtn.addEventListener('click', () => {
+        window.Mojian.ensureFeature('editor').then(function () {
+            bindToolbarEvents();
+            window.Mojian.toggleEditMode();
+        });
+    });
+
+    bindToolbarEvents();
 
     elements.markdownContent.addEventListener('input', function() {
         if (state.isEditMode) {
@@ -234,7 +244,9 @@ function bindEvents() {
                 clearTimeout(window.Mojian.autoSaveTimer);
             }
             window.Mojian.autoSaveTimer = setTimeout(() => {
-                window.Mojian.autoSaveContent(elements.markdownContent.innerHTML);
+                if (window.Mojian.autoSaveContent) {
+                    window.Mojian.autoSaveContent(elements.markdownContent.innerHTML);
+                }
                 window.Mojian.calculateStats(elements.markdownContent.innerText || elements.markdownContent.textContent);
             }, 500);
         }
@@ -256,21 +268,19 @@ function bindEvents() {
             } else {
                 console.log('[DEBUG selectionchange] SKIP - rangeCount=0');
             }
-            requestAnimationFrame(() => {
-                window.Mojian.updateToolbarState();
-            });
+            requestAnimationFrame(syncToolbarState);
         }
     });
 
     elements.markdownContent.addEventListener('mouseup', () => {
         if (state.isEditMode) {
-            window.Mojian.updateToolbarState();
+            syncToolbarState();
         }
     });
 
     elements.markdownContent.addEventListener('keyup', () => {
         if (state.isEditMode) {
-            window.Mojian.updateToolbarState();
+            syncToolbarState();
         }
     });
 
@@ -294,16 +304,21 @@ function bindEvents() {
         elements.exportDropdown.classList.toggle('active');
     });
 
+    // 导出模块为延后加载脚本，点击时先确保就绪
     elements.exportTxt.addEventListener('click', (e) => {
         e.stopPropagation();
         elements.exportDropdown.classList.remove('active');
-        window.Mojian.exportToTxt();
+        window.Mojian.ensureFeature('export').then(function () {
+            window.Mojian.exportToTxt();
+        });
     });
 
     elements.exportMd.addEventListener('click', (e) => {
         e.stopPropagation();
         elements.exportDropdown.classList.remove('active');
-        window.Mojian.exportToMd();
+        window.Mojian.ensureFeature('export').then(function () {
+            window.Mojian.exportToMd();
+        });
     });
 
     elements.exportPdf.addEventListener('click', (e) => {
@@ -318,7 +333,9 @@ function bindEvents() {
 
     elements.exportConfirmYes.addEventListener('click', () => {
         elements.exportConfirmModal.classList.remove('active');
-        window.Mojian.exportToPdf();
+        window.Mojian.ensureFeature('export').then(function () {
+            window.Mojian.exportToPdf();
+        });
     });
 
     document.addEventListener('click', handleDocumentClick);
@@ -350,6 +367,18 @@ function bindEvents() {
 
     bindSettingsEvents();
     initCustomSelects();
+
+    // 延后脚本到位后的补绑 / 补渲染
+    window.Mojian.onDeferredReady(function () {
+        bindToolbarEvents();
+        if (window.Mojian.initInsertModals) {
+            window.Mojian.initInsertModals();
+        }
+        // Prism 为延后加载，已渲染的代码块在此补一次高亮
+        if (typeof Prism !== 'undefined' && state.currentFile) {
+            Prism.highlightAllUnder(elements.markdownContent);
+        }
+    });
 }
 
 function handleDocumentClick(e) {
@@ -538,6 +567,10 @@ function initCustomSelects() {
                     const { state, elements } = window.Mojian;
                     state.settings.fontFamily = value;
                     elements.markdownContent.style.fontFamily = value;
+                    // 切换到非默认字体时才按需拉取对应 webfont
+                    if (window.Mojian.ensureFontLoaded) {
+                        window.Mojian.ensureFontLoaded(value);
+                    }
                     window.Mojian.saveSettings();
                 } else if (selectId === 'languageSelect') {
                     if (typeof i18n !== 'undefined') {
