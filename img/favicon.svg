@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#2C3E50" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <!-- 与页面标题栏 logo（lucide book-open）完全一致的路径 -->
+  <path d="M12 7v14"/>
+  <path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/>
+  <style>
+    /* 深色系统下切换为浅色描边，避免图标在深色标签栏里看不清 */
+    @media (prefers-color-scheme: dark) {
+      svg { stroke: #ECF0F1; }
+    }
+  </style>
+</svg>

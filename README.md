@@ -98,10 +98,12 @@
 - 行高设置: 1 - 2.5
 - 段落间距: 1.0 - 2.5
 - 段前缩进: 0 - 7 字（按段首空格实现，重新保存时自动继承）
+- 图片显示: 「有图模式 / 无图模式」互切（默认有图；无图模式只隐藏正文图片与图注块，不改动原文）
 - 背景不透明度: 0% - 100%（黑暗模式下禁用）
 - 阅读背景设置 (应用范围：网页背景、文本区域、表格)
 - 语言: 中文 / English
 - 状态栏: 时长 / 字数 / 进度 可分别开关
+- 按来源网站分别记忆: 同一网站（路径 / 后缀不同）的文章之间沿用上一篇的段前缩进与图片显示设置，不同网站各记各的
 
 **5. 阅读进度**
 - 滚动时实时更新，百分比显示在底部状态栏
@@ -327,11 +329,11 @@ PHP_CLI_SERVER_WORKERS=4 php -S localhost:8081
 index.html              入口（无构建步骤）
 proxy.php               同源抓取代理（可选，仅 URL 导入需要）
 daodejing.txt           示例文本
-img/                    README 截图
+img/                    README 截图 + favicon.svg（标签页图标，与标题栏书本符号一致）
 libs/                   本地第三方库（marked / Prism / Mermaid / Turndown / Lucide）
 styles/                 样式（变量 / 布局 / 内容 / 编辑器 / 弹窗 / TOC / 响应式…）
 scripts/
-  core/                 全局状态、通用工具、设置、段前缩进
+  core/                 全局状态、通用工具、设置、段前缩进、图片显示、按站点偏好、懒加载
   reader/               渲染（含 Mermaid）、背景与主题、进度、目录、URL 导入
   editor/               编辑模式、工具栏、HTML→Markdown、撤销重做
   file/                 文件读取与本地存档
@@ -345,6 +347,8 @@ scripts/
 > **改了 `scripts/` / `styles/` 之后**：请同步改掉 `index.html` 里各资源链接的 `?v=` 版本号；若改的是 `styles/` 目录下的样式，也要改 `index.html` 中对应的 `<link rel="stylesheet" ... ?v=>`（样式已改为在 HTML 中直接并行声明，`styles/main.css` 不再是入口，只作为样式清单索引），否则浏览器可能继续使用旧脚本 / 旧样式，出现「代码块样式错乱」这类假故障。
 >
 > **首屏加载策略**：`libs/turndown.js`、`scripts/editor/*`、`scripts/export/export.js`、`scripts/reader/url-importer.js`、`scripts/easter-eggs/matrix-rain.js`、`libs/prism*.js` 已移出首屏关键路径，由 `scripts/core/lazy-loader.js` 在首屏绘制后的空闲时段注入，并在「编辑 / 导出 / 矩阵雨」等交互触发时提前加载。若新增首屏用不到的脚本，请登记到 `lazy-loader.js` 的 `DEFERRED_FILES`，并确认所有调用处都做了「未就绪」守卫。
+>
+> **按站点记忆的阅读偏好**：`scripts/core/site-prefs.js` 以 hostname 为维度，在 localStorage 的 `mojianSitePrefs` 下分别记录每个来源网站的「段前缩进」与「图片显示」。导入同站（路径 / 后缀不同）的文章时自动沿用该站记录，不同网站互不混淆；手动调整这两项设置时也会即时写回当前文章所属站点。本地文件无来源站点，不参与该记录。
 
 ---
 

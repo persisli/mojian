@@ -170,6 +170,8 @@ function showReadingMode(fileName) {
 function showWelcomeMode() {
     document.documentElement.classList.remove('mojian-restoring');
     const { elements } = window.Mojian;
+    // 回到欢迎页：清空来源站点归属
+    window.Mojian.state.currentHost = '';
     elements.fileName.textContent = '';
     elements.fileName.style.display = 'none';
     elements.markdownContent.innerHTML = '';
@@ -402,9 +404,10 @@ function bindSettingsEvents() {
 
     // fontSelect 事件在 initCustomSelects 中处理
 
+    // 正文字号：每次只增减 1px（12px - 32px）
     elements.fontSizeUp.addEventListener('click', () => {
         if (state.settings.fontSize < 32) {
-            state.settings.fontSize += 2;
+            state.settings.fontSize += 1;
             elements.fontSizeValue.textContent = state.settings.fontSize + 'px';
             elements.markdownContent.style.fontSize = state.settings.fontSize + 'px';
             window.Mojian.saveSettings();
@@ -413,7 +416,7 @@ function bindSettingsEvents() {
 
     elements.fontSizeDown.addEventListener('click', () => {
         if (state.settings.fontSize > 12) {
-            state.settings.fontSize -= 2;
+            state.settings.fontSize -= 1;
             elements.fontSizeValue.textContent = state.settings.fontSize + 'px';
             elements.markdownContent.style.fontSize = state.settings.fontSize + 'px';
             window.Mojian.saveSettings();
@@ -443,6 +446,10 @@ function bindSettingsEvents() {
         state.settings.paragraphIndent = value;
         elements.paragraphIndentValue.textContent = window.Mojian.formatParagraphIndentValue(value);
         window.Mojian.saveSettings();
+        // 按来源站点分别记忆：同一网站的后续文章沿用该缩进
+        if (window.Mojian.rememberSitePref) {
+            window.Mojian.rememberSitePref('paragraphIndent', value);
+        }
 
         if (indentRaf) cancelAnimationFrame(indentRaf);
         indentRaf = requestAnimationFrame(() => {
@@ -455,10 +462,20 @@ function bindSettingsEvents() {
         window.Mojian.persistParagraphIndent();
     });
 
-    // 语言切换后刷新「2 字」这类带单位的显示
+    // 图片显示：默认「有图模式」，点击在「有图 / 无图」之间互切
+    if (elements.imageToggle) {
+        elements.imageToggle.addEventListener('click', () => {
+            window.Mojian.toggleImageDisplay();
+        });
+    }
+
+    // 语言切换后刷新「2 字」「有图模式」这类文本
     window.addEventListener('languageChanged', () => {
         elements.paragraphIndentValue.textContent =
             window.Mojian.formatParagraphIndentValue(state.settings.paragraphIndent);
+        if (window.Mojian.updateImageToggleButton) {
+            window.Mojian.updateImageToggleButton();
+        }
     });
 
     elements.bgOpacitySlider.addEventListener('input', (e) => {

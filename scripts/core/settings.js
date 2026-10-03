@@ -102,6 +102,11 @@ function applyOtherSettings() {
 
     elements.bgOpacitySlider.value = state.settings.bgOpacity;
     elements.bgOpacityValue.textContent = state.settings.bgOpacity + '%';
+
+    // 图片显示（有图 / 无图）
+    if (window.Mojian.applyImageDisplay) {
+        window.Mojian.applyImageDisplay();
+    }
 }
 
 /**

@@ -60,6 +60,11 @@ const i18n = {
             'settings.theme.light': '明亮模式',
             'settings.theme.dark': '黑暗模式',
             
+            // Image Display
+            'settings.imageDisplay.label': '图片显示',
+            'settings.imageDisplay.on': '有图模式',
+            'settings.imageDisplay.off': '无图模式',
+            
             // Width
             'settings.width.label': '内容宽度',
             
@@ -286,6 +291,11 @@ const i18n = {
             'settings.theme.label': 'Theme',
             'settings.theme.light': 'Light Mode',
             'settings.theme.dark': 'Dark Mode',
+            
+            // Image Display
+            'settings.imageDisplay.label': 'Images',
+            'settings.imageDisplay.on': 'With Images',
+            'settings.imageDisplay.off': 'No Images',
             
             // Width
             'settings.width.label': 'Content Width',

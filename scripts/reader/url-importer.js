@@ -1231,9 +1231,13 @@
         // 记下来源链接：用于「重复导入同一链接」判定与页面刷新后的状态恢复
         state.currentFile = { name: name, sourceUrl: url };
 
-        // 段前缩进：默认识别原文（有则保留、无则保持无）；环球网 / 观察者网按中文排版
-        // 习惯统一补 2 字；两种情况都把结果写回设置项
-        if (M.applyDetectedParagraphIndent) {
+        // 按来源站点套用阅读偏好：该站点的段前缩进 + 图片显示
+        //（首次导入先识别原文缩进并记录，之后同站文章沿用；不同站点各记各的）
+        if (M.applySitePrefs) {
+            markdown = M.applySitePrefs(markdown, url);
+        } else if (M.applyDetectedParagraphIndent) {
+            // 段前缩进：默认识别原文（有则保留、无则保持无）；环球网 / 观察者网按中文排版
+            // 习惯统一补 2 字；两种情况都把结果写回设置项
             markdown = M.applyDetectedParagraphIndent(markdown, url);
         }
         state.content = markdown;

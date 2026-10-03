@@ -61,6 +61,8 @@ function processFile(file) {
         let content = e.target.result;
         const { state } = window.Mojian;
         state.currentFile = { name: file.name };
+        // 本地文件没有来源站点：清空站点归属，避免沿用上一篇网站文章的偏好记录
+        state.currentHost = '';
 
         if (fileExt === '.log') {
             content = window.Mojian.cleanLogContent(content);

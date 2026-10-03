@@ -27,6 +27,8 @@ Mojian.elements = {
     floatingToc: document.getElementById('floatingToc'),
     floatingTocNav: document.getElementById('floatingTocNav'),
     themeToggle: document.getElementById('themeToggle'),
+    imageToggle: document.getElementById('imageToggle'),
+    imageToggleLabel: document.getElementById('imageToggleLabel'),
     settingsToggle: document.getElementById('settingsToggle'),
     settingsSidebar: document.getElementById('settingsSidebar'),
     sidebarOverlay: document.getElementById('sidebarOverlay'),
@@ -73,6 +75,8 @@ Mojian.state = {
     isDarkMode: false,
     isEditMode: false,
     editor: null,
+    // 当前文档的来源站点（hostname）：用于按站点分别记忆段前缩进 / 图片显示
+    currentHost: '',
     settings: {
         width: 1200,
         fontFamily: 'Noto Sans SC, Source Han Sans CN, sans-serif',
@@ -80,6 +84,7 @@ Mojian.state = {
         lineHeight: 1.9,
         paragraphSpacing: 1.9,
         paragraphIndent: 2,
+        showImages: true,
         background: '#FAFAF8',
         backgroundType: 'solid',
         backgroundPattern: null,

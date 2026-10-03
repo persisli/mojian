@@ -553,6 +553,15 @@
     vertical-align: top;
 }
 
+/* 无图模式：隐藏正文图片（含图片说明块），只留文字
+   由 scripts/core/image-display.js 给 #markdownContent 加 .no-images 触发 */
+.markdown-content.no-images img,
+.markdown-content.no-images .img-wrapper,
+.markdown-content.no-images figure,
+.markdown-content.no-images .img-center {
+    display: none !important;
+}
+
 /* 编辑模式下图片光标定位 */
 .markdown-content[contenteditable="true"] .img-wrapper {
     display: inline-block;

@@ -23,6 +23,11 @@ function loadSavedContent(restoredState) {
         state.currentFile = typeof savedFile === 'string' ? { name: savedFile } : (savedFile || {});
         state.content = contentToLoad;
 
+        // 恢复来源站点归属：刷新前读的是某网站文章时，段前缩进 / 图片显示仍按该站点记录走
+        if (window.Mojian.setCurrentHost) {
+            window.Mojian.setCurrentHost(state.currentFile.sourceUrl);
+        }
+
         // 让「段前缩进」设置项与文档实际段首空格保持一致
         if (window.Mojian.syncIndentFromContent) {
             window.Mojian.syncIndentFromContent(contentToLoad);
