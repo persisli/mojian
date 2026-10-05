@@ -1,0 +1,35 @@
+{
+  "artifacts": [
+    {
+      "artifact_id": "artifact_6c659569a78e1904e814a9a1",
+      "current_revision_id": "revision_a7d1b04b8f79addbc833ce39",
+      "filename": "silk-lotus.svg",
+      "kind": "image",
+      "mime": "image/svg",
+      "rel_path": "assets/bg/silk-lotus.svg",
+      "revisions": [
+        {
+          "artifact_revision_id": "revision_3db312c8712b5a4665b9f057",
+          "produced_at": "2026-10-05T14:22:17+08:00",
+          "sha256": "7cd3fe18c3b60a880316c8a9edf82c5c9c74d8da5862e5556182f166f0597ddd",
+          "size": 4348,
+          "turn_id": "local_1791181253334_4jewgc7h"
+        },
+        {
+          "artifact_revision_id": "revision_a7d1b04b8f79addbc833ce39",
+          "produced_at": "2026-10-05T14:22:39+08:00",
+          "sha256": "a1503237c50bdfb0c1685a6ff7b759a0013556e1aec439963ecb61d85b690131",
+          "size": 4742,
+          "turn_id": "local_1791181253334_4jewgc7h"
+        }
+      ]
+    }
+  ],
+  "created_at": "2026-10-05T05:50:55.267177+00:00",
+  "current_turn_id": "local_1791182099148_ywyoets2",
+  "execution_status": "completed",
+  "schema_version": 3,
+  "session_id": "bcba8320-2708-4888-966f-de6ba6b33aa1",
+  "task_id": "task_1791179453932_0qtnwakl",
+  "updated_at": "2026-10-05T06:38:23.925019+00:00"
+}

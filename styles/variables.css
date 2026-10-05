@@ -64,7 +64,15 @@
     --bg-page: #FAFAF8;
     --bg-content: #FAFAF8;
     --bg-pattern: none;
+    --bg-pattern-size: auto;
+    --bg-pattern-repeat: repeat;
+    --bg-pattern-position: center;
     --bg-pattern-opacity: 1;
+
+    /* Pattern Theme (标题栏/状态栏从背景取主色) */
+    --pattern-accent: var(--color-primary);
+    --pattern-line: var(--color-border);
+    --pattern-paper: var(--color-bg);
 }
 
 /* Dark Theme */

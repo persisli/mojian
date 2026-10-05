@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="zh" data-theme="light">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../../styles/variables.css">
+<link rel="stylesheet" href="../../styles/base.css">
+<link rel="stylesheet" href="../../styles/header.css">
+<link rel="stylesheet" href="../../styles/status-bar.css">
+<style>
+    body { font-family: "Noto Sans SC", sans-serif; color: var(--color-text); }
+    .qa-wrap { max-width: 860px; margin: 96px auto 60px; padding: 0 28px; }
+    .qa-wrap h1 { font-family: "Noto Serif SC", serif; font-size: 34px; margin: 0 0 18px; }
+    .qa-wrap p { font-size: 18px; line-height: 1.9; margin: 0 0 16px; text-indent: 2em; }
+    .qa-wrap blockquote { border-left: 3px solid #b0a48a; padding: 8px 18px; margin: 16px 0; }
+    .qa-wrap code { padding: 1px 6px; border-radius: 3px; }
+    .qa-wrap table { border-collapse: collapse; width: 100%; margin: 16px 0; }
+    .qa-wrap th, .qa-wrap td { border: 1px solid #ccc; padding: 8px 12px; }
+    .logo { display:flex; align-items:center; gap:8px; color: var(--color-primary); font-family: var(--font-serif); font-size: 1.25rem; }
+</style>
+</head>
+<body>
+<header class="header">
+  <div class="header-left">
+    <div class="logo">
+      <svg class="logo-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5z"/><path d="M8 7h8M8 11h6"/></svg>
+      <span class="logo-text">墨笈</span>
+    </div>
+  </div>
+  <div class="header-right">
+    <button class="icon-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 3l9 6.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg></button>
+    <button class="icon-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>
+  </div>
+</header>
+<div class="qa-wrap markdown-content" id="md">
+    <h1>阅读背景重建验证</h1>
+    <p>道可道，非常道；名可名，非常名。无名天地之始，有名万物之母。故常无欲以观其妙，常有欲以观其徼。</p>
+    <p>天下皆知美之为美，斯恶已；皆知善之为善，斯不善已。故有无相生，难易相成，长短相形，高下相倾。</p>
+    <blockquote>万物作焉而不辞，生而不有，为而不恃，功成而弗居。行内代码：<code>npm run dev</code></blockquote>
+    <table><thead><tr><th>项目</th><th>说明</th></tr></thead>
+    <tbody><tr><td>绢荷</td><td>没骨折枝</td></tr><tr><td>云山</td><td>米点皴远山</td></tr></tbody></table>
+    <p>不尚贤，使民不争；不贵难得之货，使民不为盗；不见可欲，使民心不乱。</p>
+</div>
+<footer class="status-bar">
+  <div class="status-content">
+    <span class="status-item"><svg class="status-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>12:34</span>
+    <span class="status-item">0 字</span>
+    <span class="status-item">0%</span>
+  </div>
+</footer>
+<script src="../../scripts/reader/background.js"></script>
+<script>
+    window.Mojian = window.Mojian || {};
+    Mojian.elements = {
+        markdownContent: document.getElementById('md'),
+        header: document.querySelector('.header'),
+        statusBar: document.querySelector('.status-bar'),
+        editToolbar: null
+    };
+    const hash = (location.hash || '#chinese:silk-lotus:100').slice(1).split(':');
+    Mojian.state = {
+        isDarkMode: false,
+        settings: { backgroundType: hash[0], backgroundPattern: hash[1], background: '#FAFAF8', bgOpacity: hash[2]!==undefined?parseInt(hash[2]):100 }
+    };
+    Mojian.applyBackground();
+    window.__QA__ = {
+        pattern: getComputedStyle(document.documentElement).getPropertyValue('--bg-pattern').trim(),
+        accent: getComputedStyle(document.documentElement).getPropertyValue('--pattern-accent').trim(),
+        hasTheme: document.body.classList.contains('has-pattern-theme')
+    };
+    document.title = 'QA ' + window.__QA__.hasTheme + ' ' + window.__QA__.accent;
+</script>
+</body>
+</html>

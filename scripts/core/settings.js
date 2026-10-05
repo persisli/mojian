@@ -9,8 +9,39 @@ function loadSettings() {
         try {
             const parsed = JSON.parse(savedSettings);
             state.settings = { ...state.settings, ...parsed };
+            migrateLegacyBackgroundPattern(state.settings);
         } catch (e) {
             console.warn('Failed to load settings:', e);
+        }
+    }
+}
+
+// 国风 / 信笺背景图案已整体重做，把旧存档里的图案名迁移到新款，避免老用户打开后图案丢失。
+// 映射按语义就近对应（山水→云山、花鸟→绢荷、书法→雾竹、窗棂→祥云洒金；
+// 复古信纸→回纹朱日、牛皮纸→桂花旧纸、水彩纸→水彩荷塘、素描纸→鹤影青绿）。
+function migrateLegacyBackgroundPattern(settings) {
+    const alias = {
+        chinese: {
+            'landscape': 'cloud-mountains',
+            'flowers': 'silk-lotus',
+            'calligraphy': 'mist-bamboo',
+            'lattice': 'auspicious-gold'
+        },
+        stationery: {
+            'vintage': 'meander-sun',
+            'kraft': 'osmanthus-kraft',
+            'watercolor': 'watercolor-pond',
+            'sketch': 'crane-hills'
+        }
+    };
+    const type = settings.backgroundType;
+    if ((type === 'chinese' || type === 'stationery') && settings.backgroundPattern) {
+        const map = alias[type];
+        if (map[settings.backgroundPattern]) {
+            settings.backgroundPattern = map[settings.backgroundPattern];
+        } else if (!Object.values(map).includes(settings.backgroundPattern)) {
+            // 既不是旧名也不是有效新名：回退到该类型第一款，保证一定有图案
+            settings.backgroundPattern = Object.values(map)[0];
         }
     }
 }

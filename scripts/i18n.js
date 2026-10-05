@@ -108,16 +108,16 @@ const i18n = {
             'settings.bg.pattern.nodes': '节点连线',
             
             // Chinese Style Patterns (tooltips)
-            'settings.bg.pattern.landscape': '山水画',
-            'settings.bg.pattern.flowers': '花鸟画',
-            'settings.bg.pattern.calligraphy': '书法',
-            'settings.bg.pattern.lattice': '窗棂',
+            'settings.bg.pattern.silkLotus': '绢荷',
+            'settings.bg.pattern.mistBamboo': '雾竹',
+            'settings.bg.pattern.cloudMountains': '云山',
+            'settings.bg.pattern.auspiciousGold': '祥云洒金',
             
             // Stationery Patterns (tooltips)
-            'settings.bg.pattern.vintage': '复古信纸',
-            'settings.bg.pattern.kraft': '牛皮纸',
-            'settings.bg.pattern.watercolor': '水彩纸',
-            'settings.bg.pattern.sketch': '素描纸',
+            'settings.bg.pattern.craneHills': '鹤影青绿',
+            'settings.bg.pattern.osmanthusKraft': '桂花旧纸',
+            'settings.bg.pattern.meanderSun': '回纹朱日',
+            'settings.bg.pattern.watercolorPond': '水彩荷塘',
 
             // Status Bar Display
             'settings.statusBar.label': '状态栏',
@@ -340,16 +340,16 @@ const i18n = {
             'settings.bg.pattern.nodes': 'Node Connection',
             
             // Chinese Style Patterns (tooltips)
-            'settings.bg.pattern.landscape': 'Landscape Painting',
-            'settings.bg.pattern.flowers': 'Flower & Bird Painting',
-            'settings.bg.pattern.calligraphy': 'Calligraphy',
-            'settings.bg.pattern.lattice': 'Window Lattice',
+            'settings.bg.pattern.silkLotus': 'Silk Lotus',
+            'settings.bg.pattern.mistBamboo': 'Misty Bamboo',
+            'settings.bg.pattern.cloudMountains': 'Cloudy Mountains',
+            'settings.bg.pattern.auspiciousGold': 'Gilded Clouds',
             
             // Stationery Patterns (tooltips)
-            'settings.bg.pattern.vintage': 'Vintage Letter Paper',
-            'settings.bg.pattern.kraft': 'Kraft Paper',
-            'settings.bg.pattern.watercolor': 'Watercolor Paper',
-            'settings.bg.pattern.sketch': 'Sketch Paper',
+            'settings.bg.pattern.craneHills': 'Cranes over Hills',
+            'settings.bg.pattern.osmanthusKraft': 'Osmanthus Kraft',
+            'settings.bg.pattern.meanderSun': 'Meander & Red Sun',
+            'settings.bg.pattern.watercolorPond': 'Watercolor Pond',
 
             // Status Bar Display
             'settings.statusBar.label': 'Status Bar',

@@ -170,3 +170,49 @@
 #themeToggle:hover .theme-icon.moon {
     transform: rotate(-15deg);
 }
+
+/* ========================================
+   Pattern Theme —— 标题栏/状态栏从背景取主色
+   仅在 body.has-pattern-theme 时生效（国风/信笺），
+   深色模式与纯色/文艺背景保持原样
+   ======================================== */
+
+body.has-pattern-theme .header {
+    border-bottom-color: var(--pattern-line);
+}
+
+body.has-pattern-theme .status-bar {
+    border-top-color: var(--pattern-line);
+}
+
+/* Logo 与书名 */
+body.has-pattern-theme .logo {
+    color: var(--pattern-accent);
+}
+
+/* 标题栏图标按钮：Lucide 会把 <i> 换成 <svg>，pattern-theme 下统一改用 mask 上主色 */
+body.has-pattern-theme .header-right .icon-btn {
+    color: var(--pattern-accent);
+    border: 1px solid transparent;
+    transition: background-color var(--transition-fast), border-color var(--transition-fast),
+                color var(--transition-fast), transform var(--transition-fast);
+}
+body.has-pattern-theme .header-right .icon-btn svg,
+body.has-pattern-theme .header-right .icon-btn i {
+    display: inline-block;
+}
+body.has-pattern-theme .header-right .icon-btn > svg,
+body.has-pattern-theme .header-right .icon-btn > i > svg {
+    color: currentColor;
+    stroke: currentColor;
+}
+body.has-pattern-theme .header-right .icon-btn:hover {
+    color: var(--pattern-accent);
+    border-color: var(--pattern-line);
+    background-color: color-mix(in srgb, var(--pattern-paper) 55%, var(--pattern-accent) 8%);
+}
+
+/* 编辑模式保存态强调色也随主题 */
+body.has-pattern-theme #saveBtn.active {
+    color: var(--pattern-accent);
+}

@@ -35,6 +35,9 @@ body::before {
     bottom: 0;
     background-color: var(--bg-page);
     background-image: var(--bg-pattern);
+    background-size: var(--bg-pattern-size, auto);
+    background-repeat: var(--bg-pattern-repeat, repeat);
+    background-position: var(--bg-pattern-position, center);
     opacity: var(--bg-pattern-opacity, 1);
     pointer-events: none;
     z-index: -1;

@@ -52,7 +52,8 @@
 ### 视觉资源
 - 图标: 使用Lucide Icons (线条简洁，与设计语言一致)
 - 装饰: 极简的线条分隔，少量几何装饰
-- 无图片依赖，纯CSS实现所有视觉效果
+- 文艺背景: 内联 SVG 几何纹样（六边形 / 三角 / 菱形 / 节点连线），平铺
+- 国风 / 信笺背景: `assets/bg/` 下 8 幅整幅 SVG 画面（绢荷 / 雾竹 / 云山 / 祥云洒金；鹤影青绿 / 桂花旧纸 / 回纹朱日 / 水彩荷塘），cover 铺满不平铺，均为本地文件、无外部网络请求
 
 
 ### 响应式策略
@@ -330,6 +331,7 @@ index.html              入口（无构建步骤）
 proxy.php               同源抓取代理（可选，仅 URL 导入需要）
 daodejing.txt           示例文本
 img/                    README 截图 + favicon.svg（标签页图标，与标题栏书本符号一致）
+assets/bg/              国风 / 信笺阅读背景（8 幅整幅 SVG 画面，本地文件）
 libs/                   本地第三方库（marked / Prism / Mermaid / Turndown / Lucide）
 styles/                 样式（变量 / 布局 / 内容 / 编辑器 / 弹窗 / TOC / 响应式…）
 scripts/

@@ -9,17 +9,21 @@ const backgroundPatterns = {
         diamond: "url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MCIgaGVpZ2h0PSI4MCIgdmlld0JveD0iMCAwIDgwIDgwIj48cGF0aCBkPSJNNDAgMEw4MCA0MEw0MCA4MEwwIDQwWiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZDBkMGQwIiBzdHJva2Utd2lkdGg9IjAuOCIvPjxjaXJjbGUgY3g9IjQwIiBjeT0iMCIgcj0iMiIgZmlsbD0iI2QwZDBkMCIvPjxjaXJjbGUgY3g9IjgwIiBjeT0iNDAiIHI9IjIiIGZpbGw9IiNkMGQwZDAiLz48Y2lyY2xlIGN4PSI0MCIgY3k9IjgwIiByPSIyIiBmaWxsPSIjZDBkMGQwIi8+PGNpcmNsZSBjeD0iMCIgY3k9IjQwIiByPSIyIiBmaWxsPSIjZDBkMGQwIi8+PC9zdmc+')",
         nodes: "url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MCIgaGVpZ2h0PSI4MCIgdmlld0JveD0iMCAwIDgwIDgwIj48bGluZSB4MT0iMCIgeTE9IjAiIHgyPSI4MCIgeTI9IjgwIiBzdHJva2U9IiNkMGQwZDAiIHN0cm9rZS13aWR0aD0iMC44Ii8+PGxpbmUgeDE9IjgwIiB5MT0iMCIgeDI9IjAiIHkyPSI4MCIgc3Ryb2tlPSIjZDBkMGQwIiBzdHJva2Utd2lkdGg9IjAuOCIvPjxsaW5lIHgxPSI0MCIgeTE9IjAiIHgyPSI0MCIgeTI9IjgwIiBzdHJva2U9IiNkMGQwZDAiIHN0cm9rZS13aWR0aD0iMC44Ii8+PGxpbmUgeDE9IjAiIHkxPSI0MCIgeDI9IjgwIiB5Mj0iNDAiIHN0cm9rZT0iI2QwZDBkMCIgc3Ryb2tlLXdpZHRoPSIwLjgiLz48Y2lyY2xlIGN4PSIwIiBjeT0iMCIgcj0iMyIgZmlsbD0iI2QwZDBkMCIvPjxjaXJjbGUgY3g9IjgwIiBjeT0iMCIgcj0iMyIgZmlsbD0iI2QwZDBkMCIvPjxjaXJjbGUgY3g9IjAiIGN5PSI4MCIgcj0iMyIgZmlsbD0iI2QwZDBkMCIvPjxjaXJjbGUgY3g9IjgwIiBjeT0iODAiIHI9IjMiIGZpbGw9IiNkMGQwZDAiLz48Y2lyY2xlIGN4PSI0MCIgY3k9IjQwIiByPSIzIiBmaWxsPSIjZDBkMGQwIi8+PGNpcmNsZSBjeD0iNDAiIGN5PSIwIiByPSIyIiBmaWxsPSIjZDBkMGQwIi8+PGNpcmNsZSBjeD0iNDAiIGN5PSI4MCIgcj0iMiIgZmlsbD0iI2QwZDBkMCIvPjxjaXJjbGUgY3g9IjAiIGN5PSI0MCIgcj0iMiIgZmlsbD0iI2QwZDBkMCIvPjxjaXJjbGUgY3g9IjgwIiBjeT0iNDAiIHI9IjIiIGZpbGw9IiNkMGQwZDAiLz48L3N2Zz4=')"
     },
+    // 国风：四幅整幅画面（不重复平铺），元素组合取自 bg_refer/ 参考图，风格内部自洽
+    //   绢荷 / 雾竹 / 云山 / 祥云洒金
+    // 注意：该 url 由消费 --bg-pattern 的 styles/base.css 解析，故 ../ 先回到项目根再进 assets/
     chinese: {
-        landscape: "url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MDAiIGhlaWdodD0iNjAwIiB2aWV3Qm94PSIwIDAgODAwIDYwMCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJza3lHcmFkaWVudCIgeDE9IjAlIiB5MT0iMCUiIHgyPSIwJSIgeTI9IjEwMCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNmNWY1ZGMiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiNlOGY1ZTkiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iODAwIiBoZWlnaHQ9IjYwMCIgZmlsbD0idXJsKCNza3lHcmFkaWVudCkiLz48cGF0aCBkPSJNMCA0MDBRMTUwIDM1MCAzMDAgNDAwVDYwMCAzODBRNzUwIDQwMCA4MDAgMzkwVjYwMEgwVjQwMFoiIGZpbGw9IiNjNGM0YjAiIG9wYWNpdHk9IjAuMyIvPjxwYXRoIGQ9TTAgNDUwUTE1MCA0MDAgMzAwIDQ1MFQ2MDAgNDMwUTc1MCA0NTAgODAwIDQ0MFY2MDBIMFY0NTBaIiBmaWxsPSIjYTRhNDkwIiBvcGFjaXR5PSIwLjIiLz48cGF0aCBkPSJNMTUwIDM1MEwyMDAgMzAwTDI1MCAzNTBMMzAwIDI4MEwzNTAgMzUwTDQwMCAyOTBMNDUwIDM1MEw1MDAgMjgwTDU1MCAzNTBMNjAwIDMwMEw2NTAgMzUwTDcwMCAyOTBMNzUwIDM1MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjOGY4ZjdmIiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLW9wYWNpdHk9IjAuNCIvPjxwYXRoIGQ9TTEwMCA0MDBMMTUwIDM1MEwyMDAgNDAwTDI1MCAzNDBMMzAwIDQwMEwzNTAgMzMwTDQwMCA0MDBMNDUwIDM0MEw1MDAgNDAwTDU1MCAzMzBMNjAwIDQwMEw2NTAgMzQwTDcwMCA0MDAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzhmOGY3ZiIgc3Ryb2tlLXdpZHRoPSIxIiBzdHJva2Utb3BhY2l0eT0iMC4zIi8+PC9zdmc+')",
-        flowers: "url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MDAiIGhlaWdodD0iNjAwIiB2aWV3Qm94PSIwIDAgODAwIDYwMCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJiYWNrZ3JvdW5kIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjAlIiB5Mj0iMTAwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iI2Y1ZjVkYyIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iI2VmZWJlOSIvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjxyZWN0IHdpZHRoPSI4MDAiIGhlaWdodD0iNjAwIiBmaWxsPSJ1cmwoI2JhY2tncm91bmQpIi8+PGNpcmNsZSBjeD0iMTUwIiBjeT0iMTUwIiByPSI0MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjYzRjNGIwIiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLW9wYWNpdHk9IjAuMyIvPjxjaXJjbGUgY3g9IjE1MCIgY3k9IjE1MCIgcj0iMzAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2M0YzRiMCIgc3Ryb2tlLXdpZHRoPSIxIiBzdHJva2Utb3BhY2l0eT0iMC4yIi8+PGNpcmNsZSBjeD0iMTUwIiBjeT0iMTUwIiByPSIyMCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjYzRjNGIwIiBzdHJva2Utd2lkdGg9IjAuOCIgc3Ryb2tlLW9wYWNpdHk9IjAuMiIvPjxjaXJjbGUgY3g9IjY1MCIgY3k9IjEwMCIgcj0iMzUiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2M0YzRiMCIgc3Ryb2tlLXdpZHRoPSIxLjUiIHN0cm9rZS1vcGFjaXR5PSIwLjMiLz48Y2lyY2xlIGN4PSI2NTAiIGN5PSIxMDAiIHI9IjI1IiBmaWxsPSJub25lIiBzdHJva2U9IiNjNGM0YjAiIHN0cm9rZS13aWR0aD0iMSIgc3Ryb2tlLW9wYWNpdHk9IjAuMiIvPjxjaXJjbGUgY3g9IjY1MCIgY3k9IjEwMCIgcj0iMTUiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2M0YzRiMCIgc3Ryb2tlLXdpZHRoPSIwLjgiIHN0cm9rZS1vcGFjaXR5PSIwLjIiLz48cGF0aCBkPSJNMjAwIDQwMEMyNTAgMzUwIDMwMCAzODAgMzUwIDQwMEM0MDAgNDIwIDQ1MCAzOTAgNTAwIDQwMCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjOGY4ZjdmIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1vcGFjaXR5PSIwLjMiLz48cGF0aCBkPSJNMjUwIDQ1MEMzMDAgNDAwIDM1MCA0MzAgNDAwIDQ1MDQ1MCA0NzAgNTAwIDQ0MCA1NTAgNDUwIiBmaWxsPSJub25lIiBzdHJva2U9IiM4ZjhmN2YiIHN0cm9rZS13aWR0aD0iMS41IiBzdHJva2Utb3BhY2l0eT0iMC4zIi8+PC9zdmc+')",
-        calligraphy: "url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MDAiIGhlaWdodD0iNjAwIiB2aWV3Qm94PSIwIDAgODAwIDYwMCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJiYWNrZ3JvdW5kIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjAlIiB5Mj0iMTAwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iI2Y1ZjVkYyIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iI2VmZWJlOSIvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjxyZWN0IHdpZHRoPSI4MDAiIGhlaWdodD0iNjAwIiBmaWxsPSJ1cmwoI2JhY2tncm91bmQpIi8+PHBhdGggZD0iTTUwIDUwQzEwMCAxMDAgMTUwIDgwIDIwMCAxMjBDMjUwIDE2MCAzMDAgMTQwIDM1MCAxODBDNDAwIDIyMCA0NTAgMjAwIDUwMCAyNDBDNTUwIDI4MCA2MDAgMjYwIDY1MCAzMDBDNzAwIDM0MCA3NTAgMzIwIDgwMCAzNjAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzhmOGY3ZiIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2Utb3BhY2l0eT0iMC4zIi8+PHBhdGggZD0iTTUwIDIwMEMxMDAgMjUwIDE1MCAyMzAgMjAwIDI3MEMyNTAgMzEwIDMwMCAyOTAgMzUwIDMzMEM0MDAgMzcwIDQ1MCAzNTAgNTAwIDM5MEM1NTAgNDMwIDYwMCA0MTAgNjUwIDQ1MUM3MDAgNDkxIDc1MCA0NzEgODAwIDUxMCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjOGY4ZjdmIiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLW9wYWNpdHk9IjAuMyIvPjxwYXRoIGQ9TTUwIDM1MEMxMDAgNDAwIDE1MCAzODAgMjAwIDQyMEMyNTAgNDYwIDMwMCA0NDAgMzUwIDQ4MEM0MDAgNTIwIDQ1MCA1MDAgNTAwIDU0MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjOGY4ZjdmIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1vcGFjaXR5PSIwLjMiLz48L3N2Zz4=')",
-        lattice: "url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MDAiIGhlaWdodD0iNjAwIiB2aWV3Qm94PSIwIDAgODAwIDYwMCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJiYWNrZ3JvdW5kIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjAlIiB5Mj0iMTAwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iI2Y1ZjVkYyIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iI2VmZWJlOSIvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjxyZWN0IHdpZHRoPSI4MDAiIGhlaWdodD0iNjAwIiBmaWxsPSJ1cmwoI2JhY2tncm91bmQpIi8+PHJlY3QgeD0iNTAiIHk9IjUwIiB3aWR0aD0iNzAwIiBoZWlnaHQ9IjUwMCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjYzRjNGIwIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1vcGFjaXR5PSIwLjMiLz48bGluZSB4MT0iMjUwIiB5MT0iNTAiIHgyPSIyNTAiIHkyPSI1NTAiIHN0cm9rZT0iI2M0YzRiMCIgc3Ryb2tlLXdpZHRoPSIxLjUiIHN0cm9rZS1vcGFjaXR5PSIwLjIiLz48bGluZSB4MT0iNTUwIiB5MT0iNTAiIHgyPSI1NTAiIHkyPSI1NTAiIHN0cm9rZT0iI2M0YzRiMCIgc3Ryb2tlLXdpZHRoPSIxLjUiIHN0cm9rZS1vcGFjaXR5PSIwLjIiLz48bGluZSB4MT0iNTAiIHkxPSIyMDAiIHgyPSI3NTAiIHkyPSIyMDAiIHN0cm9rZT0iI2M0YzRiMCIgc3Ryb2tlLXdpZHRoPSIxLjUiIHN0cm9rZS1vcGFjaXR5PSIwLjIiLz48bGluZSB4MT0iNTAiIHkxPSI0MDAiIHgyPSI3NTAiIHkyPSI0MDAiIHN0cm9rZT0iI2M0YzRiMCIgc3Ryb2tlLXdpZHRoPSIxLjUiIHN0cm9rZS1vcGFjaXR5PSIwLjIiLz48L3N2Zz4=')"
+        'silk-lotus': "url('../assets/bg/silk-lotus.svg')",
+        'mist-bamboo': "url('../assets/bg/mist-bamboo.svg')",
+        'cloud-mountains': "url('../assets/bg/cloud-mountains.svg')",
+        'auspicious-gold': "url('../assets/bg/auspicious-gold.svg')"
     },
+    // 信笺：四幅整幅画面 —— 鹤影青绿 / 桂花旧纸 / 回纹朱日 / 水彩荷塘
     stationery: {
-        vintage: "url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MDAiIGhlaWdodD0iNjAwIiB2aWV3Qm94PSIwIDAgODAwIDYwMCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJwYXBlckdyYWRpZW50IiB4MT0iMCUiIHkxPSIwJSIgeDI9IjAlIiB5Mj0iMTAwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iI2ZmZmZmZiIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iI2Y4ZjhmOCIvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjxyZWN0IHdpZHRoPSI4MDAiIGhlaWdodD0iNjAwIiBmaWxsPSJ1cmwoI3BhcGVyR3JhZGllbnQpIi8+PHJlY3QgeD0iNDAiIHk9IjQwIiB3aWR0aD0iNzIwIiBoZWlnaHQ9IjUyMCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZTBlMGUwIiBzdHJva2Utd2lkdGg9IjEiLz48bGluZSB4MT0iNjAiIHkxPSI2MCIgeDI9Ijc0MCIgeTI9IjYwIiBzdHJva2U9IiNlMGUwZTAiIHN0cm9rZS13aWR0aD0iMC41Ii8+PGxpbmUgeDE9IjYwIiB5MT0iODAiIHgyPSI3NDAiIHkyPSI4MCIgc3Ryb2tlPSIjZTBlMGUwIiBzdHJva2Utd2lkdGg9IjAuNSIvPjwvc3ZnPg==')",
-        kraft: "url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MDAiIGhlaWdodD0iNjAwIiB2aWV3Qm94PSIwIDAgODAwIDYwMCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJrcmFmdEdyYWRpZW50IiB4MT0iMCUiIHkxPSIwJSIgeDI9IjAlIiB5Mj0iMTAwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iI2Y1ZjBlNSIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iI2VmZWFlNSIvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjxyZWN0IHdpZHRoPSI4MDAiIGhlaWdodD0iNjAwIiBmaWxsPSJ1cmwoI2tyYWZ0R3JhZGllbnQpIi8+PGNpcmNsZSBjeD0iMTUwIiBjeT0iMTUwIiByPSIyNSIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZDBkMGQwIiBzdHJva2Utd2lkdGg9IjAuOCIgc3Ryb2tlLW9wYWNpdHk9IjAuMyIvPjxjaXJjbGUgY3g9IjY1MCIgY3k9IjE1MCIgcj0iMjUiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2QwZDBkMCIgc3Ryb2tlLXdpZHRoPSIwLjgiIHN0cm9rZS1vcGFjaXR5PSIwLjMiLz48Y2lyY2xlIGN4PSIxNTAiIGN5PSI0NTAiIHI9IjI1IiBmaWxsPSJub25lIiBzdHJva2U9IiNkMGQwZDAiIHN0cm9rZS13aWR0aD0iMC44IiBzdHJva2Utb3BhY2l0eT0iMC4zIi8+PGNpcmNsZSBjeD0iNjUwIiBjeT0iNDUwIiByPSIyNSIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZDBkMGQwIiBzdHJva2Utd2lkdGg9IjAuOCIgc3Ryb2tlLW9wYWNpdHk9IjAuMyIvPjwvc3ZnPg==')",
-        watercolor: "url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MDAiIGhlaWdodD0iNjAwIiB2aWV3Qm94PSIwIDAgODAwIDYwMCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJ3YXRlckdyYWRpZW50IiB4MT0iMCUiIHkxPSIwJSIgeDI9IjAlIiB5Mj0iMTAwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iI2ZmZmZmZiIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iI2YwZjBmMCIvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjxyZWN0IHdpZHRoPSI4MDAiIGhlaWdodD0iNjAwIiBmaWxsPSJ1cmwoI3dhdGVyR3JhZGllbnQpIi8+PGVsbGlwc2UgY3g9IjIwMCIgY3k9IjE1MCIgcng9IjgwIiByeT0iNDAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2QwZDBkMCIgc3Ryb2tlLXdpZHRoPSIwLjgiIHN0cm9rZS1vcGFjaXR5PSIwLjIiLz48ZWxsaXBzZSBjeD0iNjAwIiBjeT0iMTUwIiByeD0iODAiIHJ5PSI0MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZDBkMGQwIiBzdHJva2Utd2lkdGg9IjAuOCIgc3Ryb2tlLW9wYWNpdHk9IjAuMiIvPjxlbGxpcHNlIGN4PSIyMDAiIGN5PSI0NTAiIHJ4PSI4MCIgcnk9IjQwIiBmaWxsPSJub25lIiBzdHJva2U9IiNkMGQwZDAiIHN0cm9rZS13aWR0aD0iMC44IiBzdHJva2Utb3BhY2l0eT0iMC4yIi8+PGVsbGlwc2UgY3g9IjYwMCIgY3k9IjQ1MCIgcng9IjgwIiByeT0iNDAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2QwZDBkMCIgc3Ryb2tlLXdpZHRoPSIwLjgiIHN0cm9rZS1vcGFjaXR5PSIwLjIiLz48L3N2Zz4=')",
-        sketch: "url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MDAiIGhlaWdodD0iNjAwIiB2aWV3Qm94PSIwIDAgODAwIDYwMCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJza2V0Y2hHcmFkaWVudCIgeDE9IjAlIiB5MT0iMCUiIHgyPSIwJSIgeTI9IjEwMCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNmZmZmZmYiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiNmMGYwZjAiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iODAwIiBoZWlnaHQ9IjYwMCIgZmlsbD0idXJsKCNza2V0Y2hHcmFkaWVudCkiLz48bGluZSB4MT0iMTAwIiB5MT0iMTAwIiB4Mj0iNzAwIiB5Mj0iMTAwIiBzdHJva2U9IiNkMGQwZDAiIHN0cm9rZS13aWR0aD0iMC41IiBzdHJva2Utb3BhY2l0eT0iMC4zIi8+PGxpbmUgeDE9IjEwMCIgeTE9IjIwMCIgeDI9IjcwMCIgeTI9IjIwMCIgc3Ryb2tlPSIjZDBkMGQwIiBzdHJva2Utd2lkdGg9IjAuNSIgc3Ryb2tlLW9wYWNpdHk9IjAuMyIvPjxsaW5lIHgxPSIxMDAiIHkxPSIzMDAiIHgyPSI3MDAiIHkyPSIzMDAiIHN0cm9rZT0iI2QwZDBkMCIgc3Ryb2tlLXdpZHRoPSIwLjUiIHN0cm9rZS1vcGFjaXR5PSIwLjMiLz48bGluZSB4MT0iMTAwIiB5MT0iNDAwIiB4Mj0iNzAwIiB5Mj0iNDAwIiBzdHJva2U9IiNkMGQwZDAiIHN0cm9rZS13aWR0aD0iMC41IiBzdHJva2Utb3BhY2l0eT0iMC4zIi8+PGxpbmUgeDE9IjEwMCIgeTE9IjUwMCIgeDI9IjcwMCIgeTI9IjUwMCIgc3Ryb2tlPSIjZDBkMGQwIiBzdHJva2Utd2lkdGg9IjAuNSIgc3Ryb2tlLW9wYWNpdHk9IjAuMyIvPjwvc3ZnPg==')"
+        'crane-hills': "url('../assets/bg/crane-hills.svg')",
+        'osmanthus-kraft': "url('../assets/bg/osmanthus-kraft.svg')",
+        'meander-sun': "url('../assets/bg/meander-sun.svg')",
+        'watercolor-pond': "url('../assets/bg/watercolor-pond.svg')"
     }
 };
 
@@ -30,11 +34,29 @@ const defaultBackgroundColors = {
     stationery: '#FFFFFF'
 };
 
+// 每幅国风 / 信笺背景的主色（取自画面主视觉色）与配套纸底。
+// 用于让标题栏 / 状态栏等界面元素"从背景取色"，不再一成不变。
+const patternThemes = {
+    // 国风
+    'silk-lotus':      { paper: '#F2F6F5', accent: '#7FA8A0', line: '#C4D4CF' },  // 绢荷
+    'mist-bamboo':     { paper: '#F4F5F4', accent: '#7E939C', line: '#C6CFD4' },  // 雾竹
+    'cloud-mountains': { paper: '#F1F2F1', accent: '#7E8A8A', line: '#C9D1D0' },  // 云山
+    'auspicious-gold': { paper: '#F8F5EC', accent: '#A8874A', line: '#D9CDAF' },  // 祥云洒金
+    // 信笺
+    'crane-hills':     { paper: '#F2F8F7', accent: '#5E9490', line: '#C4DAD6' },  // 鹤影青绿
+    'osmanthus-kraft': { paper: '#EFE8D5', accent: '#9A8654', line: '#D6C9A6' },  // 桂花旧纸
+    'meander-sun':     { paper: '#F1ECDE', accent: '#A8745B', line: '#DCCDB4' },  // 回纹朱日
+    'watercolor-pond': { paper: '#F3F5E9', accent: '#7A9E7E', line: '#C9D8BE' }   // 水彩荷塘
+};
+
 function applyBackground() {
     const { elements, state } = window.Mojian;
-    const baseColor = state.settings.backgroundType === 'solid'
+    const type = state.settings.backgroundType;
+    const patternName = state.settings.backgroundPattern;
+    const theme = (type === 'chinese' || type === 'stationery') ? patternThemes[patternName] : null;
+    const baseColor = type === 'solid'
         ? state.settings.background
-        : defaultBackgroundColors[state.settings.backgroundType];
+        : (theme ? theme.paper : defaultBackgroundColors[type]);
     const pattern = state.settings.backgroundType !== 'solid'
         ? backgroundPatterns[state.settings.backgroundType]?.[state.settings.backgroundPattern]
         : null;
@@ -88,8 +110,22 @@ function applyBackground() {
 
     if (state.settings.backgroundType === 'solid' || !pattern) {
         document.documentElement.style.setProperty('--bg-pattern', 'none');
+        document.documentElement.style.setProperty('--bg-pattern-size', 'auto');
+        document.documentElement.style.setProperty('--bg-pattern-repeat', 'repeat');
+        document.documentElement.style.setProperty('--bg-pattern-position', 'center');
     } else {
         document.documentElement.style.setProperty('--bg-pattern', pattern);
+        if (state.settings.backgroundType === 'artistic') {
+            // 文艺：小尺寸几何纹样，按 SVG 内在尺寸平铺
+            document.documentElement.style.setProperty('--bg-pattern-size', 'auto');
+            document.documentElement.style.setProperty('--bg-pattern-repeat', 'repeat');
+            document.documentElement.style.setProperty('--bg-pattern-position', 'center');
+        } else {
+            // 国风 / 信笺：整幅画面，铺满不平铺
+            document.documentElement.style.setProperty('--bg-pattern-size', 'cover');
+            document.documentElement.style.setProperty('--bg-pattern-repeat', 'no-repeat');
+            document.documentElement.style.setProperty('--bg-pattern-position', 'center');
+        }
     }
 
     elements.markdownContent.style.backgroundColor = 'transparent';
@@ -154,6 +190,21 @@ function applyBackground() {
     if (elements.editToolbar) {
         elements.editToolbar.style.backgroundColor = blendedToolbarBg;
     }
+
+    // 标题栏 / 状态栏从当前背景"取主色"：边框线、Logo、图标强调色随画面主色变化
+    const root = document.documentElement;
+    const accent = theme ? theme.accent : null;
+    const line = theme ? theme.line : null;
+    root.style.setProperty('--pattern-accent', accent || '');
+    root.style.setProperty('--pattern-line', line || '');
+    root.style.setProperty('--pattern-paper', theme ? theme.paper : '');
+
+    // 给 body 打上"取自背景主色"标记，CSS 用它切换标题栏 / 状态栏着色方案
+    document.body.classList.toggle('has-pattern-theme', !!accent);
+    // 深色模式由 applyTheme 单独复位该标记
+    if (state.isDarkMode) {
+        document.body.classList.remove('has-pattern-theme');
+    }
 }
 
 function updateBackgroundSelection() {
@@ -214,6 +265,12 @@ function applyTheme() {
         const darkBg = '#0a0e1a';
         const darkerBg = '#0d0d1a';
         const tableHeaderBg = '#1a1a2e';
+
+        // 深色模式不走"背景取色"：摘掉标记并复位主题变量
+        document.body.classList.remove('has-pattern-theme');
+        document.documentElement.style.setProperty('--pattern-accent', '');
+        document.documentElement.style.setProperty('--pattern-line', '');
+        document.documentElement.style.setProperty('--pattern-paper', '');
 
         document.body.style.backgroundColor = darkBg;
         elements.markdownContent.style.backgroundColor = 'transparent';
