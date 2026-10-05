@@ -41,7 +41,7 @@ body::before {
     opacity: var(--bg-pattern-opacity, 1);
     pointer-events: none;
     z-index: -1;
-    transition: background-color var(--transition-normal), background-image var(--transition-normal), opacity var(--transition-normal);
+    transition: background-color var(--transition-normal), opacity var(--transition-normal);
 }
 
 /* Selection */

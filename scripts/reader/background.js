@@ -16,7 +16,7 @@ const backgroundPatterns = {
         'silk-lotus': "url('../assets/bg/silk-lotus.svg')",
         'mist-bamboo': "url('../assets/bg/mist-bamboo.svg')",
         'cloud-mountains': "url('../assets/bg/cloud-mountains.svg')",
-        'auspicious-gold': "url('../assets/bg/auspicious-gold.svg')"
+        'auspicious-gold': "url('../assets/bg/auspicious-gold.webp')"
     },
     // 信笺：四幅整幅画面 —— 鹤影青绿 / 桂花旧纸 / 回纹朱日 / 水彩荷塘
     stationery: {
@@ -124,7 +124,9 @@ function applyBackground() {
             // 国风 / 信笺：整幅画面，铺满不平铺
             document.documentElement.style.setProperty('--bg-pattern-size', 'cover');
             document.documentElement.style.setProperty('--bg-pattern-repeat', 'no-repeat');
-            document.documentElement.style.setProperty('--bg-pattern-position', 'center');
+            // 祥云洒金底部有印章：cover 裁切时优先从下往上保留，垂直锚定底部（只裁顶部）
+            const pos = state.settings.backgroundPattern === 'auspicious-gold' ? 'center bottom' : 'center';
+            document.documentElement.style.setProperty('--bg-pattern-position', pos);
         }
     }
 

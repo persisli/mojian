@@ -9,6 +9,10 @@ desktop.ini
 *.sublime-project
 *.sublime-workspace
 
+.box-agent/
+.box-agent-scratch/
+.kilo/
+
 # Logs
 *.log
 npm-debug.log*
@@ -56,3 +60,4 @@ coverage/
 *.pid.lock
 
 news-mhtml/
+bg_refer/
