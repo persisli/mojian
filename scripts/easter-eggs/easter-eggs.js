@@ -106,9 +106,11 @@ function showAchievementNotification(achievement) {
     notification.className = 'achievement-notification';
     notification.style.cssText = `
         position: fixed; top: 100px; right: -400px;
-        background: var(--color-accent, #ee7600);
-        color: white; padding: 20px 24px; border-radius: var(--radius-lg, 12px);
-        box-shadow: 0 10px 40px rgba(238, 118, 0, 0.4);
+        background: var(--bg-page-solid, var(--bg-page, #FAFAF8));
+        color: var(--color-text, #333333);
+        padding: 20px 24px; border-radius: var(--radius-lg, 12px);
+        border: 1px solid var(--color-border, #E8E8E6);
+        box-shadow: 0 10px 40px var(--color-shadow, rgba(0, 0, 0, 0.08));
         z-index: 10001; max-width: 350px;
         transition: right 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
     `;

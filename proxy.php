@@ -81,6 +81,12 @@ $FALLBACK_FETCH = '';
 // 那时直连早就返回了，所以真实耗时 ≈ 直连耗时 + 20s，仍要留意主机的 max_execution_time。
 $FALLBACK_TIMEOUT = 20;
 
+// WAF 解谜的重试轮数上限：一轮 = 解一次 SHA-256 工作量证明 + 带 _wafchallengeid 重抓（多一个 RTT）。
+// 服务端挑的 i 通常是个位数，PHP 暴力试毫秒级，绝大多数情况第 1 轮就过；
+// 只有 nonce 轮换、或者同一 IP 信誉评分临时波动时才会用到后面的轮次。
+// 调大有成本（失败时每个 RTT 都要等），调小则更容易在两次之间卡住。
+$WAF_MAX_ROUNDS = 4;
+
 // 同源校验：只接受「本站页面」发起的抓取，挡住其它网站把这里当免费代理／肉鸡。
 // 浏览器会强制带上 Sec-Fetch-Site，第三方网页无法伪造，因此这一项不影响本站的正常调用
 // （前端、地址栏直接打开 proxy.php?url=... 都能通过）。
@@ -602,6 +608,7 @@ if (isset($_GET['ping'])) {
         'max'   => $MAX_FETCH_BYTES,
         'origin'=> $ALLOW_NO_ORIGIN ? 'allow-no-origin' : 'strict',
         'fallback' => $FALLBACK_FETCH !== '',
+        'waf'     => $WAF_MAX_ROUNDS . ' rounds',
     ]);
     exit;
 }
@@ -675,7 +682,7 @@ $fetch = proxy_fetch_url($url, $UA, $MAX_FETCH_BYTES, 12);
 $via   = 'direct';
 
 // 直连拿到目标站的 WAF 挑战页（掘金等字节系站点对机房/共享 IP 必挑战）：
-// 先在服务端解 SHA-256 工作量证明、带 _wafchallengeid Cookie 重抓（最多两轮），
+// 先在服务端解 SHA-256 工作量证明、带 _wafchallengeid Cookie 重抓（最多 $WAF_MAX_ROUNDS 轮），
 // 不需要 JS 引擎、不需要外部服务；解不开再退到 $FALLBACK_FETCH 备用端点
 if (!$fetch['failed'] && !$fetch['tooLarge'] && $fetch['code'] < 400
     && proxy_looks_like_waf($fetch['body'])) {
@@ -684,7 +691,7 @@ if (!$fetch['failed'] && !$fetch['tooLarge'] && $fetch['code'] < 400
         $jar = tempnam(sys_get_temp_dir(), 'waf_');
     }
     try {
-        for ($wafTry = 0; $wafTry < 2; $wafTry++) {
+        for ($wafTry = 0; $wafTry < $WAF_MAX_ROUNDS; $wafTry++) {
             $cookie = proxy_solve_waf_cookie($fetch['body']);
             if ($cookie === null) {
                 break;

@@ -34,6 +34,10 @@ function escapeHtml(text) {
 const CODE_BLOCK_CHROME_CLASSES = ['code-block-header', 'code-block-lang', 'code-block-actions',
     'code-block-btn', 'line-numbers', 'line-number', 'mermaid-diagram'];
 const CODE_BLOCK_BLOCK_TAGS = /^(DIV|P|LI|TR|SECTION|ARTICLE|BLOCKQUOTE|H[1-6])$/;
+// 部分站点（如掘金的高亮代码块）会把每一行单独包进 <span class="line"> /
+// <div class="code-line">，行与行之间没有换行符。这类元素同样要还原成换行，
+// 否则整段代码会被读成一行。
+const CODE_BLOCK_LINE_CLASS_RE = /^(lines?|code-?lines?|hljs-?lines?)$/i;
 
 /**
  * 读取代码块内的代码纯文本（换行统一还原成 "\n"）
@@ -57,6 +61,15 @@ function getCodeText(code) {
         return false;
     }
 
+    // 逐行包裹的元素（<span class="line">…</span>）在换行意义上等同于块级元素
+    function isLineWrapper(el) {
+        if (!el.classList) return false;
+        for (let i = 0; i < el.classList.length; i++) {
+            if (CODE_BLOCK_LINE_CLASS_RE.test(el.classList[i])) return true;
+        }
+        return false;
+    }
+
     function walk(node) {
         for (let n = node.firstChild; n; n = n.nextSibling) {
             if (n.nodeType === 3) {
@@ -69,7 +82,7 @@ function getCodeText(code) {
                 continue;
             }
             if (isChrome(n)) continue;
-            if (CODE_BLOCK_BLOCK_TAGS.test(n.tagName)) {
+            if (CODE_BLOCK_BLOCK_TAGS.test(n.tagName) || isLineWrapper(n)) {
                 if (out && out.charAt(out.length - 1) !== '\n') out += '\n';
                 walk(n);
                 if (out.charAt(out.length - 1) !== '\n') out += '\n';
@@ -80,7 +93,8 @@ function getCodeText(code) {
     }
 
     walk(code);
-    return out;
+    // 统一换行符：抓来的页面可能是 CRLF，直接按 \n 切行号会多出 \r
+    return out.replace(/\r\n?/g, '\n');
 }
 
 window.Mojian = window.Mojian || {};

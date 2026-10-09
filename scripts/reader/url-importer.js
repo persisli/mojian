@@ -41,6 +41,11 @@
     ];
     var MAX_HTML_BYTES = 8 * 1024 * 1024;
 
+    // 目标站 WAF 拦截时的自动重试次数。
+    // 只对 WAF_BLOCKED 生效：字节系站点对同一出口 IP 的放行是概率性的，
+    // 重试一次的成功率不低，值得多花一个 RTT；重试后仍失败才提示用户。
+    var WAF_AUTO_RETRY = 1;
+
     /* ================================================================
      * 正文容器选择规则
      * ================================================================ */
@@ -153,6 +158,20 @@
         if (!parent) return;
         while (el.firstChild) parent.insertBefore(el.firstChild, el);
         parent.removeChild(el);
+    }
+
+    /**
+     * 元素是否位于代码块（<pre> / <code>）内部。
+     *
+     * 代码块内部一律不做「按类名/结构清洗」：
+     *   1) 掘金等站点的高亮代码块里全是 hljs-* 标签，其中 hljs-keyword（命中 keyword\w*）、
+     *      hljs-comment（命中 comment\w*）、hljs-tag / hljs-selector-tag（命中 tag\w*）
+     *      会被 NEGATIVE_RE 当成「评论/关键词/标签」噪声整段删除 —— 关键字、注释凭空消失，
+     *      多行注释里的换行也跟着丢，代码块被挤成一行；
+     *   2) 代码块里的换行与缩进本身就是内容，任何解包 / 删空节点 / trim 都会破坏它。
+     */
+    function inCodeBlock(el) {
+        return !!(el && el.closest && el.closest('pre, code'));
     }
 
     function absolute(href, base) {
@@ -400,6 +419,7 @@
             // 图片不按类名删：如 class="thumb-selected" 恰恰是正文大图（thumb-* 命中黑名单），
             // 图片的取舍统一交给 fixImages 的「meta + src」规则判断
             if (tagOf(el) === 'img') return;
+            if (inCodeBlock(el)) return;        // 代码块内的语法高亮标签不能按类名删
             var cls = classIdOf(el);
             if (!cls) return;
             if (NEGATIVE_RE.test(cls)) {
@@ -444,6 +464,7 @@
         // 否则转 markdown 会输出 *·* 这类噪声
         ['i', 'em', 'b', 'strong'].forEach(function (tag) {
             Array.prototype.slice.call(container.getElementsByTagName(tag)).forEach(function (el) {
+                if (inCodeBlock(el)) return;    // 代码块内不拆标签，否则多行结构会被压平
                 var t = textOf(el);
                 if (!t || t.length > 4) return;
                 if (/[\w\u4e00-\u9fa5\u3040-\u30ff]/.test(t)) return;
@@ -548,6 +569,7 @@
         var nodes = Array.prototype.slice.call(container.querySelectorAll('p, div, span, figcaption, em, i, td'));
 
         nodes.forEach(function (el) {
+            if (inCodeBlock(el)) return;                                 // 代码块内的语法高亮片段不是图注
             if (el.getElementsByTagName('img').length) return;                 // 自身含图，跳过
             if (el.getElementsByTagName('p').length || el.getElementsByTagName('div').length) return;
 
@@ -590,6 +612,7 @@
         for (var i = nodes.length - 1; i >= 0; i--) {
             var el = nodes[i];
             if (!el.parentNode) continue;
+            if (inCodeBlock(el)) continue;                               // 代码块内的片段不做署名行识别
             if (el.querySelector && el.querySelector('.article-editor')) continue;
             if (el.getElementsByTagName('img').length) continue;
             if (el.getElementsByTagName('p').length || el.getElementsByTagName('div').length) continue;
@@ -626,6 +649,7 @@
     function markArticleMeta(container) {
         var nodes = Array.prototype.slice.call(container.querySelectorAll('p, div, span, section'));
         nodes.forEach(function (el) {
+            if (inCodeBlock(el)) return;
             if (el.getElementsByTagName('img').length) return;
             if (el.getElementsByTagName('p').length || el.getElementsByTagName('div').length) return;   // 只看叶子块
 
@@ -641,6 +665,7 @@
     function fixLinks(container, pageUrl) {
         var as = Array.prototype.slice.call(container.getElementsByTagName('a'));
         as.forEach(function (a) {
+            if (inCodeBlock(a)) return;      // 代码块里的 <a> 多半是代码示例的一部分，不改写
             var href = (a.getAttribute('href') || '').trim();
             if (!href || /^(javascript:|#|about:)/i.test(href)) {
                 unwrap(a);
@@ -735,6 +760,7 @@
         );
         for (var k = holders.length - 1; k >= 0; k--) {
             var el = holders[k];
+            if (inCodeBlock(el)) continue;   // 代码块里"看起来是空的"元素往往就是一个换行
             if (el.getElementsByTagName('img').length) continue;
             if (el.getElementsByTagName('table').length) continue;
             if (el.getElementsByTagName('pre').length) continue;
@@ -1324,27 +1350,47 @@
         importing = true;
         M.showToast(t('toast.urlImporting') || '正在抓取并解析链接内容…');
 
-        fetchHtml(url).then(function (res) {
-            var doc = parseHtml(res.text);
-            var out = extractFromDoc(doc, url);
-            if (isUsableBody(out.container)) {
-                var markdown = buildMarkdown(out.title, out.container);
-                renderArticle(out.title, markdown, url);
-                cachePut(url, out.title, markdown);
-                M.showToast(t('toast.urlImportSuccess') || '链接内容已导入');
-                return null;
-            }
+        // 一次「抓取 + 解析 + 渲染」
+        function fetchAndRender() {
+            return fetchHtml(url).then(function (res) {
+                var doc = parseHtml(res.text);
+                var out = extractFromDoc(doc, url);
+                if (isUsableBody(out.container)) {
+                    var markdown = buildMarkdown(out.title, out.container);
+                    renderArticle(out.title, markdown, url);
+                    cachePut(url, out.title, markdown);
+                    M.showToast(t('toast.urlImportSuccess') || '链接内容已导入');
+                    return null;
+                }
 
-            // 页面是纯前端渲染的空壳（华尔街见闻 / 今日头条等）→ 改用站点接口取正文
-            return fetchArticleByApi(url).then(function (apiOut) {
-                if (!apiOut) throw new Error('EMPTY_CONTENT');
-                var apiMarkdown = buildMarkdown(apiOut.title, apiOut.container);
-                if (!apiMarkdown) throw new Error('EMPTY_CONTENT');
-                renderArticle(apiOut.title, apiMarkdown, url);
-                cachePut(url, apiOut.title, apiMarkdown);
-                M.showToast(t('toast.urlImportSuccess') || '链接内容已导入');
+                // 页面是纯前端渲染的空壳（华尔街见闻 / 今日头条等）→ 改用站点接口取正文
+                return fetchArticleByApi(url).then(function (apiOut) {
+                    if (!apiOut) throw new Error('EMPTY_CONTENT');
+                    var apiMarkdown = buildMarkdown(apiOut.title, apiOut.container);
+                    if (!apiMarkdown) throw new Error('EMPTY_CONTENT');
+                    renderArticle(apiOut.title, apiMarkdown, url);
+                    cachePut(url, apiOut.title, apiMarkdown);
+                    M.showToast(t('toast.urlImportSuccess') || '链接内容已导入');
+                });
             });
-        }).catch(function (err) {
+        }
+
+        // 目标站 WAF 的放行是概率性的：同一个出口 IP 有时直接给正文，有时必须解一次挑战，
+        // 而挑战页的 nonce 又会轮换。所以「第一次被 WAF 挡」不等于「抓不到」，
+        // 这里自动重试一次（proxy.php 会重新解一遍挑战，多花一个 RTT），
+        // 重试仍失败才提示用户，避免"刷新一下就好"的情况让用户自己手动重试。
+        function attempt(left) {
+            return fetchAndRender().catch(function (err) {
+                if (err && err.message === 'WAF_BLOCKED' && left > 0) {
+                    console.warn('[url-import] 目标站 WAF 拦截，自动重试一次（' +
+                        (WAF_AUTO_RETRY - left + 1) + '/' + WAF_AUTO_RETRY + '）…');
+                    return attempt(left - 1);
+                }
+                throw err;
+            });
+        }
+
+        attempt(WAF_AUTO_RETRY).catch(function (err) {
             var msg;
             if (err && err.message === 'RATE_LIMITED') {
                 // 代理限速：告知还需等待多久，不做其它兜底尝试
@@ -1356,7 +1402,7 @@
                 msg = t('toast.urlImportUnauthorized') ||
                     '代理令牌校验失败：请确认 proxy.php 与 url-importer.js 的令牌一致';
             } else if (err && err.message === 'WAF_BLOCKED') {
-                // 目标站有 WAF（如掘金）：不是网络抖动，重试也没用，直接说清原因
+                // 已经自动重试过一轮还是被挡：这时才是真的抓不到，说清原因
                 msg = t('toast.urlImportWafBlocked') ||
                     '该站点启用了反爬（WAF）：服务器出口 IP 被挑战，服务端抓不到正文。可换个链接，或改用本地 php -S 服务解析';
             } else {

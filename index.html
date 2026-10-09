@@ -32,6 +32,13 @@
         .mojian-restoring #fileName { display: inline !important; }
     </style>
     
+    <!-- Prism.js 主题（第三方）必须先于本站样式加载：
+         它带着 `:not(pre)>code[class*=language-]{white-space:normal;padding:.1em}` 这类规则，
+         而代码块增强后 <code> 已被移出 <pre>、放进 div.code-container，
+         于是这条规则会命中并把代码里的换行折叠成空格（行号正常、代码全挤在第一行）。
+         两条选择器特异性相同 (0,1,2)，谁后加载谁生效，所以主题必须放在最前面。 -->
+    <link rel="stylesheet" href="libs/prism-tomorrow.min.css?v=20261010">
+
     <!-- 样式：原先由 styles/main.css 内的 @import 串行拉取（多一轮往返、阻塞渲染），
          现改为在 HTML 中直接并行声明；顺序与原 main.css 的 @import 顺序一致 -->
     <link rel="stylesheet" href="styles/variables.css?v=20261014">
@@ -39,7 +46,7 @@
     <link rel="stylesheet" href="styles/header.css?v=20261014">
     <link rel="stylesheet" href="styles/editor.css?v=20261010">
     <link rel="stylesheet" href="styles/sidebar.css?v=20261012">
-    <link rel="stylesheet" href="styles/content.css?v=20261010">
+    <link rel="stylesheet" href="styles/content.css?v=20261009c">
     <link rel="stylesheet" href="styles/status-bar.css?v=20261010">
     <link rel="stylesheet" href="styles/modals.css?v=20261010">
     <link rel="stylesheet" href="styles/toc.css?v=20261010">
@@ -53,9 +60,6 @@
          在用户真正切换到该字体时，由 scripts/core/lazy-loader.js 动态注入 -->
     <link rel="preconnect" href="https://fonts.loli.net" crossorigin>
     <link href="https://fonts.loli.net/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
-    
-    <!-- Prism.js Theme -->
-    <link rel="stylesheet" href="libs/prism-tomorrow.min.css?v=20261010">
     
     <!-- Lucide Icons (deferred) -->
     <script src="libs/lucide.min.js?v=20261010" defer></script>

@@ -418,9 +418,15 @@
 
 .line-numbers {
     flex-shrink: 0;
-    padding: 16px 8px 16px 16px;
+    /* 行号在列内居中。列宽原本是 shrink-to-fit，text-align 起不到作用，
+       所以给一个 3ch 的最小宽度：既让居中看得见，也让列宽不随位数变化
+       （9→10、99→100 时代码区不会横向抖动）。 */
+    min-width: 3ch;
+    padding: 8px 8px 8px 10px;
     background-color: transparent;
-    text-align: right;
+    /* 与 span 保持同一字体，min-width 的 ch 才是数字的真实宽度 */
+    font-family: var(--font-mono);
+    text-align: center;
     user-select: none;
 }
 
@@ -500,18 +506,28 @@
     text-align: left;
 }
 
-.markdown-content pre code {
+/* 代码块内的 <code>：白名单式覆盖第三方主题。
+   代码块增强后 <code> 的父节点是 div.code-container 而不是 <pre>，
+   Prism 主题里的 `:not(pre)>code[class*=language-]`（white-space:normal / padding:.1em）
+   就会命中它，把换行折叠成空格。这里同时用 `.code-container code` 提高特异性，
+   即使将来 Prism 主题又被挪到最后加载也不会失效。 */
+.markdown-content pre code,
+.markdown-content .code-container code {
     display: block;
-    padding: 16px;
-    padding-left: 20px;
+    padding: 8px;
     background: transparent !important;
     border: none;
     border-radius: 0;
     font-family: var(--font-mono);
     font-size: 14px;
     line-height: 22px !important;
+    /* Prism 主题的底色是给深色背景设计的 #ccc，本站代码块是浅色 --color-code-bg，
+       这里显式指定成正文色，不再依赖「谁后加载谁生效」的偶然结果 */
+    color: var(--color-text, #333333);
     white-space: pre;
     word-wrap: normal;
+    word-break: normal;
+    tab-size: 4;
     min-width: min-content;
 }
 
