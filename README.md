@@ -117,8 +117,10 @@
 **7. 粘贴链接导入网页正文**
 - 主页（非编辑模式）按 Ctrl+V 粘贴一个 http(s) 链接即自动抓取并解析
 - 解析全部在浏览器完成：正文容器识别（站点规则 → 通用选择器 → Readability 式打分）→ 去广告/推荐/评论/导航 → 转 Markdown → 渲染（含 Mermaid 图、图注、作者时间行）
+- **代码块原样保留**：正文清洗阶段不对 `<pre>` / `<code>` 内部做任何按类名的噪声剔除（否则掘金等站点代码块里的 `hljs-keyword` / `hljs-comment` / `hljs-tag` 会被当成「关键词 / 评论 / 标签」噪声删掉，多行注释被删还会把后面的行拼成一行）
 - 正文图片不经代理，仍指向原站链接，由浏览器带 no-referrer 直接加载
 - 重复导入：与当前正在阅读的文章是同一链接时直接跳过；此前解析过的链接走本地缓存复用，不再抓取、不占代理额度
+- 目标站有 WAF（掘金等字节系）时，代理会在服务端自动求解挑战；仍失败则**自动重试一次**再报错
 - 抓取需要同源代理 proxy.php，部署与配置见 §7
 
 ### 交互细节
@@ -217,7 +219,7 @@
 5. **背景管理**: CSS变量 + inline样式，应用到body/markdown-content/tables
 6. **文件读取**: FileReader API
 7. **阅读进度**: scroll事件 + requestAnimationFrame 节流 → 状态栏百分比
-8. **URL 导入**: 服务端代取 HTML（proxy.php）→ 浏览器内识别正文容器 / 清洗 / 转 Markdown / 渲染
+8. **URL 导入**: 服务端代取 HTML（proxy.php，必要时自动解 WAF 挑战）→ 浏览器内识别正文容器 / 清洗（代码块内部免清洗）/ 转 Markdown / 渲染；被 WAF 挡时自动重试一次
 9. **响应式**: CSS媒体查询
 
 ### 背景应用范围
@@ -285,11 +287,12 @@ PHP_CLI_SERVER_WORKERS=4 php -S localhost:8081
 | `$EXTRA_ALLOWED_HOSTS` | `[]` | 反向代理改写了 Host、导致本站 Origin 对不上时，把本站域名填进来（可只写域名，如 `['mojian.example.com']`） |
 | `$RATE_DIR` | 系统临时目录 | 限速计数文件位置；目录不可写时会自动放行限速（不影响功能） |
 | `$TRUST_PROXY_HEADER` | `false` | 跑在 Cloudflare / Nginx 反代后面时置 `true`，改用真实访客 IP 分桶（同时用 `X-Forwarded-Proto` 判断默认端口） |
-| `$FALLBACK_FETCH` | `''`（关闭） | 备用抓取端点，用 `{url}` 占位目标地址。**直连拿到目标站的 WAF 挑战页时自动改走它**，把「要干净出口 IP」的那一层检查转出去，例如 `https://my-worker.example.workers.dev/?url={url}`、`https://api.scraperapi.com/?api_key=xxx&url={url}`；命中时响应头带 `X-Proxy-Via: fallback` |
+| `$FALLBACK_FETCH` | `''`（关闭） | 备用抓取端点，用 `{url}` 占位目标地址。**直连拿到目标站的 WAF 挑战页、服务端解不开时自动改走它**，把「要干净出口 IP」的那一层检查转出去，例如 `https://my-worker.example.workers.dev/?url={url}`、`https://api.scraperapi.com/?api_key=xxx&url={url}`；命中时响应头带 `X-Proxy-Via: fallback` |
 | `$FALLBACK_TIMEOUT` | 20 | 备用端点的总超时（秒） |
+| `$WAF_MAX_ROUNDS` | 4 | 服务端解 WAF 挑战的最大重试轮数（一轮 = 解一次 SHA-256 工作量证明 + 带 `_wafchallengeid` 重抓，多一个 RTT）。多数情况第 1 轮就过；调大有成本（失败时每个 RTT 都要等），调小则更容易卡在中途 |
 
 部署后自检：直接打开 `https://你的域名/proxy.php?ping=1`，应返回类似
-`{"ok":true,...,"token":true,"rate":"10/60s","repeat":"reuse 600s","max":8388608,"origin":"allow-no-origin"}`。
+`{"ok":true,...,"token":true,"rate":"10/60s","repeat":"reuse 600s","max":8388608,"origin":"allow-no-origin","fallback":false,"waf":"4 rounds"}`。
 其中 `curl` / `fopen` 两个字段告诉你抓取实际走的是哪条分支：
 
 - **装了 `curl` 扩展** → 用 curl（首选）；
@@ -320,9 +323,27 @@ PHP_CLI_SERVER_WORKERS=4 php -S localhost:8081
 
 > **免费虚拟主机的一个坑（一）——本站自己的反爬**：iFastNet / InfinityFree 系（如 iceiy.com 等）会给**没有 `__test` Cookie** 的请求返回一段 `aes.js` 反爬挑战页（HTTP 200 + HTML，内容约 1KB），而不是真正的响应。前端抓取按 `credentials: 'same-origin'` 带上本站 Cookie，所以：**必须先在浏览器里正常打开过本站页面（跑完挑战、拿到 `__test` Cookie）**，粘贴导入才可用；若控制台出现「拿到的是本站主机的反爬挑战页」，刷新页面通过挑战后再试即可（Cookie 有效期 6 小时）。
 
-> **免费虚拟主机的一个坑（二）——目标站自己的 WAF**：有些站点（最典型的是掘金，字节系）会给「可疑来源」——机房/共享 IP、非浏览器 TLS 指纹——返回一个约 2KB 的 **JS 挑战页**（`waf-jschallenge` / `out-sha256.js`）。浏览器能解、PHP 的 curl 解不了，所以**这类站点在虚拟主机上抓不到正文，而本地 `php -S`（家宽 IP）通常正常**——这属于目标站的限制，不是 `proxy.php` 的问题。典型现象：主机侧 `proxy.php?url=<掘金链接>` 只返回 2KB HTML，而同样的链接本机抓取正常。实测：iFastNet 免费主机出口 IP 为英国机房 IP（`185.27.134.x`，AS34119），掘金一律返回挑战页；同一时刻本机（家宽）直连掘金可拿到 126KB 真实页面。前端会识别这种响应并提示「该站点启用了反爬（WAF）」，不再报含糊的「正文为空」。
+> **免费虚拟主机的一个坑（二）——目标站自己的 WAF**：有些站点（最典型的是掘金，字节系）会给「可疑来源」——机房/共享 IP、非浏览器 TLS 指纹——返回一个约 2KB 的 **JS 挑战页**（`waf-jschallenge` / `out-sha256.js`）。典型现象：主机侧 `proxy.php?url=<掘金链接>` 只返回 2KB HTML，而同样的链接本机抓取正常。实测：iFastNet 免费主机出口 IP 为英国机房 IP（`185.27.134.x`，AS34119），同一时刻本机（家宽）直连掘金可拿到 126KB 真实页面。注意**同一个出口 IP 的放行与否是概率性的**——直连有时直接给正文（`X-Proxy-Via: direct`），有时才给挑战页，所以「换个时间点试一下」可能就过了。
+>
+> 这类挑战页 `proxy.php` **能在服务端直接解开**（见下面「WAF 挑战求解」一节），不需要 JS 引擎、也不需要外部服务。解不开时才会退回 `$FALLBACK_FETCH`；再解不开，前端会**自动重试一次**，仍失败才提示「该站点启用了反爬（WAF）」——不再报含糊的「正文为空」。
 
-需要在虚拟主机上支持这类站点，只有一条路：**把这一层检查交给出口 IP 干净的一方**，即配置 `proxy.php` 顶部的 `$FALLBACK_FETCH`（自建 VPS / 家宽 + Cloudflare Tunnel / 带 JS 渲染的抓取 API，都用 `{url}` 占位目标地址）。配好后：直连撞到 WAF 挑战页 → 自动改走备用端点，命中的响应会带 `X-Proxy-Via: fallback`，前端控制台也会写明「已改走备用端点」。注意免费公共中转（allorigins / codetabs / corsproxy / r.jina.ai）实测同样过不了掘金的 WAF —— allorigins 拿到的也是那张挑战页，所以别指望用它们顶替。
+#### WAF 挑战求解
+
+字节系挑战页本质是一道 **SHA-256 工作量证明**：页面里带一份 base64 的 `{v:{a,c}, s}`（`a` = 前缀字节，`c` = 期望摘要），要求找到 `i` 使 `SHA256(a || str(i)) == c`，命中后把 `{v,s,d}` 重新编码成 `_wafchallengeid` Cookie 再 reload。浏览器靠 JS 暴力试；服务端挑的 `i` 通常是个位数，PHP 直接 `hash()` 毫秒级就能解出。
+
+`proxy.php` 的处理链路：
+
+1. 直连拿到 HTML，若体积 ≤ 12KB 且命中 `waf-jschallenge` / `out-sha256.js` / `waf_js` / `__cf_chl_` / `Just a moment...` 等特征 → 判定为挑战页；
+2. 解出 `_wafchallengeid`，写进临时 cookie jar（`tempnam()` 创建，请求结束即 `unlink`），带 Cookie 重抓；
+3. 仍是挑战页就再解一轮，最多 `$WAF_MAX_ROUNDS`（默认 4）轮——**挑战页的 nonce 会轮换**，第一轮解出的凭证可能因服务端换 prefix 而失效，所以需要多轮；
+4. 解开后正常返回，响应头带 `X-Proxy-Via: waf-solved`；
+5. 轮数用尽仍是挑战页 → 若配了 `$FALLBACK_FETCH` 则改走它（`X-Proxy-Via: fallback`），否则前端收到 `WAF_BLOCKED`，**自动重试一次**后提示用户。
+
+**这套流程是无状态的**：cookie jar 每个请求现建现删，挑战凭证从不跨请求复用，因此不存在「cookie 过期导致永久失效」。代价是每次都要重新解一遍，但也因此不会因为残留的坏状态而卡死。
+
+真正会导致「某天突然全站抓不到」的不是过期，而是**挑战页格式变更**——求解强依赖 `cs="…"` 里的 `v.a` / `v.c` / `s` 三个字段，对方一改名字或换算法就会解不出来（前端控制台会打印「目标站启用了 WAF 反爬，服务端抓不到正文」并给出配置 `$FALLBACK_FETCH` 的提示）。这时唯一稳妥的出路是配置 `$FALLBACK_FETCH`，把这一层检查交给出口 IP 干净的一方（自建 VPS / 家宽 + Cloudflare Tunnel / 带 JS 渲染的抓取 API，都用 `{url}` 占位目标地址）。注意免费公共中转（allorigins / codetabs / corsproxy / r.jina.ai）实测同样过不了掘金的 WAF —— allorigins 拿到的也是那张挑战页，所以别指望用它们顶替。
+
+> 另有一个**浏览器侧**的 cookie 陷阱，容易和上面混淆：免费虚拟主机自己（iFastNet / InfinityFree 系）的 `__test` Cookie 有效期约 6 小时，过期后必须先在浏览器里正常打开一次本站页面跑完挑战，粘贴导入才会可用。区分方法很简单——控制台报「**本站主机**的反爬挑战页」是这一层（刷新页面即解），报「**目标站**返回 WAF 挑战页」才是上面那层。
 
 ## 8. 目录结构
 
@@ -347,6 +368,10 @@ scripts/
 ```
 
 > **改了 `scripts/` / `styles/` 之后**：请同步改掉 `index.html` 里各资源链接的 `?v=` 版本号；若改的是 `styles/` 目录下的样式，也要改 `index.html` 中对应的 `<link rel="stylesheet" ... ?v=>`（样式已改为在 HTML 中直接并行声明，`styles/main.css` 不再是入口，只作为样式清单索引），否则浏览器可能继续使用旧脚本 / 旧样式，出现「代码块样式错乱」这类假故障。
+>
+> ⚠️ **第三方主题必须先于本站样式加载**：`libs/prism-tomorrow.min.css` 在 `index.html` 里排在所有 `styles/*.css` **之前**，且不要往回挪。它带着 `:not(pre)>code[class*=language-]{white-space:normal;padding:.1em}` 这条规则，而代码块增强后 `<code>` 已被移出 `<pre>`、放进 `div.code-container`，`:not(pre)` 成立就会命中它——两条选择器特异性相同 (0,1,2)，谁后加载谁生效，主题排后面就会把代码里的换行折叠成空格（表现为「行号正常、代码全挤在第一行」）。为保险起见，`styles/content.css` 里代码块规则同时挂了 `.markdown-content .code-container code`（特异性 (0,2,1)），即便顺序被改也不会失效。
+>
+> ⚠️ **正文清洗不要按类名删代码块内部元素**：`scripts/reader/url-importer.js` 的 `cleanContainer()` 用 `NEGATIVE_RE` 类名黑名单剔除广告/评论/推荐等噪声，但代码块里满是 `hljs-*` 高亮标签，其中 `hljs-keyword`（命中 `keyword\w*`）、`hljs-comment`（命中 `comment\w*`）、`hljs-tag` / `hljs-selector-tag`（命中 `tag\w*`）会被误判成噪声整段删除——关键字和注释凭空消失，多行注释里的换行也跟着丢，代码块被挤成一行。因此所有破坏性清洗前都要先用 `inCodeBlock(el)` 判一下，`<pre>` / `<code>` 内部一律跳过。
 >
 > **首屏加载策略**：`libs/turndown.js`、`scripts/editor/*`、`scripts/export/export.js`、`scripts/reader/url-importer.js`、`scripts/easter-eggs/matrix-rain.js`、`libs/prism*.js` 已移出首屏关键路径，由 `scripts/core/lazy-loader.js` 在首屏绘制后的空闲时段注入，并在「编辑 / 导出 / 矩阵雨」等交互触发时提前加载。若新增首屏用不到的脚本，请登记到 `lazy-loader.js` 的 `DEFERRED_FILES`，并确认所有调用处都做了「未就绪」守卫。
 >
