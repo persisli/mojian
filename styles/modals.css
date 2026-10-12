@@ -119,7 +119,7 @@
 }
 
 .export-confirm-title {
-    font-family: var(--font-serif);
+    font-family: var(--ui-serif);
     font-size: 1.25rem;
     font-weight: 600;
     color: var(--color-primary);
@@ -218,7 +218,7 @@
 }
 
 .insert-modal-title {
-    font-family: var(--font-serif);
+    font-family: var(--ui-serif);
     font-size: 1.25rem;
     font-weight: 600;
     color: var(--color-primary);
@@ -357,7 +357,7 @@
 }
 
 .export-modal-header h3 {
-    font-family: var(--font-serif);
+    font-family: var(--ui-serif);
     font-size: 1.125rem;
     font-weight: 600;
     color: var(--color-primary);

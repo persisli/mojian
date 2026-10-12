@@ -54,7 +54,7 @@
 }
 
 .sidebar-title {
-    font-family: var(--font-serif);
+    font-family: var(--ui-serif);
     font-size: 1.125rem;
     font-weight: 600;
     color: var(--color-primary);
@@ -571,9 +571,15 @@ input[type="range"]::-moz-range-thumb {
 }
 
 .bg-option.artistic,
-.bg-option.chinese,
-.bg-option.stationery {
+.bg-option.chinese {
     background-size: cover;
+    background-position: center;
+}
+
+/* 信笺：1920x860 整幅画面，缩略图也保持完整可见（contain） */
+.bg-option.stationery {
+    background-size: contain;
+    background-repeat: no-repeat;
     background-position: center;
 }
 

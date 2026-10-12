@@ -18,12 +18,15 @@ const backgroundPatterns = {
         'cloud-mountains': "url('../assets/bg/cloud-mountains.svg')",
         'auspicious-gold': "url('../assets/bg/auspicious-gold.webp')"
     },
-    // 信笺：四幅整幅画面 —— 鹤影青绿 / 桂花旧纸 / 回纹朱日 / 水彩荷塘
+    // 信笺：四幅 1920x860 整幅画面，取自 bg_refer/1920x860/ 参考图
+    //   鹤影青绿 / 桂花旧纸 / 回纹朱日 / 水彩荷塘
+    // 不等比拉伸铺满"标题栏以下的整块区域"（100% 100%），画面完整不裁切；
+    // 由 body.bg-fill-below-header 让开标题栏，其余一直铺到底，状态栏关闭也不留白
     stationery: {
-        'crane-hills': "url('../assets/bg/crane-hills.svg')",
-        'osmanthus-kraft': "url('../assets/bg/osmanthus-kraft.svg')",
-        'meander-sun': "url('../assets/bg/meander-sun.svg')",
-        'watercolor-pond': "url('../assets/bg/watercolor-pond.svg')"
+        'crane-hills': "url('../assets/bg/crane-hills.png')",
+        'osmanthus-kraft': "url('../assets/bg/osmanthus-kraft.png')",
+        'meander-sun': "url('../assets/bg/meander-sun.png')",
+        'watercolor-pond': "url('../assets/bg/watercolor-pond.png')"
     }
 };
 
@@ -60,6 +63,14 @@ function applyBackground() {
     const pattern = state.settings.backgroundType !== 'solid'
         ? backgroundPatterns[state.settings.backgroundType]?.[state.settings.backgroundPattern]
         : null;
+
+    // 信笺：背景层只让开固定标题栏，其余一直铺到底，由 styles/base.css 的
+    // body.bg-fill-below-header::before 接管边界，保证画面不被标题栏遮挡，
+    // 状态栏关闭时底部也不会残留空白带。
+    document.body.classList.toggle(
+        'bg-fill-below-header',
+        state.settings.backgroundType === 'stationery'
+    );
 
     const opacity = state.settings.bgOpacity / 100;
 
@@ -120,8 +131,13 @@ function applyBackground() {
             document.documentElement.style.setProperty('--bg-pattern-size', 'auto');
             document.documentElement.style.setProperty('--bg-pattern-repeat', 'repeat');
             document.documentElement.style.setProperty('--bg-pattern-position', 'center');
+        } else if (state.settings.backgroundType === 'stationery') {
+            // 信笺：贴合"标题栏以下整块区域"拉伸填充（100% 100%，不等比、不裁切）
+            document.documentElement.style.setProperty('--bg-pattern-size', '100% 100%');
+            document.documentElement.style.setProperty('--bg-pattern-repeat', 'no-repeat');
+            document.documentElement.style.setProperty('--bg-pattern-position', 'center');
         } else {
-            // 国风 / 信笺：整幅画面，铺满不平铺
+            // 国风：整幅画面，铺满不平铺
             document.documentElement.style.setProperty('--bg-pattern-size', 'cover');
             document.documentElement.style.setProperty('--bg-pattern-repeat', 'no-repeat');
             // 祥云洒金底部有印章：cover 裁切时优先从下往上保留，垂直锚定底部（只裁顶部）
@@ -134,17 +150,7 @@ function applyBackground() {
     elements.markdownContent.style.backgroundImage = 'none';
     document.documentElement.style.setProperty('--bg-content', 'transparent');
 
-    if (state.settings.backgroundType === 'solid') {
-        const welcomeContent = document.querySelector('.welcome-content');
-        if (welcomeContent) {
-            welcomeContent.style.backgroundColor = bgColorWithOpacity;
-        }
-    } else {
-        const welcomeContent = document.querySelector('.welcome-content');
-        if (welcomeContent) {
-            welcomeContent.style.backgroundColor = '';
-        }
-    }
+    // 欢迎卡片底色统一跟随标题栏（在下方算出 blendedHeaderBg 后同步）
 
     const blockquotes = elements.markdownContent.querySelectorAll('blockquote');
     blockquotes.forEach(bq => {
@@ -183,6 +189,9 @@ function applyBackground() {
     const blendedHeaderBg = blendColors(baseColor, themeBgColor, opacity);
     elements.header.style.backgroundColor = blendedHeaderBg;
     elements.header.style.backgroundImage = 'none';
+
+    // 欢迎卡片底色与标题栏保持一致（含纯色/文艺/国风/信笺各种背景）
+    document.documentElement.style.setProperty('--welcome-bg', blendedHeaderBg);
 
     const blendedStatusBg = blendColors(baseColor, themeBgColor, opacity);
     elements.statusBar.style.backgroundColor = blendedStatusBg;
@@ -270,6 +279,7 @@ function applyTheme() {
 
         // 深色模式不走"背景取色"：摘掉标记并复位主题变量
         document.body.classList.remove('has-pattern-theme');
+        document.body.classList.remove('bg-fill-below-header');
         document.documentElement.style.setProperty('--pattern-accent', '');
         document.documentElement.style.setProperty('--pattern-line', '');
         document.documentElement.style.setProperty('--pattern-paper', '');
@@ -279,6 +289,8 @@ function applyTheme() {
         elements.markdownContent.style.backgroundImage = 'none';
         elements.header.style.backgroundColor = darkBg;
         elements.header.style.backgroundImage = 'none';
+        // 欢迎卡片跟随标题栏（深色模式同为 darkBg）
+        document.documentElement.style.setProperty('--welcome-bg', darkBg);
         elements.statusBar.style.backgroundColor = darkBg;
         elements.statusBar.style.backgroundImage = 'none';
         if (elements.editToolbar) {

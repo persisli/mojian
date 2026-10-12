@@ -103,6 +103,7 @@ async function exportToPdf() {
                     background: ${state.isDarkMode ? '#0a0e1a' : (state.settings.backgroundType === 'solid' ? state.settings.background : '#FAFAF8')} !important;
                     color: ${state.isDarkMode ? '#E8E8E6' : '#333333'} !important;
                     font-family: ${state.settings.fontFamily} !important;
+                    font-weight: ${/^Noto Serif SC/i.test(String(state.settings.fontFamily)) ? '200' : '400'} !important;
                     font-size: ${state.settings.fontSize}px !important;
                     line-height: ${state.settings.lineHeight} !important;
                 }

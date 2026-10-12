@@ -53,7 +53,7 @@
 - 图标: 使用Lucide Icons (线条简洁，与设计语言一致)
 - 装饰: 极简的线条分隔，少量几何装饰
 - 文艺背景: 内联 SVG 几何纹样（六边形 / 三角 / 菱形 / 节点连线），平铺
-- 国风 / 信笺背景: `assets/bg/` 下 8 幅整幅 SVG 画面（绢荷 / 雾竹 / 云山 / 祥云洒金；鹤影青绿 / 桂花旧纸 / 回纹朱日 / 水彩荷塘），cover 铺满不平铺，均为本地文件、无外部网络请求
+- 国风 / 信笺背景: `assets/bg/` 下整幅画面，均为本地文件、无外部网络请求。国风 4 幅 SVG（绢荷 / 雾竹 / 云山 / 祥云洒金）以 cover 铺满视口；信笺 4 幅 1920×860 PNG（鹤影青绿 / 桂花旧纸 / 回纹朱日 / 水彩荷塘）不等比拉伸铺满标题栏以下的整块区域，画面完整、不被标题栏遮挡，状态栏关闭时底部也不会留白
 
 
 ### 响应式策略
@@ -208,7 +208,7 @@
 - **图表渲染**: Mermaid（文档出现 Mermaid 代码块时才动态加载）
 - **编辑器**: 阅读/编辑复用同一份 contenteditable DOM（Tiptap 走 CDN 引入，当前未启用）
 - **图标**: Lucide
-- **字体**: Google Fonts（fonts.loli.net 镜像异步加载，离线自动回退系统字体）
+- **字体**: Google Fonts 经 fonts.googleapis.cn 官方镜像（woff2 分片 + unicode-range 按需加载）。首屏只合并请求正文 Noto Sans SC 与标题 Noto Serif SC，其余（霞鹜文楷走 jsDelivr 单字重文件、JetBrains Mono）切换时按需注入；离线自动回退系统字体
 - **抓取代理（可选，仅 URL 导入用）**: `proxy.php`（PHP，令牌校验 + 10 次/分钟限速）
 
 ### 关键实现
@@ -352,7 +352,7 @@ index.html              入口（无构建步骤）
 proxy.php               同源抓取代理（可选，仅 URL 导入需要）
 daodejing.txt           示例文本
 img/                    README 截图 + favicon.svg（标签页图标，与标题栏书本符号一致）
-assets/bg/              国风 / 信笺阅读背景（8 幅整幅 SVG 画面，本地文件）
+assets/bg/              阅读背景画面（国风 4 幅 SVG + 信笺 4 幅 1920×860 PNG，本地文件）
 libs/                   本地第三方库（marked / Prism / Mermaid / Turndown / Lucide）
 styles/                 样式（变量 / 布局 / 内容 / 编辑器 / 弹窗 / TOC / 响应式…）
 scripts/

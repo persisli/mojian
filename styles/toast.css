@@ -24,6 +24,29 @@
     transform: translateX(-50%) translateY(0);
 }
 
+/* 常驻提示（如「字体下载中」）：不自动消失，需显式关闭 */
+.toast.persistent {
+    background: var(--color-primary);
+    color: var(--color-bg);
+    padding-right: calc(var(--space-lg) + 14px);
+}
+.toast.persistent::after {
+    content: '';
+    position: absolute;
+    right: var(--space-sm);
+    top: 50%;
+    width: 10px;
+    height: 10px;
+    margin-top: -5px;
+    border-radius: 50%;
+    border: 2px solid currentColor;
+    border-top-color: transparent;
+    animation: toastSpin 0.7s linear infinite;
+}
+@keyframes toastSpin {
+    to { transform: rotate(360deg); }
+}
+
 .toast.error {
     background: var(--color-accent);
 }

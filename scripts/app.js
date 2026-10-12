@@ -582,13 +582,34 @@ function initCustomSelects() {
                 const selectId = select.id;
                 if (selectId === 'fontSelect') {
                     const { state, elements } = window.Mojian;
-                    state.settings.fontFamily = value;
-                    elements.markdownContent.style.fontFamily = value;
-                    // 切换到非默认字体时才按需拉取对应 webfont
-                    if (window.Mojian.ensureFontLoaded) {
-                        window.Mojian.ensureFontLoaded(value);
-                    }
-                    window.Mojian.saveSettings();
+                    const applyFont = () => {
+                        state.settings.fontFamily = value;
+                        elements.markdownContent.style.fontFamily = value;
+                        // 思源宋体正文用 ExtraLight（200），其余恢复默认字重（见 settings.js 同步注释）
+                        elements.markdownContent.style.fontWeight =
+                            /^Noto Serif SC/i.test(String(value)) ? '200' : '';
+                        window.Mojian.saveSettings();
+                    };
+                    const ensure = window.Mojian.ensureFontLoaded;
+                    if (!ensure) { applyFont(); return; }
+
+                    const label = window.Mojian.getFontLabel ? window.Mojian.getFontLabel(value) : value;
+                    // 先提示「下载中」，等字体真正可用后再切换，避免切换后文字闪烁回退
+                    window.Mojian.showPersistentToast(
+                        i18n.t('toast.fontDownloading', { font: label }), 'info'
+                    );
+                    ensure(value).then(res => {
+                        window.Mojian.hidePersistentToast();
+                        applyFont();
+                        if (res && res.source === 'downloaded') {
+                            window.Mojian.showToast(i18n.t('toast.fontReady', { font: label }), 'success');
+                        }
+                    }).catch(() => {
+                        window.Mojian.hidePersistentToast();
+                        // 下载失败：仍应用设置，由后备字体链渲染，并明确告知用户
+                        applyFont();
+                        window.Mojian.showToast(i18n.t('toast.fontFailed', { font: label }), 'error');
+                    });
                 } else if (selectId === 'languageSelect') {
                     if (typeof i18n !== 'undefined') {
                         i18n.setLanguage(value);

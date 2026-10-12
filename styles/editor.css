@@ -153,7 +153,6 @@
 .editor-content .ProseMirror h4,
 .editor-content .ProseMirror h5,
 .editor-content .ProseMirror h6 {
-    font-family: var(--font-serif);
     font-weight: 600;
     color: var(--color-primary);
     line-height: 1.4;

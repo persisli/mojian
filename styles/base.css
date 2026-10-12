@@ -44,6 +44,13 @@ body::before {
     transition: background-color var(--transition-normal), opacity var(--transition-normal);
 }
 
+/* 信笺：背景层只让开固定标题栏，其余一直铺到底，
+   避免状态栏关闭时底部出现空白带；标题栏自身不叠加图案，故不会遮挡画面 */
+body.bg-fill-below-header::before {
+    top: var(--header-height);
+    bottom: 0;
+}
+
 /* Selection */
 ::selection {
     background-color: var(--color-accent);

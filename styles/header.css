@@ -41,7 +41,7 @@
     align-items: center;
     gap: var(--space-sm);
     color: var(--color-primary);
-    font-family: var(--font-serif);
+    font-family: var(--ui-serif);
     font-size: 1.25rem;
     font-weight: 600;
 }

@@ -30,19 +30,19 @@
     border-radius: var(--radius-lg);
     cursor: pointer;
     transition: all var(--transition-normal);
-    background: var(--color-bg-secondary);
+    background: var(--welcome-bg);
 }
 
 .welcome-content:hover {
     border-color: var(--color-primary);
-    background: var(--color-bg);
+    background: color-mix(in srgb, var(--welcome-bg) 88%, var(--color-primary) 12%);
     transform: translateY(-4px);
     box-shadow: 0 12px 40px var(--color-shadow);
 }
 
 .welcome-content.drag-over {
     border-color: var(--color-link);
-    background: var(--color-bg);
+    background: color-mix(in srgb, var(--welcome-bg) 80%, var(--color-link) 20%);
     transform: scale(1.02);
     box-shadow: 0 0 0 4px rgba(52, 152, 219, 0.1);
 }
@@ -59,7 +59,7 @@
 }
 
 .welcome-title {
-    font-family: var(--font-serif);
+    font-family: var(--ui-serif);
     font-size: 1.5rem;
     font-weight: 600;
     color: var(--color-primary);
@@ -161,14 +161,14 @@
     margin-top: 0;
 }
 
-/* Headings */
+/* Headings —— 字体跟随正文（由 JS 在 #markdownContent 上统一设置），
+   这里不再单独指定 font-family，保证「标题与正文使用同一字体」 */
 .markdown-content h1,
 .markdown-content h2,
 .markdown-content h3,
 .markdown-content h4,
 .markdown-content h5,
 .markdown-content h6 {
-    font-family: var(--font-serif);
     font-weight: 600;
     color: var(--color-primary);
     margin-top: 2em;

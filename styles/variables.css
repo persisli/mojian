@@ -27,10 +27,14 @@
     --color-shadow-hover: rgba(0, 0, 0, 0.12);
     --color-overlay: rgba(0, 0, 0, 0.5);
     
-    /* Typography */
+    /* Typography
+       --font-serif / --font-sans：正文字体备选栈（由「正文字体」设置切换，供 JS 引用）
+       --font-mono：代码块等宽字体（不提供下载，本机已装则用，否则回退系统等宽）
+       --ui-serif：界面元素（顶栏 Logo / 侧边栏 / 弹窗等）专用，固定宋体，不随正文字体变化 */
     --font-serif: "Noto Serif SC", "Source Han Serif CN", Georgia, serif;
     --font-sans: "Noto Sans SC", "Source Han Sans CN", -apple-system, BlinkMacSystemFont, sans-serif;
     --font-mono: "JetBrains Mono", "Fira Code", "Source Code Pro", monospace;
+    --ui-serif: "Noto Serif SC", "Source Han Serif CN", Georgia, serif;
     
     /* Spacing */
     --space-xs: 4px;
@@ -68,6 +72,8 @@
     --bg-pattern-repeat: repeat;
     --bg-pattern-position: center;
     --bg-pattern-opacity: 1;
+    /* 欢迎卡片底色：由 JS 同步为标题栏背景色，保证两者始终一致 */
+    --welcome-bg: var(--color-bg-secondary);
 
     /* Pattern Theme (标题栏/状态栏从背景取主色) */
     --pattern-accent: var(--color-primary);

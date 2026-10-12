@@ -102,7 +102,15 @@ function applyOtherSettings() {
 
     setCustomSelectValue('fontSelect', state.settings.fontFamily);
     elements.markdownContent.style.fontFamily = state.settings.fontFamily;
-    // 非默认字体家族（思源宋体 / 霞鹜文楷等）首次使用时才注入对应的 webfont
+    // 思源宋体以 ExtraLight（200）为正文字重：本地静态版本身即细体；
+    // webfont 是 200..700 可变字体，200 实例即 ExtraLight。其余字体用 400。
+    if (/^Noto Serif SC/i.test(String(state.settings.fontFamily))) {
+        elements.markdownContent.style.fontWeight = '200';
+    } else {
+        elements.markdownContent.style.fontWeight = '';
+    }
+    // 字体就绪保障：系统已装则立即生效，未装则后台下载（首屏默认字体已由
+    // index.html 预载，这里通常直接命中系统/已下载，不会再发请求）
     if (window.Mojian.ensureFontLoaded) {
         window.Mojian.ensureFontLoaded(state.settings.fontFamily);
     }

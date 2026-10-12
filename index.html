@@ -55,11 +55,12 @@
     <!-- 响应式 & 无障碍（必须最后加载） -->
     <link rel="stylesheet" href="styles/responsive.css?v=20261010">
 
-    <!-- Google Fonts (国内镜像 loli.net + 异步非阻塞加载)
-         首屏只拉取默认正文字体家族；思源宋体 / 霞鹜文楷 / JetBrains Mono
-         在用户真正切换到该字体时，由 scripts/core/lazy-loader.js 动态注入 -->
-    <link rel="preconnect" href="https://fonts.loli.net" crossorigin>
-    <link href="https://fonts.loli.net/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <!-- 字体：优先匹配本机已安装字体，未命中才下载（见 scripts/core/lazy-loader.js）。
+         首屏仅预载默认正文字体「思源黑体」，其余字体（思源宋体 / 霞鹜文楷）切到时才下载。
+         走 fonts.googleapis.cn 官方镜像（woff2 分片 + unicode-range 按需取字）。 -->
+    <link rel="preconnect" href="https://fonts.googleapis.cn" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.cn" crossorigin>
+    <link id="fontLinkDefault" href="https://fonts.googleapis.cn/css2?family=Noto+Sans+SC:wght@400;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
     
     <!-- Lucide Icons (deferred) -->
     <script src="libs/lucide.min.js?v=20261010" defer></script>
@@ -381,7 +382,7 @@
                     </div>
                     <div class="custom-select-options">
                         <div class="custom-select-option" data-value="Noto Sans SC, Source Han Sans CN, sans-serif" data-i18n="settings.fontFamily.notoSans">思源黑体</div>
-                        <div class="custom-select-option" data-value="Noto Serif SC, Source Han Serif CN, serif" data-i18n="settings.fontFamily.notoSerif">思源宋体</div>
+                        <div class="custom-select-option" data-value="Noto Serif SC ExtraLight, Noto Serif SC, Source Han Serif CN, serif" data-i18n="settings.fontFamily.notoSerif">思源宋体</div>
                         <div class="custom-select-option" data-value="LXGW WenKai, sans-serif" data-i18n="settings.fontFamily.wenKai">霞鹜文楷</div>
                         <div class="custom-select-option" data-value="system-ui, -apple-system, sans-serif" data-i18n="settings.fontFamily.system">系统字体</div>
                     </div>
@@ -554,13 +555,13 @@
                 <div class="bg-panel" id="stationeryPanel">
                     <div class="bg-grid">
                         <button class="bg-option stationery" data-bg="stationery" data-pattern="crane-hills" data-i18n-title="settings.bg.pattern.craneHills" title="鹤影青绿" 
-                            style="background-color:#F2F8F7; background-image: url('assets/bg/crane-hills.svg'); background-size: cover; background-position: center;"></button>
+                            style="background-color:#F2F8F7; background-image: url('assets/bg/crane-hills.png'); background-size: contain; background-repeat: no-repeat; background-position: center;"></button>
                         <button class="bg-option stationery" data-bg="stationery" data-pattern="osmanthus-kraft" data-i18n-title="settings.bg.pattern.osmanthusKraft" title="桂花旧纸" 
-                            style="background-color:#EFE8D5; background-image: url('assets/bg/osmanthus-kraft.svg'); background-size: cover; background-position: center;"></button>
+                            style="background-color:#EFE8D5; background-image: url('assets/bg/osmanthus-kraft.png'); background-size: contain; background-repeat: no-repeat; background-position: center;"></button>
                         <button class="bg-option stationery" data-bg="stationery" data-pattern="meander-sun" data-i18n-title="settings.bg.pattern.meanderSun" title="回纹朱日" 
-                            style="background-color:#F1ECDE; background-image: url('assets/bg/meander-sun.svg'); background-size: cover; background-position: center;"></button>
+                            style="background-color:#F1ECDE; background-image: url('assets/bg/meander-sun.png'); background-size: contain; background-repeat: no-repeat; background-position: center;"></button>
                         <button class="bg-option stationery" data-bg="stationery" data-pattern="watercolor-pond" data-i18n-title="settings.bg.pattern.watercolorPond" title="水彩荷塘" 
-                            style="background-color:#F3F5E9; background-image: url('assets/bg/watercolor-pond.svg'); background-size: cover; background-position: center;"></button>
+                            style="background-color:#F3F5E9; background-image: url('assets/bg/watercolor-pond.png'); background-size: contain; background-repeat: no-repeat; background-position: center;"></button>
                     </div>
                 </div>
             </div>
@@ -649,11 +650,11 @@
     <!-- Core -->
     <script src="scripts/core/state.js?v=20261010" defer></script>
     <script src="scripts/core/utils.js?v=20261010" defer></script>
-    <script src="scripts/core/settings.js?v=20261013" defer></script>
+    <script src="scripts/core/settings.js?v=20261020" defer></script>
     <script src="scripts/core/paragraph-indent.js?v=20261010" defer></script>
     <script src="scripts/core/image-display.js?v=20261012" defer></script>
     <script src="scripts/core/site-prefs.js?v=20261010" defer></script>
-    <script src="scripts/core/lazy-loader.js?v=20261010" defer></script>
+    <script src="scripts/core/lazy-loader.js?v=20261020" defer></script>
 
     <!-- UI -->
     <script src="scripts/ui/toast.js?v=20261010" defer></script>
@@ -680,7 +681,7 @@
     <script src="scripts/easter-eggs/easter-eggs.js?v=20261010" defer></script>
 
     <!-- Entry -->
-    <script src="scripts/app.js?v=20261011" defer></script>
+    <script src="scripts/app.js?v=20261020" defer></script>
 
     <!-- 延后加载（首屏绘制后的空闲时段注入，顺序与原先的 defer 批次一致）：
          libs/turndown.js → editor/html-to-md.js → editor/toolbar.js → editor/history.js
