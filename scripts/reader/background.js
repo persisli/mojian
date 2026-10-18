@@ -12,6 +12,8 @@ const backgroundPatterns = {
     // 国风：四幅整幅画面（不重复平铺），元素组合取自 bg_refer/ 参考图，风格内部自洽
     //   绢荷 / 雾竹 / 云山 / 祥云洒金
     // 注意：该 url 由消费 --bg-pattern 的 styles/base.css 解析，故 ../ 先回到项目根再进 assets/
+    // meander-sun 为双层背景（sun 叠加层 + nosun 底图），size/repeat/position 由
+    // applyBackground() 中的 meander-sun 分支单独下发逗号分隔值。
     chinese: {
         'silk-lotus': "url('../assets/bg/silk-lotus.svg')",
         'mist-bamboo': "url('../assets/bg/mist-bamboo.svg')",
@@ -25,7 +27,10 @@ const backgroundPatterns = {
     stationery: {
         'crane-hills': "url('../assets/bg/crane-hills.png')",
         'osmanthus-kraft': "url('../assets/bg/osmanthus-kraft.png')",
-        'meander-sun': "url('../assets/bg/meander-sun.png')",
+        // 回纹朱日：nosun 底图（自由拉伸）+ 朱日 sun 左上角叠加。
+        // sun 层等比缩放：height = 容器高 × 13.7%（≈118/860），width auto 保持长宽比；
+        // 位置锚定左上角、与上边线/左边线保持原图相对距离（2.25%/4.5%）。
+        'meander-sun': "url('../assets/bg/meander-sun-overlay.png'), url('../assets/bg/meander-sun.png')",
         'watercolor-pond': "url('../assets/bg/watercolor-pond.png')"
     }
 };
@@ -133,9 +138,20 @@ function applyBackground() {
             document.documentElement.style.setProperty('--bg-pattern-position', 'center');
         } else if (state.settings.backgroundType === 'stationery') {
             // 信笺：贴合"标题栏以下整块区域"拉伸填充（100% 100%，不等比、不裁切）
-            document.documentElement.style.setProperty('--bg-pattern-size', '100% 100%');
-            document.documentElement.style.setProperty('--bg-pattern-repeat', 'no-repeat');
-            document.documentElement.style.setProperty('--bg-pattern-position', 'center');
+            if (state.settings.backgroundPattern === 'meander-sun') {
+                // 回纹朱日：双层背景——sun 在前、nosun 在后。
+                // sun：height 锚定容器高（118/860≈13.72%，随网页尺寸等比），width auto 保持长宽比；
+                //      位置距上边线、左边线保持原图相对距离（原 sun 内容左上角在 86,55，
+                //      对应 4.5% / 6.4%，扣除边框内侧留白后取 3.5% / 5%）。
+                // nosun：继续 100% 100% 自由拉伸。
+                document.documentElement.style.setProperty('--bg-pattern-size', 'auto 13.72%, 100% 100%');
+                document.documentElement.style.setProperty('--bg-pattern-repeat', 'no-repeat, no-repeat');
+                document.documentElement.style.setProperty('--bg-pattern-position', '3.5% 9%, center');
+            } else {
+                document.documentElement.style.setProperty('--bg-pattern-size', '100% 100%');
+                document.documentElement.style.setProperty('--bg-pattern-repeat', 'no-repeat');
+                document.documentElement.style.setProperty('--bg-pattern-position', 'center');
+            }
         } else {
             // 国风：整幅画面，铺满不平铺
             document.documentElement.style.setProperty('--bg-pattern-size', 'cover');
