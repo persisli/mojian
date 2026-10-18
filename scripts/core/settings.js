@@ -166,7 +166,11 @@ function applyStatusBarToggleStates() {
 }
 
 /**
- * 根据设置显示/隐藏状态栏的各个项目
+ * 根据设置显示/隐藏状态栏的各个项目。
+ * 这是状态栏可见性的唯一裁决入口：任何场景（进入阅读、刷新恢复、退出编辑等）
+ * 需要重算状态栏时都必须走这里，禁止在别处直接写 statusBar.style.display。
+ * 规则：三个状态项（time/wordCount/progress）全部未启用 => 状态栏整体隐藏。
+ * 另：编辑模式下状态栏始终隐藏（由本函数一并裁决）。
  */
 function updateStatusBarDisplay() {
     const { state } = window.Mojian;
@@ -177,12 +181,12 @@ function updateStatusBarDisplay() {
     const wordCountItem = document.querySelector('.status-item:has(#wordCount)');
     const progressItem = document.querySelector('.status-item.progress-text');
 
-    const hasAnyVisible = statusBarItems.time || statusBarItems.wordCount || statusBarItems.progress;
+    const hasAnyVisible = !!(statusBarItems.time || statusBarItems.wordCount || statusBarItems.progress);
 
-    if (!hasAnyVisible) {
+    if (!hasAnyVisible || state.isEditMode) {
         statusBar.style.display = 'none';
     } else {
-        statusBar.style.display = '';
+        statusBar.style.display = 'block';
 
         if (timeItem) {
             timeItem.style.display = statusBarItems.time ? '' : 'none';

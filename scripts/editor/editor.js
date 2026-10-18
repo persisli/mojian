@@ -20,7 +20,7 @@ function enterEditMode() {
         elements.welcomeScreen.classList.remove('active');
         elements.readingArea.style.display = 'block';
         elements.readingArea.classList.add('active');
-        elements.statusBar.style.display = 'block';
+        elements.statusBar.style.display = 'none'; // 是否显示由 updateStatusBarDisplay() 按设置裁决
         state.currentFile = { name: i18n.t('file.untitled') };
         elements.fileName.textContent = state.currentFile.name;
         elements.fileName.style.display = 'inline';
@@ -36,8 +36,8 @@ function enterEditMode() {
         window.Mojian.setMermaidEditable(true);
     }
 
-    // 初始进入编辑模式时，隐藏状态栏
-    elements.statusBar.style.display = 'none';
+    // 编辑模式下状态栏始终隐藏：由 updateStatusBarDisplay() 统一裁决（含 isEditMode 判断）
+    window.Mojian.updateStatusBarDisplay();
 
     setTimeout(() => {
         elements.markdownContent.focus();
@@ -124,6 +124,11 @@ function exitEditMode() {
     lucide.createIcons();
 
     window.Mojian.showToast(i18n.t('toast.exitEditMode') || '退出编辑模式', 'success', 'edit-mode');
+
+    // 退出编辑模式后按当前设置恢复状态栏显隐
+    if (window.Mojian.updateStatusBarDisplay) {
+        window.Mojian.updateStatusBarDisplay();
+    }
 }
 
 function handleImageMouseDown(e) {

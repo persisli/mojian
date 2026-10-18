@@ -3,6 +3,9 @@
    ======================================== */
 
 .status-bar {
+    /* 默认不显示：只有设置里启用了任一状态项（time/wordCount/progress）
+       才由 updateStatusBarDisplay() 按 settings 显示，避免"按钮未启用却出现状态栏" */
+    display: none;
     position: fixed;
     bottom: 0;
     left: 0;

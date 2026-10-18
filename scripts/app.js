@@ -163,8 +163,11 @@ function showReadingMode(fileName) {
     elements.welcomeScreen.classList.remove('active');
     elements.readingArea.style.display = 'block';
     elements.readingArea.classList.add('active');
-    elements.statusBar.style.display = 'block';
+    elements.statusBar.style.display = 'none'; // 先按默认隐藏，是否显示由下方按设置统一裁决
     void elements.readingArea.offsetHeight;
+    if (window.Mojian.updateStatusBarDisplay) {
+        window.Mojian.updateStatusBarDisplay();
+    }
 }
 
 function showWelcomeMode() {
