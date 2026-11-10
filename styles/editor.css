@@ -77,6 +77,23 @@
     height: 16px;
 }
 
+/* 高亮按钮图标：浅灰圆角方块（底）+ 更浅的灰色 A（上），两者颜色需区分开 */
+.toolbar-btn .toolbar-swatch {
+    fill: #dcdcdc;
+}
+
+.toolbar-btn .toolbar-swatch-mark {
+    stroke: #989898;
+}
+
+[data-theme="dark"] .toolbar-btn .toolbar-swatch {
+    fill: #4a4a55;
+}
+
+[data-theme="dark"] .toolbar-btn .toolbar-swatch-mark {
+    stroke: #d6d6d6;
+}
+
 /* 工具栏右侧的撤回 / 应用按钮 */
 .toolbar-group-right {
     margin-left: auto;

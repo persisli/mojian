@@ -226,7 +226,16 @@ function getTurndownService() {
                 }
             });
 
-            // 下划线 / 上标 / 下标：Markdown 无原生语法，保留为内联 HTML 以便再次渲染
+            // 下划线 / 上标 / 下标 / 高亮：Markdown 无原生语法，保留为内联 HTML 以便再次渲染
+            turndownService.addRule('highlight', {
+                filter: ['mark'],
+                replacement: function(content) {
+                    // 仅剩零宽占位（空高亮）时输出纯文本，避免留下空的 <mark></mark>
+                    if (!content || !content.replace(/\u200B/g, '').trim()) return content || '';
+                    return '<mark>' + content + '</mark>';
+                }
+            });
+
             turndownService.addRule('underline', {
                 filter: ['u'],
                 replacement: function(content) {

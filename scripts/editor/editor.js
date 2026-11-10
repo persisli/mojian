@@ -52,6 +52,22 @@ function enterEditMode() {
     }, 100);
 
     elements.editToolbar.classList.add('visible');
+    // 进入编辑模式时先清空格式按钮的按下状态。
+    // 浏览器会把光标自动放到内容开头，若那里正好是高亮 / 加粗等格式内，
+    // 按该光标判定会让按钮一进来就显示为已启用，因此先锁住，等用户真正操作编辑器再判定。
+    window.Mojian._toolbarStateIdle = true;
+    document.querySelectorAll('.toolbar-btn.is-active').forEach(function(btn) {
+        btn.classList.remove('is-active');
+    });
+    var releaseToolbarFormatState = function() {
+        window.Mojian._toolbarStateIdle = false;
+        elements.markdownContent.removeEventListener('mousedown', releaseToolbarFormatState);
+        elements.markdownContent.removeEventListener('keydown', releaseToolbarFormatState);
+        elements.markdownContent.removeEventListener('input', releaseToolbarFormatState);
+    };
+    elements.markdownContent.addEventListener('mousedown', releaseToolbarFormatState);
+    elements.markdownContent.addEventListener('keydown', releaseToolbarFormatState);
+    elements.markdownContent.addEventListener('input', releaseToolbarFormatState);
     elements.editBtn.innerHTML = '<i data-lucide="eye"></i>';
     lucide.createIcons();
 
@@ -88,6 +104,8 @@ function exitEditMode() {
     }
 
     elements.editToolbar.classList.remove('visible');
+    // 退出编辑模式：解除格式状态锁定
+    window.Mojian._toolbarStateIdle = false;
     elements.markdownContent.setAttribute('contenteditable', 'false');
     elements.markdownContent.classList.remove('editing');
     elements.markdownContent.removeEventListener('keydown', handleEditKeydown);

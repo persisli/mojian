@@ -241,6 +241,29 @@
     text-underline-offset: 2px;
 }
 
+/* Highlight（工具栏高亮）：固定底色，内边距极小，让色块贴着文字上下 */
+.markdown-content mark {
+    background-color: #ff6e02eb;
+    color: inherit;
+    padding: 0.05em 0.1em;
+    border-radius: 4px;
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+}
+
+/* 深色主题正文为浅色，压在高亮底色上对比度不足，改用深色文字 */
+[data-theme="dark"] .markdown-content mark {
+    color: #1A1A2E;
+}
+
+/* 选区叠在高亮上时，浏览器默认给的是无圆角的方块底色，看起来像又叠了一层高亮。
+   高亮自身已标明覆盖范围，这里刷掉内部选区底色，只保留有圆角的高亮 */
+.markdown-content mark::selection,
+.markdown-content mark ::selection {
+    background-color: transparent;
+    color: inherit;
+}
+
 /* Superscript & Subscript（line-height:0 + relative 避免撑开行高） */
 .markdown-content sup,
 .markdown-content sub {

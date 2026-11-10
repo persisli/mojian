@@ -13,6 +13,7 @@
 // 行内格式标签映射
 var INLINE_FORMATS = {
     bold: { tag: 'STRONG', testTags: ['STRONG', 'B'] },
+    highlight: { tag: 'MARK', testTags: ['MARK'] },
     italic: { tag: 'EM', testTags: ['EM', 'I'] },
     underline: { tag: 'U', testTags: ['U'] },
     strike: { tag: 'DEL', testTags: ['DEL', 'S', 'STRIKE'] },
@@ -29,6 +30,9 @@ function handleToolbarAction(btn) {
 
     var action = btn.dataset.action;
     var level = btn.dataset.level;
+
+    // 用户已经主动操作工具栏，结束「进入编辑模式后锁定格式状态」的阶段
+    window.Mojian._toolbarStateIdle = false;
 
     // ===== 撤回 / 重做：直接操作历史栈，不做选区处理 =====
     if (action === 'undo' || action === 'redo') {
@@ -69,6 +73,7 @@ function handleToolbarAction(btn) {
         } else {
             switch(action) {
                 case 'bold':
+                case 'highlight':
                 case 'italic':
                 case 'underline':
                 case 'strike':
@@ -119,6 +124,11 @@ function handleToolbarAction(btn) {
         window.Mojian.showToast('操作失败', 'error');
     }
 
+    // 高亮：把相邻 / 嵌套的 <mark> 合成一层，避免出现两层高亮叠加
+    if (action === 'highlight') {
+        mergeHighlightElements(elements.markdownContent);
+    }
+
     window.Mojian._savedRange = null;
 
     // 记录一步历史（格式修改也能被撤回）
@@ -133,6 +143,7 @@ function handleToolbarAction(btn) {
 function applyFormatWithSelection(action, level) {
     switch(action) {
         case 'bold':
+        case 'highlight':
         case 'italic':
         case 'underline':
         case 'strike':
@@ -659,7 +670,7 @@ function escapeSupSubAtCaret() {
  * ================================================================ */
 
 // 清除格式时会被拆掉的行内格式标签
-var CLEAR_FORMAT_TAGS = ['STRONG', 'B', 'EM', 'I', 'U', 'S', 'DEL', 'STRIKE', 'SUP', 'SUB', 'CODE'];
+var CLEAR_FORMAT_TAGS = ['STRONG', 'B', 'MARK', 'EM', 'I', 'U', 'S', 'DEL', 'STRIKE', 'SUP', 'SUB', 'CODE'];
 
 /**
  * 拆掉一个行内格式元素：把子节点移到父节点，保留原文本
@@ -1784,6 +1795,40 @@ function initExistingCodeBlockSync() {
 }
 
 /* ================================================================
+ * 高亮层归一化
+ * ================================================================ */
+/**
+ * 合并相邻 / 嵌套的 <mark>，保证同一段文字只有一层圆角高亮。
+ * 多层叠加时半透明底色会叠加变深，看起来像「一个没圆角的深色块压在有圆角的色块上」。
+ */
+function mergeHighlightElements(container) {
+    if (!container || !container.querySelectorAll) return;
+
+    // 1) 嵌套：拆掉外层，只留里层一层
+    var nested = container.querySelectorAll('mark mark');
+    for (var i = 0; i < nested.length; i++) {
+        var outer = nested[i].parentElement ? nested[i].parentElement.closest('mark') : null;
+        if (outer) unwrapInlineElement(outer);
+    }
+
+    // 2) 相邻：把后一个的内容并进前一个
+    var marks = container.querySelectorAll('mark');
+    for (var k = 0; k < marks.length; k++) {
+        var m = marks[k];
+        if (!m.parentNode) continue;
+        var next = m.nextSibling;
+        // 跳过空文本节点（不同格式操作会留下空文本）
+        while (next && next.nodeType === Node.TEXT_NODE && next.textContent === '') {
+            next = next.nextSibling;
+        }
+        if (next && next.nodeType === Node.ELEMENT_NODE && next.tagName === 'MARK') {
+            while (next.firstChild) m.appendChild(next.firstChild);
+            next.parentNode.removeChild(next);
+        }
+    }
+}
+
+/* ================================================================
  * 工具栏状态更新
  * ================================================================ */
 function updateToolbarState() {
@@ -1794,13 +1839,19 @@ function updateToolbarState() {
 
     if (!elements.markdownContent.isContentEditable) return;
 
+    // 只有光标/选区确实落在编辑区内时才判定格式状态：
+    // 1) 刚进入编辑模式时浏览器会把光标自动放在内容开头（可能正好落在 <mark> / <strong> 里），
+    //    用户动手之前不按这个光标点亮按钮（_toolbarStateIdle）；
+    // 2) 选区为空或残留在容器外时也不能沿用上次的按下状态
+    var parentElement = null;
     var selection = window.getSelection();
-    if (selection.rangeCount === 0) return;
-
-    var range = selection.getRangeAt(0);
-    var parentElement = range.commonAncestorContainer;
-    if (parentElement.nodeType === Node.TEXT_NODE) {
-        parentElement = parentElement.parentElement;
+    if (!window.Mojian._toolbarStateIdle && selection.rangeCount > 0) {
+        var range = selection.getRangeAt(0);
+        var node = range.commonAncestorContainer;
+        if (node.nodeType === Node.TEXT_NODE) node = node.parentElement;
+        if (node && elements.markdownContent.contains(node)) {
+            parentElement = node;
+        }
     }
 
     document.querySelectorAll('.toolbar-btn').forEach(function(btn) {
@@ -1816,6 +1867,9 @@ function updateToolbarState() {
                     break;
                 case 'bold':
                     if (el.tagName === 'STRONG' || el.tagName === 'B') isActive = true;
+                    break;
+                case 'highlight':
+                    if (el.tagName === 'MARK') isActive = true;
                     break;
                 case 'italic':
                     if (el.tagName === 'EM' || el.tagName === 'I') isActive = true;
