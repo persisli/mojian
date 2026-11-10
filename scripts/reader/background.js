@@ -57,6 +57,138 @@ const patternThemes = {
     'watercolor-pond': { paper: '#F3F5E9', accent: '#7A9E7E', line: '#C9D8BE' }   // 水彩荷塘
 };
 
+/* ================================================================
+ * 背景图延迟加载
+ *
+ * 背景图（尤其信笺 4 张 PNG，单张 300~800KB）不在首屏关键路径上：
+ * 首次加载时先只落纯色底，让样式表与页面组件正常渲染；
+ * 等 load 之后的空闲时段再挂 --bg-pattern，让大图在首屏绘制完成后才开始下载。
+ * 首屏之后（bgImagesUnlocked = true）用户切换背景则立即生效。
+ * ================================================================ */
+var bgImagesUnlocked = false;
+var bgPatternDeferred = false;
+var bgUnlockScheduled = false;
+
+/**
+ * 按当前设置写入背景图相关的 CSS 变量（含"无图"的复位分支）
+ */
+function applyPatternCssVars() {
+    var state = window.Mojian.state;
+    var type = state.settings.backgroundType;
+    var patternName = state.settings.backgroundPattern;
+    var pattern = type !== 'solid' ? backgroundPatterns[type]?.[patternName] : null;
+    var root = document.documentElement;
+
+    if (type === 'solid' || !pattern) {
+        root.style.setProperty('--bg-pattern', 'none');
+        root.style.setProperty('--bg-pattern-size', 'auto');
+        root.style.setProperty('--bg-pattern-repeat', 'repeat');
+        root.style.setProperty('--bg-pattern-position', 'center');
+        return;
+    }
+
+    root.style.setProperty('--bg-pattern', pattern);
+
+    if (type === 'artistic') {
+        // 文艺：小尺寸几何纹样，按 SVG 内在尺寸平铺
+        root.style.setProperty('--bg-pattern-size', 'auto');
+        root.style.setProperty('--bg-pattern-repeat', 'repeat');
+        root.style.setProperty('--bg-pattern-position', 'center');
+    } else if (type === 'stationery') {
+        // 信笺：贴合"标题栏以下整块区域"拉伸填充（100% 100%，不等比、不裁切）
+        if (patternName === 'meander-sun') {
+            // 回纹朱日：双层背景——sun 在前、nosun 在后。
+            // sun：height 锚定容器高（118/860≈13.72%，随网页尺寸等比），width auto 保持长宽比；
+            //      位置距上边线、左边线保持原图相对距离（原 sun 内容左上角在 86,55，
+            //      对应 4.5% / 6.4%，扣除边框内侧留白后取 3.5% / 5%）。
+            // nosun：继续 100% 100% 自由拉伸。
+            root.style.setProperty('--bg-pattern-size', 'auto 13.72%, 100% 100%');
+            root.style.setProperty('--bg-pattern-repeat', 'no-repeat, no-repeat');
+            root.style.setProperty('--bg-pattern-position', '3.5% 9%, center');
+        } else {
+            root.style.setProperty('--bg-pattern-size', '100% 100%');
+            root.style.setProperty('--bg-pattern-repeat', 'no-repeat');
+            root.style.setProperty('--bg-pattern-position', 'center');
+        }
+    } else {
+        // 国风：整幅画面，铺满不平铺
+        root.style.setProperty('--bg-pattern-size', 'cover');
+        root.style.setProperty('--bg-pattern-repeat', 'no-repeat');
+        // 祥云洒金底部有印章：cover 裁切时优先从下往上保留，垂直锚定底部（只裁顶部）
+        var pos = patternName === 'auspicious-gold' ? 'center bottom' : 'center';
+        root.style.setProperty('--bg-pattern-position', pos);
+    }
+}
+
+/**
+ * 首屏绘制完成后解锁背景图（load → 空闲时段），并补上被延迟的背景图
+ */
+function scheduleBgImageUnlock() {
+    if (bgUnlockScheduled) return;
+    bgUnlockScheduled = true;
+
+    var unlock = function() {
+        bgImagesUnlocked = true;
+        if (bgPatternDeferred) {
+            bgPatternDeferred = false;
+            applyPatternCssVars();
+        }
+    };
+    var whenIdle = function() {
+        if (window.requestIdleCallback) {
+            window.requestIdleCallback(unlock, { timeout: 1500 });
+        } else {
+            setTimeout(unlock, 200);
+        }
+    };
+
+    if (document.readyState === 'complete') {
+        whenIdle();
+    } else {
+        window.addEventListener('load', whenIdle, { once: true });
+    }
+}
+
+/**
+ * 设置面板里的背景缩略图：只在对应面板被打开时按顺序逐张加载，
+ * 避免一次把整组大图（信笺 4 张 ≈ 1.8MB）全部拉下来。
+ */
+function hydrateBgSwatches(panel) {
+    if (!panel || !panel.querySelectorAll) return;
+    var pending = [];
+    panel.querySelectorAll('.bg-option[data-bg-image]').forEach(function(opt) {
+        if (opt.dataset.bgLoaded === '1' || opt.dataset.bgLoading === '1') return;
+        opt.dataset.bgLoading = '1';
+        pending.push(opt);
+    });
+
+    var loadNext = function() {
+        var opt = pending.shift();
+        if (!opt) return;
+
+        var urls = opt.dataset.bgImage.split(',').map(function(u) { return u.trim(); }).filter(Boolean);
+        var apply = function() {
+            opt.style.backgroundImage = urls.map(function(u) { return 'url("' + u + '")'; }).join(', ');
+            if (opt.dataset.bgSize) opt.style.backgroundSize = opt.dataset.bgSize;
+            if (opt.dataset.bgRepeat) opt.style.backgroundRepeat = opt.dataset.bgRepeat;
+            if (opt.dataset.bgPosition) opt.style.backgroundPosition = opt.dataset.bgPosition;
+            opt.dataset.bgLoaded = '1';
+            delete opt.dataset.bgLoading;
+            loadNext();
+        };
+
+        if (!urls.length) { apply(); return; }
+
+        // 先预载主图（叠加层很小，随样式一起请求即可），加载完再挂样式
+        var img = new Image();
+        img.onload = apply;
+        img.onerror = apply;
+        img.src = urls[0];
+    };
+
+    loadNext();
+}
+
 function applyBackground() {
     const { elements, state } = window.Mojian;
     const type = state.settings.backgroundType;
@@ -124,42 +256,15 @@ function applyBackground() {
     document.documentElement.style.setProperty('--bg-page-solid', baseColor);
     document.documentElement.style.setProperty('--bg-pattern-opacity', opacity);
 
-    if (state.settings.backgroundType === 'solid' || !pattern) {
-        document.documentElement.style.setProperty('--bg-pattern', 'none');
-        document.documentElement.style.setProperty('--bg-pattern-size', 'auto');
-        document.documentElement.style.setProperty('--bg-pattern-repeat', 'repeat');
-        document.documentElement.style.setProperty('--bg-pattern-position', 'center');
+    // 背景图不在首屏关键路径上：首屏只落纯色底 + 其余界面样式，
+    // 等首屏绘制完成（load → 空闲时段）再挂 --bg-pattern 开始下载背景大图
+    const hasPattern = state.settings.backgroundType !== 'solid' && !!pattern;
+    if (!hasPattern || bgImagesUnlocked) {
+        bgPatternDeferred = false;
+        applyPatternCssVars();
     } else {
-        document.documentElement.style.setProperty('--bg-pattern', pattern);
-        if (state.settings.backgroundType === 'artistic') {
-            // 文艺：小尺寸几何纹样，按 SVG 内在尺寸平铺
-            document.documentElement.style.setProperty('--bg-pattern-size', 'auto');
-            document.documentElement.style.setProperty('--bg-pattern-repeat', 'repeat');
-            document.documentElement.style.setProperty('--bg-pattern-position', 'center');
-        } else if (state.settings.backgroundType === 'stationery') {
-            // 信笺：贴合"标题栏以下整块区域"拉伸填充（100% 100%，不等比、不裁切）
-            if (state.settings.backgroundPattern === 'meander-sun') {
-                // 回纹朱日：双层背景——sun 在前、nosun 在后。
-                // sun：height 锚定容器高（118/860≈13.72%，随网页尺寸等比），width auto 保持长宽比；
-                //      位置距上边线、左边线保持原图相对距离（原 sun 内容左上角在 86,55，
-                //      对应 4.5% / 6.4%，扣除边框内侧留白后取 3.5% / 5%）。
-                // nosun：继续 100% 100% 自由拉伸。
-                document.documentElement.style.setProperty('--bg-pattern-size', 'auto 13.72%, 100% 100%');
-                document.documentElement.style.setProperty('--bg-pattern-repeat', 'no-repeat, no-repeat');
-                document.documentElement.style.setProperty('--bg-pattern-position', '3.5% 9%, center');
-            } else {
-                document.documentElement.style.setProperty('--bg-pattern-size', '100% 100%');
-                document.documentElement.style.setProperty('--bg-pattern-repeat', 'no-repeat');
-                document.documentElement.style.setProperty('--bg-pattern-position', 'center');
-            }
-        } else {
-            // 国风：整幅画面，铺满不平铺
-            document.documentElement.style.setProperty('--bg-pattern-size', 'cover');
-            document.documentElement.style.setProperty('--bg-pattern-repeat', 'no-repeat');
-            // 祥云洒金底部有印章：cover 裁切时优先从下往上保留，垂直锚定底部（只裁顶部）
-            const pos = state.settings.backgroundPattern === 'auspicious-gold' ? 'center bottom' : 'center';
-            document.documentElement.style.setProperty('--bg-pattern-position', pos);
-        }
+        bgPatternDeferred = true;
+        scheduleBgImageUnlock();
     }
 
     elements.markdownContent.style.backgroundColor = 'transparent';
@@ -353,6 +458,8 @@ function applyTheme() {
 
 window.Mojian = window.Mojian || {};
 Mojian.applyBackground = applyBackground;
+Mojian.applyPatternCssVars = applyPatternCssVars;
+Mojian.hydrateBgSwatches = hydrateBgSwatches;
 Mojian.updateBackgroundSelection = updateBackgroundSelection;
 Mojian.updateBackgroundUIState = updateBackgroundUIState;
 Mojian.loadThemePreference = loadThemePreference;

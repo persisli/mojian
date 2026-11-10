@@ -504,7 +504,12 @@ function bindSettingsEvents() {
             elements.bgTabs.forEach(t => t.classList.remove('active'));
             tab.classList.add('active');
             elements.bgPanels.forEach(panel => panel.classList.remove('active'));
-            document.getElementById(tabName + 'Panel').classList.add('active');
+            const targetPanel = document.getElementById(tabName + 'Panel');
+            targetPanel.classList.add('active');
+            // 背景缩略图按需加载：面板打开时逐张请求，避免一次性下载整组大图
+            if (window.Mojian.hydrateBgSwatches) {
+                window.Mojian.hydrateBgSwatches(targetPanel);
+            }
         });
     });
 

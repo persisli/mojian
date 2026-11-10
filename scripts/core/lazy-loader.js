@@ -84,7 +84,9 @@
         'Noto Sans SC': {
             label: '思源黑体',
             families: ['Noto Sans SC', 'Source Han Sans CN', 'Microsoft YaHei', 'PingFang SC'],
-            download: ['https://fonts.googleapis.cn/css2?family=Noto+Sans+SC:wght@400;700&display=swap'],
+            // 国内镜像 fonts.loli.net（Google Fonts 的国内源，字体文件在 gstatic.loli.net），
+            // 分片与 unicode-range 与官方一致，仍是按需取字
+            download: ['https://fonts.loli.net/css2?family=Noto+Sans+SC:wght@400;700&display=swap'],
             systemFallback: '"Source Han Sans CN", "Microsoft YaHei", "PingFang SC", sans-serif'
         },
         'Noto Serif SC ExtraLight': {
@@ -102,7 +104,8 @@
             //  会让 document.fonts.check 立即命中，导致 webfont 被跳过、渲染回退到系统宋体。
             families: ['Noto Serif SC ExtraLight', 'Noto Serif SC', 'Source Han Serif CN'],
             webLoadName: 'Noto Serif SC',
-            download: ['https://fonts.googleapis.cn/css2?family=Noto+Serif+SC:wght@200..700&display=swap'],
+            // 同样走国内镜像 fonts.loli.net（分片与可变字重区间与官方一致）
+            download: ['https://fonts.loli.net/css2?family=Noto+Serif+SC:wght@200..700&display=swap'],
             systemFallback: '"Source Han Serif CN", SimSun, "Songti SC", serif'
         },
         'LXGW WenKai': {
@@ -238,6 +241,38 @@
     };
 
     /**
+     * 确保某个字体样式表就位：页面里已用 <link> 声明过（首屏预载的默认正文字体）就复用，
+     * 避免同一份 CSS 被重复插入；没有时才动态插入。
+     * @param {string} url
+     * @returns {Promise<string>}
+     */
+    function ensureStylesheet(url) {
+        var existing = document.querySelector('link[rel="stylesheet"][href="' + url + '"]');
+        if (existing && existing.sheet) return Promise.resolve(url);
+        if (existing) {
+            return new Promise(function (resolve) {
+                var done = function () { resolve(url); };
+                existing.addEventListener('load', done, { once: true });
+                existing.addEventListener('error', done, { once: true });
+                // 兜底：极端情况下（样式表被拦截且不触发事件）不卡住字体切换流程
+                setTimeout(done, 8000);
+            });
+        }
+        return new Promise(function (resolve, reject) {
+            var link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = url;
+            link.crossOrigin = 'anonymous';
+            link.onload = function () { resolve(url); };
+            link.onerror = function () {
+                console.warn('[font] 样式表加载失败:', url);
+                reject(new Error('字体样式表加载失败: ' + url));
+            };
+            document.head.appendChild(link);
+        });
+    }
+
+    /**
      * 确保字体可用：系统已装直接用；否则下载。
      * @param {string} fontFamily CSS font-family 值（取首个家族名匹配配置）
      * @returns {Promise<{name:string, source:string}>} source: 'system' | 'local-cache' | 'downloaded'
@@ -267,20 +302,7 @@
             });
         }
 
-        var promise = Promise.all(cfg.download.map(function (url) {
-            return new Promise(function (resolve, reject) {
-                var link = document.createElement('link');
-                link.rel = 'stylesheet';
-                link.href = url;
-                link.crossOrigin = 'anonymous';
-                link.onload = function () { resolve(url); };
-                link.onerror = function () {
-                    console.warn('[font] 样式表加载失败:', url);
-                    reject(new Error('字体样式表加载失败: ' + url));
-                };
-                document.head.appendChild(link);
-            });
-        })).then(function () {
+        var promise = Promise.all(cfg.download.map(ensureStylesheet)).then(function () {
             // 样式表就绪后，等字体文件本身真正可用（分片按需下载）。
             // 注意：预热用 @font-face 里的家族名（webLoadName），本地静态家族名与
             // webfont 的家族名不同，直接用 name 会找不到任何 @font-face。

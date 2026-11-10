@@ -1,0 +1,14 @@
+# ── 静态资源缓存策略（Cloudflare Workers / Pages 通用） ──────────────
+# Workers（Static Assets）与 Pages 都会自动读取根目录的 _headers。
+# 位图（png / webp）主要是背景大图（信笺单张 300~800KB）、内容稳定，缓存 7 天：
+#   max-age=604800 = 7 天
+# 背景用的 svg（国风 4 幅，3~40KB）同样不希望被反复请求，一并缓存 7 天。
+# 带 ?v= 版本号的 CSS / JS 不在此列，仍按平台默认策略走。
+/*.png
+  Cache-Control: public, max-age=604800
+
+/*.webp
+  Cache-Control: public, max-age=604800
+
+/assets/bg/*.svg
+  Cache-Control: public, max-age=604800

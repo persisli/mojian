@@ -57,10 +57,12 @@
 
     <!-- 字体：优先匹配本机已安装字体，未命中才下载（见 scripts/core/lazy-loader.js）。
          首屏仅预载默认正文字体「思源黑体」，其余字体（思源宋体 / 霞鹜文楷）切到时才下载。
-         走 fonts.googleapis.cn 官方镜像（woff2 分片 + unicode-range 按需取字）。 -->
-    <link rel="preconnect" href="https://fonts.googleapis.cn" crossorigin>
-    <link rel="preconnect" href="https://fonts.gstatic.cn" crossorigin>
-    <link id="fontLinkDefault" href="https://fonts.googleapis.cn/css2?family=Noto+Sans+SC:wght@400;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+         思源黑体 / 思源宋体都走国内镜像 fonts.loli.net：Google Fonts 的国内源，
+         CSS 与字体文件（gstatic.loli.net）都在国内可快速访问，分片与 unicode-range 结构与官方一致，
+         仍是按需取字、不会整包下载。 -->
+    <link rel="preconnect" href="https://fonts.loli.net" crossorigin>
+    <link rel="preconnect" href="https://gstatic.loli.net" crossorigin>
+    <link id="fontLinkDefault" href="https://fonts.loli.net/css2?family=Noto+Sans+SC:wght@400;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
     
     <!-- Lucide Icons (deferred) -->
     <script src="libs/lucide.min.js?v=20261010" defer></script>
@@ -548,14 +550,16 @@
                 <!-- Chinese Style Patterns -->
                 <div class="bg-panel" id="chinesePanel">
                     <div class="bg-grid">
+                        <!-- 缩略图不在首屏加载：图片地址放在 data-bg-image 上，
+                             等对应面板被打开时由 hydrateBgSwatches() 逐张加载 -->
                         <button class="bg-option chinese" data-bg="chinese" data-pattern="silk-lotus" data-i18n-title="settings.bg.pattern.silkLotus" title="绢荷" 
-                            style="background-color:#F2F6F5; background-image: url('assets/bg/silk-lotus.svg'); background-size: cover; background-position: center;"></button>
+                            data-bg-image="assets/bg/silk-lotus.svg" style="background-color:#F2F6F5;"></button>
                         <button class="bg-option chinese" data-bg="chinese" data-pattern="mist-bamboo" data-i18n-title="settings.bg.pattern.mistBamboo" title="雾竹" 
-                            style="background-color:#F4F5F4; background-image: url('assets/bg/mist-bamboo.svg'); background-size: cover; background-position: center;"></button>
+                            data-bg-image="assets/bg/mist-bamboo.svg" style="background-color:#F4F5F4;"></button>
                         <button class="bg-option chinese" data-bg="chinese" data-pattern="cloud-mountains" data-i18n-title="settings.bg.pattern.cloudMountains" title="云山" 
-                            style="background-color:#F1F2F1; background-image: url('assets/bg/cloud-mountains.svg'); background-size: cover; background-position: center;"></button>
+                            data-bg-image="assets/bg/cloud-mountains.svg" style="background-color:#F1F2F1;"></button>
                         <button class="bg-option chinese" data-bg="chinese" data-pattern="auspicious-gold" data-i18n-title="settings.bg.pattern.auspiciousGold" title="祥云洒金" 
-                            style="background-color:#F8F5EC; background-image: url('assets/bg/auspicious-gold.webp'); background-size: cover; background-position: center;"></button>
+                            data-bg-image="assets/bg/auspicious-gold.webp" style="background-color:#F8F5EC;"></button>
                     </div>
                 </div>
 
@@ -563,13 +567,14 @@
                 <div class="bg-panel" id="stationeryPanel">
                     <div class="bg-grid">
                         <button class="bg-option stationery" data-bg="stationery" data-pattern="crane-hills" data-i18n-title="settings.bg.pattern.craneHills" title="鹤影青绿" 
-                            style="background-color:#F2F8F7; background-image: url('assets/bg/crane-hills.png'); background-size: contain; background-repeat: no-repeat; background-position: center;"></button>
+                            data-bg-image="assets/bg/crane-hills.png" style="background-color:#F2F8F7;"></button>
                         <button class="bg-option stationery" data-bg="stationery" data-pattern="osmanthus-kraft" data-i18n-title="settings.bg.pattern.osmanthusKraft" title="桂花旧纸" 
-                            style="background-color:#EFE8D5; background-image: url('assets/bg/osmanthus-kraft.png'); background-size: contain; background-repeat: no-repeat; background-position: center;"></button>
+                            data-bg-image="assets/bg/osmanthus-kraft.png" style="background-color:#EFE8D5;"></button>
                         <button class="bg-option stationery" data-bg="stationery" data-pattern="meander-sun" data-i18n-title="settings.bg.pattern.meanderSun" title="回纹朱日" 
-                            style="background-color:#F1ECDE; background-image: url('assets/bg/meander-sun.png'), url('assets/bg/meander-sun-overlay.png'); background-size: contain, 40% auto; background-repeat: no-repeat; background-position: center, 15% 28%;"></button>
+                            data-bg-image="assets/bg/meander-sun.png, assets/bg/meander-sun-overlay.png" data-bg-size="contain, 40% auto"
+                            data-bg-repeat="no-repeat, no-repeat" data-bg-position="center, 15% 28%" style="background-color:#F1ECDE;"></button>
                         <button class="bg-option stationery" data-bg="stationery" data-pattern="watercolor-pond" data-i18n-title="settings.bg.pattern.watercolorPond" title="水彩荷塘" 
-                            style="background-color:#F3F5E9; background-image: url('assets/bg/watercolor-pond.png'); background-size: contain; background-repeat: no-repeat; background-position: center;"></button>
+                            data-bg-image="assets/bg/watercolor-pond.png" style="background-color:#F3F5E9;"></button>
                     </div>
                 </div>
             </div>

@@ -209,7 +209,7 @@
 - **图表渲染**: Mermaid（文档出现 Mermaid 代码块时才动态加载）
 - **编辑器**: 阅读/编辑复用同一份 contenteditable DOM（Tiptap 走 CDN 引入，当前未启用）
 - **图标**: Lucide
-- **字体**: Google Fonts 经 fonts.googleapis.cn 官方镜像（woff2 分片 + unicode-range 按需加载）。首屏只合并请求正文 Noto Sans SC 与标题 Noto Serif SC，其余（霞鹜文楷走 jsDelivr 单字重文件、JetBrains Mono）切换时按需注入；离线自动回退系统字体
+- **字体**: 正文 Noto Sans SC（400/700）与标题 Noto Serif SC（可变字重 200..700）都走国内镜像 **fonts.loli.net**（Google Fonts 国内源，字体文件在 gstatic.loli.net，CSS 与分片均带 `Access-Control-Allow-Origin: *` 与长缓存）；两者都是 woff2 分片 + unicode-range 按需取字，不会整包下载。霞鹜文楷走 jsDelivr 单字重文件，切换字体时才按需注入；镜像不可用时自动回退系统字体
 - **抓取代理（可选，仅 URL 导入用）**: `proxy.php`（PHP，令牌校验 + 10 次/分钟限速）
 
 ### 关键实现
@@ -231,7 +231,9 @@
 ### 性能优化
 - Mermaid（约 2MB）只在文档里出现 Mermaid 代码块时才动态加载
 - 滚动 / resize 用 requestAnimationFrame 与防抖处理，避免频繁重排
-- 背景图案与装饰全部用 CSS / 内联 SVG 实现，无额外网络请求
+- **背景图不在首屏关键路径上**：首次加载只落纯色底 + 其余全部界面样式，`--bg-pattern`（背景大图）等 `load` 之后的空闲时段再挂上；首屏之后切换背景立即生效（`scripts/reader/background.js` 的 `scheduleBgImageUnlock` / `applyPatternCssVars`）
+- **背景缩略图按需加载**：设置面板里的 8 张预览图地址放在 `data-bg-image` 上，只有对应面板被打开时才由 `hydrateBgSwatches()` 逐张预载并挂样式，不会一次把整组大图（信笺 4 张 ≈ 1.8MB）拉下来
+- 文艺纹样 / 装饰全部用内联 SVG（base64）实现，无额外网络请求
 - 渲染 / 高亮 / 图表 / 转换所需的库都在本地 `libs/`：除字体（Google Fonts）与 Tiptap 的 CDN 引入外无其它外部请求，其余功能可完全离线使用
 
 ## 6. 彩蛋与隐藏功能 🥚
@@ -262,6 +264,20 @@
 python -m http.server 8090        # 或任意静态服务器
 # 浏览器打开 http://localhost:8090/index.html
 ```
+
+### Cloudflare Workers / Pages：静态资源缓存
+仓库根目录的 `_headers` 会被 Workers（Static Assets）/ Pages 自动读取并应用：
+
+| 匹配 | 响应头 | 说明 |
+|---|---|---|
+| `/*.png` | `Cache-Control: public, max-age=604800` | 背景位图，7 天内不再重复下载 |
+| `/*.webp` | 同上 | 祥云洒金等，7 天 |
+| `/assets/bg/*.svg` | 同上 | 国风四幅整幅画面，7 天 |
+
+CSS / JS 仍带 `?v=` 版本号，改版即可失效，因此不在这里设长缓存。
+
+> 如果你的 Worker 不是用 Static Assets 绑定，而是自己在 `fetch` 里读文件返回，`_headers` 不会自动生效，
+> 需要在返回前手动补同样的头（`png` / `webp` / `svg` 三类即可），否则浏览器每次都会重新下载背景图。
 
 ### 启用「粘贴链接导入网页正文」
 导入需要同源代理代取网页（浏览器直连会被目标站 CORS 拦住），在与 `index.html` 同目录执行：
