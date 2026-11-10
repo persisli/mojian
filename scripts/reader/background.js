@@ -22,16 +22,17 @@ const backgroundPatterns = {
     },
     // 信笺：四幅 1920x860 整幅画面，取自 bg_refer/1920x860/ 参考图
     //   鹤影青绿 / 桂花旧纸 / 回纹朱日 / 水彩荷塘
+    // 统一使用 webp（同名 png 的 1/10 左右：单张 23~57KB），浏览器按需解码
     // 不等比拉伸铺满"标题栏以下的整块区域"（100% 100%），画面完整不裁切；
     // 由 body.bg-fill-below-header 让开标题栏，其余一直铺到底，状态栏关闭也不留白
     stationery: {
-        'crane-hills': "url('../assets/bg/crane-hills.png')",
-        'osmanthus-kraft': "url('../assets/bg/osmanthus-kraft.png')",
-        // 回纹朱日：nosun 底图（自由拉伸）+ 朱日 sun 左上角叠加。
+        'crane-hills': "url('../assets/bg/crane-hills.webp')",
+        'osmanthus-kraft': "url('../assets/bg/osmanthus-kraft.webp')",
+        // 回纹朱日：nosun 底图（自由拉伸）+ 朱日 sun 左上角叠加（叠加层仍是 png，仅 9KB）。
         // sun 层等比缩放：height = 容器高 × 13.7%（≈118/860），width auto 保持长宽比；
         // 位置锚定左上角、与上边线/左边线保持原图相对距离（2.25%/4.5%）。
-        'meander-sun': "url('../assets/bg/meander-sun-overlay.png'), url('../assets/bg/meander-sun.png')",
-        'watercolor-pond': "url('../assets/bg/watercolor-pond.png')"
+        'meander-sun': "url('../assets/bg/meander-sun-overlay.png'), url('../assets/bg/meander-sun.webp')",
+        'watercolor-pond': "url('../assets/bg/watercolor-pond.webp')"
     }
 };
 
@@ -60,14 +61,82 @@ const patternThemes = {
 /* ================================================================
  * 背景图延迟加载
  *
- * 背景图（尤其信笺 4 张 PNG，单张 300~800KB）不在首屏关键路径上：
+ * 背景图（信笺 4 张 webp 单张 23~57KB，首次仍需一次往返）不在首屏关键路径上：
  * 首次加载时先只落纯色底，让样式表与页面组件正常渲染；
- * 等 load 之后的空闲时段再挂 --bg-pattern，让大图在首屏绘制完成后才开始下载。
+ * 等 load 之后的空闲时段再挂 --bg-pattern，让背景图在首屏绘制完成后才开始下载。
  * 首屏之后（bgImagesUnlocked = true）用户切换背景则立即生效。
+ *
+ * 若浏览器本地已缓存过该背景图（7 天内、与 _headers 的 max-age 对齐），
+ * 则启动时直接挂上，刷新后不会从纯色开始，也不会重新下载。
  * ================================================================ */
 var bgImagesUnlocked = false;
 var bgPatternDeferred = false;
 var bgUnlockScheduled = false;
+
+// 本地"该背景图已下载过"的记录（url → 首次下载完成时间）
+var BG_CACHE_KEY = 'mojianBgCache';
+var BG_CACHE_TTL = 7 * 24 * 60 * 60 * 1000;
+
+/**
+ * 从 `url('...')` 形式的 CSS 值里取出图片地址，并转成相对站点根的路径
+ * （backgroundPatterns 里的路径是相对 styles/ 的，探针/记录需要相对页面）
+ */
+function bgPatternUrls(pattern) {
+    var urls = [];
+    if (!pattern) return urls;
+    var re = /url\((['"]?)([^'")]+)\1\)/g;
+    var m;
+    while ((m = re.exec(pattern))) {
+        urls.push(String(m[2]).replace(/^\.\.\//, ''));
+    }
+    return urls;
+}
+
+function readBgCacheStore() {
+    try {
+        return JSON.parse(localStorage.getItem(BG_CACHE_KEY) || '{}') || {};
+    } catch (e) {
+        return {};
+    }
+}
+
+/**
+ * 该组背景图是否仍在浏览器本地缓存有效期内
+ */
+function isBgImageCached(urls) {
+    if (!urls || !urls.length) return false;
+    var store = readBgCacheStore();
+    var now = Date.now();
+    for (var i = 0; i < urls.length; i++) {
+        var ts = store[urls[i]];
+        if (!ts || now - ts > BG_CACHE_TTL) return false;
+    }
+    return true;
+}
+
+function markBgImageCached(urls) {
+    if (!urls || !urls.length) return;
+    var store = readBgCacheStore();
+    var now = Date.now();
+    urls.forEach(function (u) { store[u] = now; });
+    try {
+        localStorage.setItem(BG_CACHE_KEY, JSON.stringify(store));
+    } catch (e) { /* 隐私模式等写入失败时忽略 */ }
+}
+
+/**
+ * 记录当前背景图的下载完成时间：图片加载成功才记账，下次刷新即可直接应用
+ */
+function rememberBgImageDownload() {
+    var state = window.Mojian.state;
+    var type = state.settings.backgroundType;
+    var pattern = type !== 'solid' ? backgroundPatterns[type]?.[state.settings.backgroundPattern] : null;
+    bgPatternUrls(pattern).forEach(function (u) {
+        var img = new Image();
+        img.onload = function () { markBgImageCached([u]); };
+        img.src = u;
+    });
+}
 
 /**
  * 按当前设置写入背景图相关的 CSS 变量（含"无图"的复位分支）
@@ -132,6 +201,8 @@ function scheduleBgImageUnlock() {
         if (bgPatternDeferred) {
             bgPatternDeferred = false;
             applyPatternCssVars();
+            // 记账：下次刷新时若仍在 7 天缓存期内，就直接应用、不再等 load
+            rememberBgImageDownload();
         }
     };
     var whenIdle = function() {
@@ -151,7 +222,7 @@ function scheduleBgImageUnlock() {
 
 /**
  * 设置面板里的背景缩略图：只在对应面板被打开时按顺序逐张加载，
- * 避免一次把整组大图（信笺 4 张 ≈ 1.8MB）全部拉下来。
+ * 避免一次把整组背景图全部拉下来。
  */
 function hydrateBgSwatches(panel) {
     if (!panel || !panel.querySelectorAll) return;
@@ -257,14 +328,24 @@ function applyBackground() {
     document.documentElement.style.setProperty('--bg-pattern-opacity', opacity);
 
     // 背景图不在首屏关键路径上：首屏只落纯色底 + 其余界面样式，
-    // 等首屏绘制完成（load → 空闲时段）再挂 --bg-pattern 开始下载背景大图
+    // 等首屏绘制完成（load → 空闲时段）再挂 --bg-pattern 开始下载背景。
+    // 例外：本地已缓存过（7 天内）就直接挂上——刷新后立刻是旧图，既不闪纯色也不重新下载。
     const hasPattern = state.settings.backgroundType !== 'solid' && !!pattern;
-    if (!hasPattern || bgImagesUnlocked) {
+    if (!hasPattern) {
         bgPatternDeferred = false;
         applyPatternCssVars();
     } else {
-        bgPatternDeferred = true;
-        scheduleBgImageUnlock();
+        const urls = bgPatternUrls(pattern);
+        const cached = isBgImageCached(urls);
+        if (bgImagesUnlocked || cached) {
+            bgPatternDeferred = false;
+            applyPatternCssVars();
+            // 刚切换到这个背景（或缓存记录已过期）→ 记账，下次刷新即可直接应用
+            if (!cached) rememberBgImageDownload();
+        } else {
+            bgPatternDeferred = true;
+            scheduleBgImageUnlock();
+        }
     }
 
     elements.markdownContent.style.backgroundColor = 'transparent';
